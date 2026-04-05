@@ -153,6 +153,12 @@ export default function Home() {
           </Link>
           <nav className="flex items-center gap-3 text-sm">
             <Link
+              href="/quiz"
+              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
+            >
+              Quiz
+            </Link>
+            <Link
               href="/login"
               className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
             >
@@ -258,6 +264,28 @@ export default function Home() {
                 </article>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="border-t border-[var(--border)] px-6 py-16 text-center">
+          <div className="mx-auto max-w-xl">
+            <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">
+              Quiz gratuito · 2 minutos
+            </p>
+            <h2 className="mt-4 font-serif text-2xl tracking-tight text-[var(--foreground)] md:text-3xl">
+              Quão atualizado você está com IA?
+            </h2>
+            <p className="mt-3 text-[var(--muted)]">
+              Ferramentas, agentes e automação — descubra se você está
+              acompanhando ou ficando pra trás.
+            </p>
+            <Link
+              href="/quiz"
+              className="mt-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-8 py-4 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            >
+              Fazer o quiz
+              <ArrowRight className="size-4 opacity-80 text-[var(--accent)]" aria-hidden />
+            </Link>
           </div>
         </section>
 
