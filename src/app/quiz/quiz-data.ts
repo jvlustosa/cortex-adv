@@ -27,14 +27,14 @@ export const questions: Question[] = [
   },
   {
     id: 2,
-    question: "Qual dessas ferramentas você já ouviu falar?",
-    subtitle: "Marque a mais avançada que você conhece.",
+    question: "Qual dessas ferramentas você conhece?",
+    subtitle: "Marque a mais avançada que você já usou ou ouviu falar.",
     options: [
       { label: "Só conheço o ChatGPT", points: 0 },
       { label: "Conheço Claude, Gemini e Copilot", points: 1 },
-      { label: "Já ouvi falar em Cursor, Claude Code ou Windsurf", points: 2 },
+      { label: "Uso Cursor, Claude Code ou ferramentas com agentes", points: 2 },
       {
-        label: "Sei o que é MCP, agentes de IA e function calling",
+        label: "Sei o que é MCP, function calling e conecto IA a sistemas reais",
         points: 3,
       },
     ],
@@ -116,18 +116,18 @@ export const questions: Question[] = [
   },
   {
     id: 7,
-    question: "Em 2025, o que mais mudou na IA generativa?",
+    question: "Em 2026, o que está mudando de verdade na IA?",
     subtitle: "Essa é pra testar se você está acompanhando.",
     options: [
       { label: "Não sei, não tenho acompanhado", points: 0 },
-      { label: "Os modelos ficaram mais rápidos e baratos", points: 1 },
+      { label: "Os modelos ficaram melhores, mas pra mim é tudo igual", points: 1 },
       {
-        label: "Surgiram modelos com contexto de 1M+ tokens e raciocínio avançado",
+        label: "Agentes de IA já escrevem código, pesquisam e executam tarefas sozinhos",
         points: 2,
       },
       {
         label:
-          "Agentes autônomos, MCP e computer use viraram realidade — a IA agora age, não só responde",
+          "MCP virou padrão, agentes rodam por horas sem supervisão e IA já opera dentro de sistemas reais",
         points: 3,
       },
     ],
@@ -151,7 +151,7 @@ export function getResult(score: number): Result {
       level: "Iniciante",
       title: "Você está no ponto de partida",
       description:
-        "A IA generativa já está transformando escritórios inteiros — e você ainda não começou. A boa notícia: o mini curso foi feito exatamente pra quem está nesse estágio. Em menos de uma semana, você vai estar usando IA de verdade.",
+        "Sem drama: a maioria dos escritórios ainda não usa IA direito. Mas quem começa agora já sai na frente. O mini curso foi feito pra quem está nesse ponto — em poucos dias você já vai estar usando IA de verdade no trabalho.",
       emoji: "🌱",
     };
   }
@@ -161,7 +161,7 @@ export function getResult(score: number): Result {
       level: "Explorador",
       title: "Você já experimentou, mas está subutilizando",
       description:
-        "Você conhece as ferramentas, mas usa uma fração do potencial. A maioria dos advogados está aqui. O próximo passo é aprender prompts específicos pra advocacia e montar fluxos que realmente economizam horas.",
+        "Você já mexe com IA, mas usa uma fração do que dá pra fazer. A maioria dos advogados está aqui. O próximo passo é aprender prompts pra advocacia e montar fluxos que economizam horas de verdade.",
       emoji: "🔍",
     };
   }
@@ -171,7 +171,7 @@ export function getResult(score: number): Result {
       level: "Praticante",
       title: "Você está acima da média do mercado",
       description:
-        "Você já entende o jogo e usa IA com frequência. O que falta é integrar ferramentas, usar agentes e criar automações que rodam sozinhas. O curso avançado vai destravar esse nível.",
+        "Você já usa IA com frequência e entende o que está acontecendo. O que falta é integrar ferramentas, usar agentes e criar automações que rodam sozinhas. O curso avançado cobre exatamente isso.",
       emoji: "⚡",
     };
   }
@@ -180,7 +180,7 @@ export function getResult(score: number): Result {
     level: "Avançado",
     title: "Você é referência no seu escritório",
     description:
-      "Pouquíssimos advogados estão nesse nível. Você entende agentes, MCP e automação de verdade. A comunidade no WhatsApp é pra trocar com gente no mesmo patamar — e o curso tem conteúdo avançado que vai te surpreender.",
+      "Pouca gente no jurídico está nesse nível. Você já entende agentes, MCP e automação de verdade. A comunidade no WhatsApp é pra trocar com quem está no mesmo patamar — e o curso tem conteúdo avançado que vale a pena.",
     emoji: "🚀",
   };
 }
