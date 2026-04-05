@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AIOrb } from "@/components/ai-orb";
+import { isSignupEnabled } from "@/lib/supabase/enabled";
 import { ArrowRight, KeyRound, Zap, FileText, BarChart3, Search, Calendar, Users } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { FaqWhatsapp, type FaqItem } from "@/components/faq-whatsapp";
@@ -321,12 +322,14 @@ export default function Home() {
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 text-center text-sm text-[var(--muted)] sm:flex-row sm:text-left">
           <span>© {new Date().getFullYear()} Cortex.adv.br</span>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
-            <Link
-              href="/signup"
-              className="underline underline-offset-4 hover:text-[var(--foreground)]"
-            >
-              Cadastro com convite
-            </Link>
+            {isSignupEnabled() && (
+              <Link
+                href="/signup"
+                className="underline underline-offset-4 hover:text-[var(--foreground)]"
+              >
+                Cadastro
+              </Link>
+            )}
             <Link
               href="/login"
               className="underline underline-offset-4 hover:text-[var(--foreground)]"

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isSignupEnabled, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20";
@@ -26,7 +26,7 @@ export function SignupForm({ initialToken }: SignupFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isSupabaseEnabled()) return;
+    if (!isSupabaseEnabled() || !isSignupEnabled()) return;
     setStatus("loading");
     setMessage(null);
 
@@ -82,6 +82,22 @@ export function SignupForm({ initialToken }: SignupFormProps) {
     );
   }
 
+  if (!isSignupEnabled()) {
+    return (
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-5 text-center">
+        <p className="text-sm text-[var(--muted)]">
+          Cadastro fechado.{" "}
+          <Link
+            href="/login"
+            className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
+          >
+            Entrar
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
       <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
@@ -125,7 +141,7 @@ export function SignupForm({ initialToken }: SignupFormProps) {
         disabled={status === "loading"}
         className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
       >
-        {status === "loading" ? "Criando conta…" : "Criar conta e entrar"}
+        {status === "loading" ? "Cadastrando…" : "Cadastrar"}
       </button>
       {message && (
         <p

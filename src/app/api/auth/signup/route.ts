@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isSignupEnabled, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 type Body = {
   email?: string;
@@ -14,6 +14,10 @@ export async function POST(request: Request) {
       { error: "Cadastro temporariamente indisponível." },
       { status: 503 },
     );
+  }
+
+  if (!isSignupEnabled()) {
+    return NextResponse.json({ error: "Cadastro indisponível." }, { status: 403 });
   }
 
   let body: Body;

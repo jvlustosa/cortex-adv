@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isSignupEnabled, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)]/50 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--ring)]";
@@ -96,15 +96,17 @@ export function LoginForm() {
       {message && (
         <p className="text-sm text-[var(--danger)]">{message}</p>
       )}
-      <p className="text-center text-sm text-[var(--muted)]">
-        Tem um convite?{" "}
-        <Link
-          href="/signup"
-          className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
-        >
-          Criar conta
-        </Link>
-      </p>
+      {isSignupEnabled() && (
+        <p className="text-center text-sm text-[var(--muted)]">
+          Convite?{" "}
+          <Link
+            href="/signup"
+            className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
+          >
+            Cadastrar
+          </Link>
+        </p>
+      )}
     </form>
   );
 }

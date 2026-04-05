@@ -4,9 +4,9 @@ import { AIOrb } from "@/components/ai-orb";
 import { SignupForm } from "@/components/signup-form";
 
 export const metadata = {
-  title: "Cadastro — Curso de Claude para advogados",
+  title: "Cadastro — Cortex",
   description:
-    "Crie sua conta com convite e acesse o curso de Claude e IA generativa para advogados. Aprenda skills de IA aplicadas ao escritório.",
+    "Conta com convite para o mini curso de Claude e IA para advogados.",
   keywords: [
     "cadastro curso Claude advogados",
     "IA para escritório de advocacia",
@@ -35,11 +35,10 @@ export default async function SignupPage({ searchParams }: PageProps) {
       </Link>
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm">
         <h1 className="font-serif text-2xl tracking-tight text-[var(--foreground)]">
-          Cadastro com convite
+          Cadastro
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Informe o token que você recebeu, seu e-mail profissional e uma senha
-          para acessar o material do mini curso.
+          Token, e-mail e senha (mín. 8 caracteres).
         </p>
         <div className="mt-8">
           <Suspense
