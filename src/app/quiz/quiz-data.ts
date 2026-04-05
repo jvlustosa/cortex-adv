@@ -95,6 +95,27 @@ export const questions: Question[] = [
   },
   {
     id: 6,
+    question: "Enquanto você dorme, a IA do seu escritório está…",
+    subtitle: "Agentes de IA podem rodar 24h. Isso já é realidade pra você?",
+    options: [
+      { label: "Dormindo também — não tenho nada automatizado", points: 0 },
+      {
+        label: "Tenho e-mails agendados, mas nada inteligente",
+        points: 1,
+      },
+      {
+        label: "Tenho automações que disparam sem eu precisar intervir",
+        points: 2,
+      },
+      {
+        label:
+          "Tenho agentes que monitoram, classificam e respondem sozinhos — inclusive de madrugada",
+        points: 3,
+      },
+    ],
+  },
+  {
+    id: 7,
     question: "Em 2025, o que mais mudou na IA generativa?",
     subtitle: "Essa é pra testar se você está acompanhando.",
     options: [

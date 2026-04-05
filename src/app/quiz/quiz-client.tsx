@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { AIOrb } from "@/components/ai-orb";
@@ -10,15 +10,122 @@ const whatsappUrl =
   process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL ??
   "https://chat.whatsapp.com/G2VXJ9UManZ77Rx7Uzn7NT";
 
+// ── Confetti ──
+
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  color: string;
+  rotation: number;
+  rotationSpeed: number;
+  opacity: number;
+}
+
+function Confetti() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    ctx.scale(dpr, dpr);
+
+    const colors = [
+      "#d4a574",
+      "#e0b88a",
+      "#c8956c",
+      "#8c8a85",
+      "#e8e4dc",
+      "#b8845a",
+    ];
+
+    const particles: Particle[] = Array.from({ length: 80 }, () => ({
+      x: Math.random() * w,
+      y: -20 - Math.random() * h * 0.5,
+      vx: (Math.random() - 0.5) * 4,
+      vy: 2 + Math.random() * 4,
+      size: 4 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.15,
+      opacity: 1,
+    }));
+
+    let frame = 0;
+    let raf: number;
+
+    function loop() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, w, h);
+      frame++;
+
+      let alive = false;
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.08;
+        p.vx *= 0.99;
+        p.rotation += p.rotationSpeed;
+
+        if (frame > 60) {
+          p.opacity -= 0.008;
+        }
+
+        if (p.opacity <= 0 || p.y > h + 20) continue;
+        alive = true;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+        ctx.restore();
+      }
+
+      if (alive) {
+        raf = requestAnimationFrame(loop);
+      }
+    }
+
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 z-50"
+      aria-hidden
+    />
+  );
+}
+
+// ── Quiz ──
+
 export function QuizClient() {
   const [current, setCurrent] = useState(0);
   const [scores, setScores] = useState<number[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [phase, setPhase] = useState<"intro" | "quiz" | "result">("intro");
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const totalScore = scores.reduce((a, b) => a + b, 0);
   const result = getResult(totalScore);
-  const progress = phase === "quiz" ? ((current + 1) / questions.length) * 100 : 0;
+  const progress =
+    phase === "quiz" ? ((current + 1) / questions.length) * 100 : 0;
 
   const handleSelect = useCallback(
     (points: number, idx: number) => {
@@ -32,6 +139,7 @@ export function QuizClient() {
 
         if (current + 1 >= questions.length) {
           setPhase("result");
+          setShowConfetti(true);
         } else {
           setCurrent((c) => c + 1);
         }
@@ -45,6 +153,7 @@ export function QuizClient() {
     setScores([]);
     setSelected(null);
     setPhase("intro");
+    setShowConfetti(false);
   };
 
   // ── Intro ──
@@ -57,7 +166,8 @@ export function QuizClient() {
             Quão atualizado você está com IA?
           </h1>
           <p className="mt-4 text-lg text-[var(--muted)]">
-            6 perguntas · menos de 2 minutos · resultado imediato
+            {questions.length} perguntas · menos de 2 minutos · resultado
+            imediato
           </p>
           <p className="mt-2 text-sm text-[var(--muted)]">
             Descubra se você está acompanhando a revolução dos agentes de IA na
@@ -81,37 +191,44 @@ export function QuizClient() {
 
     return (
       <div className="flex min-h-[100dvh] flex-col items-center justify-center px-6 py-16">
+        {showConfetti && <Confetti />}
+
         <div className="w-full max-w-lg text-center">
-          {/* Score ring */}
-          <div className="relative mx-auto mb-8 size-36">
-            <svg viewBox="0 0 120 120" className="size-full -rotate-90">
-              <circle
-                cx="60"
-                cy="60"
-                r="52"
-                fill="none"
-                stroke="var(--border)"
-                strokeWidth="8"
-              />
-              <circle
-                cx="60"
-                cy="60"
-                r="52"
-                fill="none"
-                stroke="var(--accent)"
-                strokeWidth="8"
-                strokeLinecap="round"
-                strokeDasharray={`${pct * 3.267} 326.7`}
-                className="transition-all duration-1000 ease-out"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold text-[var(--foreground)]">
-                {pct}%
-              </span>
-              <span className="text-xs text-[var(--muted)]">
-                {totalScore}/{maxScore} pts
-              </span>
+          {/* Orb behind score */}
+          <div className="relative mx-auto mb-6 flex items-center justify-center">
+            <div className="absolute opacity-30">
+              <AIOrb size="lg" active />
+            </div>
+            <div className="relative size-36">
+              <svg viewBox="0 0 120 120" className="size-full -rotate-90">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke="var(--border)"
+                  strokeWidth="8"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke="var(--accent)"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${pct * 3.267} 326.7`}
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-3xl font-bold text-[var(--foreground)]">
+                  {pct}%
+                </span>
+                <span className="text-xs text-[var(--muted)]">
+                  {totalScore}/{maxScore} pts
+                </span>
+              </div>
             </div>
           </div>
 

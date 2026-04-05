@@ -20,7 +20,7 @@ const quizJsonLd = {
   "@type": "Quiz",
   name: "Quão atualizado você está com IA?",
   description:
-    "Quiz de 6 perguntas para advogados descobrirem seu nível de atualização com ferramentas e agentes de IA.",
+    `Quiz de ${questions.length} perguntas para advogados descobrirem seu nível de atualização com ferramentas e agentes de IA.`,
   educationalLevel: "Professional",
   about: {
     "@type": "Thing",
