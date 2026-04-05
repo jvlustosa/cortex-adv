@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 const inputClass =
-  "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20";
+  "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)]/50 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--ring)]";
 
 export function LoginForm() {
   const router = useRouter();
@@ -67,12 +67,12 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+        className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
       >
         {status === "loading" ? "Entrando…" : "Entrar"}
       </button>
       {message && (
-        <p className="text-sm text-red-600 dark:text-red-400">{message}</p>
+        <p className="text-sm text-[var(--danger)]">{message}</p>
       )}
       <p className="text-center text-sm text-[var(--muted)]">
         Tem um convite?{" "}

@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { AIOrb } from "@/components/ai-orb";
-import { MessageCircle, ArrowRight, KeyRound } from "lucide-react";
+import { ArrowRight, KeyRound } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp";
 
 const whatsappUrl =
   process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL ??
-  "https://chat.whatsapp.com/SEU_LINK_DO_GRUPO";
+  "https://chat.whatsapp.com/G2VXJ9UManZ77Rx7Uzn7NT";
 
 export default function Home() {
   return (
     <div className="flex min-h-[100dvh] flex-col">
-      <header className="border-b border-[var(--border)] bg-[var(--surface)]/70 backdrop-blur-md">
+      <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-6 px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <AIOrb size="md" />
@@ -43,7 +44,7 @@ export default function Home() {
             className="pointer-events-none absolute inset-0 -z-10 opacity-40"
             aria-hidden
           >
-            <div className="absolute -top-32 left-1/2 h-96 w-[min(100%,48rem)] -translate-x-1/2 rounded-full bg-gradient-to-b from-[var(--accent)]/15 to-transparent blur-3xl" />
+            <div className="absolute -top-32 left-1/2 h-96 w-[min(100%,48rem)] -translate-x-1/2 rounded-full bg-gradient-to-b from-[var(--accent)]/10 to-transparent blur-[100px]" />
           </div>
           <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-[1.1fr_0.9fr] md:items-center">
             <div>
@@ -64,7 +65,7 @@ export default function Home() {
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3.5 text-sm font-medium text-white shadow-sm transition hover:bg-[var(--accent-hover)]"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3.5 text-sm font-medium text-[var(--background)] shadow-sm transition hover:bg-[var(--accent-hover)]"
                 >
                   <KeyRound className="size-5" aria-hidden />
                   Entrar com convite
@@ -76,13 +77,13 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-6 py-3.5 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--accent)]/35"
                 >
-                  <MessageCircle className="size-5 text-[var(--muted)]" aria-hidden />
+                  <WhatsAppIcon className="size-5 text-[var(--muted)]" />
                   Grupo no WhatsApp
                 </a>
               </div>
             </div>
             <div className="flex justify-center md:justify-end">
-              <div className="relative flex flex-col items-center rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-10 shadow-sm">
+              <div className="relative flex flex-col items-center rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-10 shadow-[0_0_40px_-12px_var(--accent)/15]">
                 <AIOrb size="lg" />
                 <p className="mt-8 text-center font-serif text-xl text-[var(--foreground)]">
                   Claude Cowork
@@ -95,7 +96,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="border-t border-[var(--border)] bg-[var(--surface)]/50 px-6 py-16">
+        <section className="border-t border-[var(--border)] bg-[var(--surface-overlay)] px-6 py-16">
           <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-3">
             {[
               {

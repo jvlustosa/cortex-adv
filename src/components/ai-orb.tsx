@@ -122,9 +122,9 @@ export function AIOrb({ size = "md", className, active = true }: AIOrbProps) {
         const alpha = 0.15 + depth * 0.85;
         const dotSize = (0.4 + depth * 0.8) * dpr * (size === "lg" ? 1.2 : 1);
 
-        const hue = 214 + depth * 12;
-        const sat = 40 + depth * 20;
-        const light = 34 + depth * 24;
+        const hue = 28 + depth * 8;
+        const sat = 45 + depth * 25;
+        const light = 40 + depth * 28;
 
         ctx.beginPath();
         ctx.arc(cx + pt.x, cy + pt.y, Math.max(dotSize, 0.5), 0, Math.PI * 2);
@@ -132,7 +132,7 @@ export function AIOrb({ size = "md", className, active = true }: AIOrbProps) {
 
         if (depth > 0.5) {
           ctx.shadowBlur = config.glow * dpr * depth;
-          ctx.shadowColor = `hsla(${hue}, 55%, 55%, ${alpha * 0.6})`;
+          ctx.shadowColor = `hsla(${hue}, 60%, 60%, ${alpha * 0.6})`;
         } else {
           ctx.shadowBlur = 0;
         }
