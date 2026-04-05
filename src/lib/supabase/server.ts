@@ -1,7 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { isSupabaseEnabled } from "./enabled";
+
+function dormantServerClient(): SupabaseClient {
+  return {
+    auth: {
+      getUser: async () => ({ data: { user: null }, error: null }),
+    },
+  } as unknown as SupabaseClient;
+}
 
 export async function createClient() {
+  if (!isSupabaseEnabled()) {
+    return dormantServerClient();
+  }
+
   const cookieStore = await cookies();
 
   return createServerClient(

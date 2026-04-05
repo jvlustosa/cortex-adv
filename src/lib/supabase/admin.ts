@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
+import { isSupabaseEnabled } from "./enabled";
 
 export function createAdminClient() {
+  if (!isSupabaseEnabled()) {
+    throw new Error("Supabase desativado (NEXT_PUBLIC_SUPABASE_ENABLED).");
+  }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {

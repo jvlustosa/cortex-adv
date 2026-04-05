@@ -51,6 +51,9 @@ const whatsappUrl =
   process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL ??
   "https://chat.whatsapp.com/G2VXJ9UManZ77Rx7Uzn7NT";
 
+const chatJuridicoUrl =
+  "https://chatjuridico.com.br?utm_source=cortex_adv&utm_medium=referral";
+
 const skills = [
   {
     icon: FileText,
@@ -335,7 +338,7 @@ export default function Home() {
         <div className="mx-auto mt-6 flex max-w-5xl items-center justify-center gap-2 border-t border-[var(--border)] pt-6 text-xs text-[var(--muted)]">
           <span>Feito por</span>
           <a
-            href="https://chatjuridico.com.br"
+            href={chatJuridicoUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 transition hover:text-[var(--foreground)]"

@@ -1,7 +1,11 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  if (!isSupabaseEnabled()) {
+    return NextResponse.next({ request });
+  }
   return await updateSession(request);
 }
 

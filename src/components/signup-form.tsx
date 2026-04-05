@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20";
@@ -25,6 +26,7 @@ export function SignupForm({ initialToken }: SignupFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isSupabaseEnabled()) return;
     setStatus("loading");
     setMessage(null);
 
@@ -58,6 +60,26 @@ export function SignupForm({ initialToken }: SignupFormProps) {
 
     router.push(next);
     router.refresh();
+  }
+
+  if (!isSupabaseEnabled()) {
+    return (
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-5 text-center">
+        <p className="font-serif text-xl tracking-tight text-[var(--foreground)]">
+          Em breve
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+          Cadastro com convite em breve. O conteúdo já está disponível em{" "}
+          <Link
+            href="/membros"
+            className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
+          >
+            modo demo
+          </Link>
+          .
+        </p>
+      </div>
+    );
   }
 
   return (

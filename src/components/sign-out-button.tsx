@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -11,6 +12,10 @@ export function SignOutButton() {
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
+  }
+
+  if (!isSupabaseEnabled()) {
+    return null;
   }
 
   return (

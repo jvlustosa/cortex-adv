@@ -43,13 +43,20 @@ export function LoginForm() {
 
   if (!isSupabaseEnabled()) {
     return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-3 text-sm text-[var(--muted)]">
-        Login desativado por enquanto. A área de membros está acessível em modo demo
-        (sem conta). Para ligar o Supabase, defina{" "}
-        <code className="rounded bg-[var(--border)]/40 px-1 font-mono text-xs">
-          NEXT_PUBLIC_SUPABASE_ENABLED=true
-        </code>{" "}
-        e as variáveis do projeto.
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-5 text-center">
+        <p className="font-serif text-xl tracking-tight text-[var(--foreground)]">
+          Em breve
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+          Login com convite em breve. Enquanto isso, o mini curso segue acessível em{" "}
+          <Link
+            href="/membros"
+            className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
+          >
+            modo demo
+          </Link>
+          , sem conta.
+        </p>
       </div>
     );
   }
