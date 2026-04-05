@@ -18,11 +18,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://cortex.adv.br"),
   title: {
     default:
-      "Cortex.adv.br — IA para advogados | Mini curso gratuito de Claude e IA generativa",
+      "Cortex.adv.br — IA para advogados | Curso de Claude e IA generativa",
     template: "%s — Cortex.adv.br",
   },
   description:
-    "Mini curso gratuito de Claude e IA generativa para advogados. Aprenda a automatizar peças, rotinas e comunicação do escritório. Comunidade no WhatsApp e área de membros com acesso por convite.",
+    "Curso de Claude e IA generativa para advogados — disponível em breve. Aprenda a automatizar peças, rotinas e comunicação do escritório. Comunidade no WhatsApp e área de membros com acesso por convite.",
   keywords: [
     "IA para advogados",
     "Claude para advocacia",
@@ -47,16 +47,18 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Cortex.adv.br — IA para advogados",
     description:
-      "Mini curso gratuito de Claude e IA generativa para advogados. Automatize peças, rotinas e comunicação do seu escritório.",
+      "Curso de Claude e IA generativa para advogados — em breve. Automatize peças, rotinas e comunicação do seu escritório.",
     locale: "pt_BR",
     type: "website",
     siteName: "Cortex.adv.br",
+    images: [{ url: "/og/home.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Cortex.adv.br — IA para advogados",
     description:
-      "Mini curso gratuito de Claude e IA generativa para advogados. Comunidade no WhatsApp.",
+      "Curso de Claude e IA generativa para advogados — em breve. Comunidade no WhatsApp.",
+    images: ["/og/home.png"],
   },
   robots: {
     index: true,

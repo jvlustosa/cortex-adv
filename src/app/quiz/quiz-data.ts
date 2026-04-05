@@ -10,48 +10,74 @@ export interface Question {
   options: Option[];
 }
 
+/** Ordem: do mais concreto e acessível (início) ao mais técnico e de mercado (final). */
 export const questions: Question[] = [
   {
     id: 1,
-    question: "Como você usa IA no seu dia a dia de trabalho?",
-    subtitle: "Seja honesto — não tem resposta errada.",
+    question: "Onde a IA entra no seu fluxo de trabalho hoje?",
+    subtitle: "Pergunta direta: pense no seu dia a dia no escritório.",
     options: [
-      { label: "Não uso IA no trabalho", points: 0 },
-      { label: "Uso o ChatGPT de vez em quando pra tirar dúvidas", points: 1 },
-      { label: "Uso Claude, ChatGPT ou Gemini com frequência", points: 2 },
+      { label: "Quase não uso (ainda é exceção no meu dia a dia)", points: 0 },
+      { label: "Uso pontualmente pra dúvidas, rascunhos ou resumos", points: 1 },
       {
-        label: "Tenho fluxos automatizados com IA integrada ao meu trabalho",
+        label: "Uso Claude, ChatGPT ou Gemini com frequência no trabalho",
+        points: 2,
+      },
+      {
+        label:
+          "Fluxos com IA integrada: rotina, templates, automação ou orquestração",
         points: 3,
       },
     ],
   },
   {
     id: 2,
-    question: "Qual dessas ferramentas você conhece?",
-    subtitle: "Marque a mais avançada que você já usou ou ouviu falar.",
+    question:
+      "Você precisa revisar um contrato de 80 páginas. O que faz na prática?",
+    subtitle: "Cenário concreto: o que você faria hoje, sem julgar.",
     options: [
-      { label: "Só conheço o ChatGPT", points: 0 },
-      { label: "Conheço Claude, Gemini e Copilot", points: 1 },
-      { label: "Uso Cursor, Claude Code ou ferramentas com agentes", points: 2 },
+      { label: "Leitura integral manual (ainda é o padrão pra mim)", points: 0 },
       {
-        label: "Sei o que é MCP, function calling e conecto IA a sistemas reais",
+        label: "Vou por partes no chat e peço resumo ou achados por trecho",
+        points: 1,
+      },
+      {
+        label:
+          "Envio o PDF inteiro pra modelo com janela grande e peço mapa de riscos ou cláusulas",
+        points: 2,
+      },
+      {
+        label:
+          "Workflow com comparação a base, checklist ou agente que cruza com modelo interno",
         points: 3,
       },
     ],
   },
   {
     id: 3,
-    question: "O que são agentes de IA?",
+    question:
+      "Geração de peças (petições, manifestações, documentos no processo): como você faz hoje?",
+    subtitle:
+      "Rotina real: quem redige, se usa IA e em que nível (não o que seria ideal).",
     options: [
-      { label: "Não sei o que é", points: 0 },
-      { label: "Acho que são chatbots mais inteligentes", points: 1 },
       {
-        label: "São IAs que executam tarefas de forma autônoma, passo a passo",
+        label:
+          "Não redijo peças no meu papel (outro foco, outro cargo ou não atuo nisso)",
+        points: 0,
+      },
+      {
+        label:
+          "Quem redige é outro advogado ou equipe; eu oriento, reviso ou só aprovo",
+        points: 1,
+      },
+      {
+        label:
+          "Redijo eu mesmo, com IA só de vez em quando ou sem processo fixo",
         points: 2,
       },
       {
         label:
-          "São sistemas que planejam, usam ferramentas e tomam decisões com pouca supervisão",
+          "Uso IA com frequência no fluxo de peças (modelos, prompts, revisão iterativa)",
         points: 3,
       },
     ],
@@ -59,82 +85,125 @@ export const questions: Question[] = [
   {
     id: 4,
     question:
-      "Você precisa revisar um contrato de 80 páginas. O que faz?",
-    subtitle: "Pense no que faria hoje, não no ideal.",
+      "Follow-up, status de processo, relatório semanal: o que roda sozinho?",
+    subtitle: "Quanto menos depender de você lembrar, melhor o patamar.",
     options: [
-      { label: "Leio tudo manualmente, cláusula por cláusula", points: 0 },
-      { label: "Copio trechos no ChatGPT e peço pra resumir", points: 1 },
+      { label: "Tudo depende de mim lembrar e executar", points: 0 },
       {
-        label: "Subo o documento inteiro num modelo com janela de contexto grande",
+        label: "Templates e copy/paste (ganho tempo, mas sem inteligência)",
+        points: 1,
+      },
+      {
+        label: "Automações clássicas (Make, Zapier, macros, regras no e-mail)",
         points: 2,
       },
       {
         label:
-          "Uso um agente que lê o contrato, compara com um template e lista as divergências",
+          "IA classifica, redige ou dispara etapas com regras que eu defini",
         points: 3,
       },
     ],
   },
   {
     id: 5,
-    question: "Como você lida com tarefas repetitivas no escritório?",
-    subtitle: "Follow-ups, relatórios, atualizações de caso…",
+    question:
+      "Pesquisa de jurisprudência, súmulas ou doutrina: como você faz na prática?",
+    subtitle:
+      "Eixo diferente de automação de e-mail: é sobre achar fundamento e precedentes.",
     options: [
-      { label: "Faço tudo na mão, uma por uma", points: 0 },
-      { label: "Uso modelos prontos e copiar/colar", points: 1 },
       {
-        label: "Tenho algumas automações (Zapier, Make, macros)",
+        label:
+          "Consulto sites de tribunais ou busco manualmente, sem método fixo",
+        points: 0,
+      },
+      {
+        label:
+          "Google, PDFs de jurisprudência e copiar trecho (sem ferramenta única)",
+        points: 1,
+      },
+      {
+        label:
+          "Uso IA de vez em quando para resumir, filtrar ou sugerir caminhos de busca",
         points: 2,
       },
       {
         label:
-          "Uso IA pra gerar, classificar e disparar automaticamente",
+          "Fluxo com IA ou base paga + critério de conferir fonte e citação",
         points: 3,
       },
     ],
   },
   {
     id: 6,
-    question: "Enquanto você dorme, a IA do seu escritório está…",
-    subtitle: "Agentes de IA podem rodar 24h. Isso já é realidade pra você?",
+    question: "Até onde vai o seu kit de ferramentas hoje?",
+    subtitle: "A partir daqui entram nomes de ferramentas e integração.",
     options: [
-      { label: "Dormindo também — não tenho nada automatizado", points: 0 },
+      { label: "Uso sobretudo um chat genérico (ex.: só ChatGPT)", points: 0 },
       {
-        label: "Tenho e-mails agendados, mas nada inteligente",
+        label: "Alterno entre vários modelos (Claude, Gemini, Copilot, etc.)",
         points: 1,
       },
       {
-        label: "Tenho automações que disparam sem eu precisar intervir",
+        label: "Uso IDEs com IA, agentes de código ou fluxos multi-etapa",
         points: 2,
       },
       {
         label:
-          "Tenho agentes que monitoram, classificam e respondem sozinhos — inclusive de madrugada",
+          "MCP, APIs, function calling (conecto modelo a dados e sistemas reais)",
         points: 3,
       },
     ],
   },
   {
     id: 7,
-    question: "Em 2026, o que está mudando de verdade na IA?",
-    subtitle: "Essa é pra testar se você está acompanhando.",
+    question: "Na prática, o que distingue um agente de IA de um chat comum?",
+    subtitle: "Conceito mais fino: marque a definição que mais combina com você.",
     options: [
-      { label: "Não sei, não tenho acompanhado", points: 0 },
-      { label: "Os modelos ficaram melhores, mas pra mim é tudo igual", points: 1 },
+      { label: "Ainda não tenho definição clara na cabeça", points: 0 },
       {
-        label: "Agentes de IA já escrevem código, pesquisam e executam tarefas sozinhos",
+        label: "É um modelo que responde com mais contexto ou memória",
+        points: 1,
+      },
+      {
+        label:
+          "É uma IA que executa sequências de passos, com ferramentas e feedback",
         points: 2,
       },
       {
         label:
-          "MCP virou padrão, agentes rodam por horas sem supervisão e IA já opera dentro de sistemas reais",
+          "Planeja, chama ferramentas, itera e age com supervisão mínima quando bem configurado",
+        points: 3,
+      },
+    ],
+  },
+  {
+    id: 8,
+    question: "Em 2026, onde está o salto em relação a “só um chat melhor”?",
+    subtitle: "Visão de mercado (a mais exigente do quiz).",
+    options: [
+      { label: "Não acompanho de perto (notícias soltas)", points: 0 },
+      {
+        label: "Modelos melhores, mas minha rotina ainda é manual",
+        points: 1,
+      },
+      {
+        label:
+          "Agentes com ferramentas e tarefas longas já são comuns em produtos que uso",
+        points: 2,
+      },
+      {
+        label:
+          "MCP, orquestração de agentes e IA em ERP ou código (isso já orienta decisões minhas)",
         points: 3,
       },
     ],
   },
 ];
 
-export const maxScore = questions.length * 3;
+export const maxScore = questions.reduce(
+  (sum, q) => sum + Math.max(...q.options.map((o) => o.points)),
+  0,
+);
 
 export interface Result {
   level: string;
@@ -146,41 +215,41 @@ export interface Result {
 export function getResult(score: number): Result {
   const pct = score / maxScore;
 
-  if (pct <= 0.25) {
+  if (pct <= 0.2) {
     return {
-      level: "Iniciante",
-      title: "Você está no ponto de partida",
+      level: "Em transição",
+      title: "Você sabe o que existe, mas ainda não incorporou",
       description:
-        "Sem drama: a maioria dos escritórios ainda não usa IA direito. Mas quem começa agora já sai na frente. O mini curso foi feito pra quem está nesse ponto — em poucos dias você já vai estar usando IA de verdade no trabalho.",
+        "Pra quem já ouviu falar de IA no mercado, esse é o lugar de virar intenção em rotina: prompts consistentes, documentos inteiros no modelo e um fluxo que não dependa só de você lembrar. O mini curso puxa isso do zero ao uso sério no escritório.",
       emoji: "🌱",
     };
   }
 
-  if (pct <= 0.5) {
+  if (pct <= 0.44) {
     return {
-      level: "Explorador",
-      title: "Você já experimentou, mas está subutilizando",
+      level: "Explorador sólido",
+      title: "Você usa, mas ainda no improviso",
       description:
-        "Você já mexe com IA, mas usa uma fração do que dá pra fazer. A maioria dos advogados está aqui. O próximo passo é aprender prompts pra advocacia e montar fluxos que economizam horas de verdade.",
+        "Você já está na IA no dia a dia; o que falta é padronizar: mesma qualidade todo dia, menos retrabalho, mais automação leve. É o degrau antes de agente e integração (e é onde a maioria dos escritórios poderia estar em meses).",
       emoji: "🔍",
     };
   }
 
-  if (pct <= 0.75) {
+  if (pct <= 16 / maxScore) {
     return {
-      level: "Praticante",
-      title: "Você está acima da média do mercado",
+      level: "Praticante forte",
+      title: "Você está à frente da média do jurídico",
       description:
-        "Você já usa IA com frequência e entende o que está acontecendo. O que falta é integrar ferramentas, usar agentes e criar automações que rodam sozinhas. O curso avançado cobre exatamente isso.",
+        "Contexto grande, ferramentas e alguma automação já fazem parte. O próximo passo é fechar o ciclo: agentes, orquestração e IA acoplada aos seus sistemas (sem gambiarra). O material avançado do curso mira exatamente nisso.",
       emoji: "⚡",
     };
   }
 
   return {
-    level: "Avançado",
-    title: "Você é referência no seu escritório",
+    level: "Referência",
+    title: "Você está no topo do que o mercado faz hoje",
     description:
-      "Pouca gente no jurídico está nesse nível. Você já entende agentes, MCP e automação de verdade. A comunidade no WhatsApp é pra trocar com quem está no mesmo patamar — e o curso tem conteúdo avançado que vale a pena.",
+      "Poucos escritórios chegam aqui: agentes, MCP, integração real. Você não está só “usando IA” (está desenhando como ela entra na operação). A comunidade no WhatsApp serve pra trocar com quem está nesse patamar; ainda assim dá pra refinar fluxo e governança.",
     emoji: "🚀",
   };
 }

@@ -6,12 +6,15 @@ import { LoginForm } from "@/components/login-form";
 export const metadata = {
   title: "Entrar — Área de membros | Claude para advogados",
   description:
-    "Acesse a área de membros do mini curso gratuito de Claude e IA generativa para advogados. Login seguro com e-mail e senha.",
+    "Acesse a área de membros do curso de Claude e IA generativa para advogados. Login seguro com e-mail e senha.",
   keywords: [
     "login Claude advogados",
     "área de membros IA jurídica",
     "curso Claude para advogados",
   ],
+  openGraph: {
+    images: [{ url: "/og/login.png", width: 1200, height: 630 }],
+  },
 };
 
 export default function LoginPage() {

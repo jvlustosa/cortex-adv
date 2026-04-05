@@ -6,7 +6,7 @@ import { AIOrb } from "@/components/ai-orb";
 import { SignOutButton } from "@/components/sign-out-button";
 
 export const metadata = {
-  title: "Skills de Claude para advogados — Mini curso gratuito",
+  title: "Skills de Claude para advogados — Curso em breve",
   description:
     "Material do mini curso de Claude para advogados: geração de peças, pesquisa jurídica, automação de rotinas, relatórios e gestão de prazos com IA generativa.",
   keywords: [
@@ -14,8 +14,11 @@ export const metadata = {
     "Claude para advocacia",
     "IA generativa peças jurídicas",
     "automação escritório advocacia",
-    "curso Claude gratuito",
+    "curso Claude advogados",
   ],
+  openGraph: {
+    images: [{ url: "/og/membros.png", width: 1200, height: 630 }],
+  },
 };
 
 const modules = [

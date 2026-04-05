@@ -8,13 +8,13 @@ const faqItems: FaqItem[] = [
   {
     question: "O que é o Cortex e o mini curso?",
     answer:
-      "O Cortex é uma comunidade e mini curso para advogados e advogadas que querem usar IA generativa — especialmente o Claude — no dia a dia do escritório. Você aprende a montar prompts, automatizar rotinas e integrar IA na sua prática jurídica, do zero.",
+      "O Cortex é uma comunidade e mini curso pra advogados que querem usar IA no dia a dia do escritório. Você aprende a usar o Claude pra redigir peças, pesquisar jurisprudência, automatizar rotinas e ganhar tempo de verdade.",
     reaction: "🤯",
   },
   {
     question: "Qual a diferença do Claude pro ChatGPT?",
     answer:
-      "Os dois são IAs generativas, mas com perfis diferentes. O Claude tende a ser mais cuidadoso com nuances, segue instruções longas com mais fidelidade e tem uma janela de contexto enorme — ideal pra quem trabalha com peças e contratos extensos. O ChatGPT tem um ecossistema maior de plugins e é mais conhecido. No curso, a gente mostra na prática onde cada um se destaca e por que o Claude costuma entregar mais no contexto jurídico.",
+      "Os dois são IAs, mas com perfis diferentes. O Claude é mais cuidadoso com nuances, segue instruções longas melhor e consegue ler documentos enormes de uma vez — ideal pra peças e contratos. O ChatGPT é mais popular e tem mais integrações. No curso, a gente mostra na prática onde cada um se destaca.",
     reaction: "💡",
   },
   {
@@ -26,12 +26,12 @@ const faqItems: FaqItem[] = [
   {
     question: "O que tem no grupo do WhatsApp?",
     answer:
-      "É o canal principal da comunidade. Lá a gente compartilha dicas rápidas, novidades sobre IA, tira dúvidas em tempo real e troca experiências entre advogados e advogadas que já estão usando IA no escritório. É gratuito e aberto.",
+      "É o canal principal da comunidade. Lá a gente compartilha dicas rápidas, novidades sobre IA, tira dúvidas em tempo real e troca experiências entre advogados e advogadas que já estão usando IA no escritório. É aberto — entra quem quiser.",
   },
   {
-    question: "O mini curso é gratuito?",
+    question: "Quanto custa o curso?",
     answer:
-      "Sim, o acesso ao mini curso é gratuito. Você recebe um convite com login e senha para a área de membros. O conteúdo fica disponível no seu ritmo — sem prazo pra terminar.",
+      "O curso é pago — estamos finalizando o conteúdo e o valor será divulgado em breve. Quem estiver no grupo do WhatsApp vai saber primeiro.",
     reaction: "✨",
   },
   {
@@ -42,7 +42,7 @@ const faqItems: FaqItem[] = [
   {
     question: "Meus dados ficam seguros?",
     answer:
-      "Sim. O login é feito via Supabase com autenticação segura. Não armazenamos dados sensíveis do seu escritório. O curso ensina boas práticas de uso de IA respeitando sigilo profissional e a LGPD.",
+      "Sim. O login é seguro e não armazenamos dados do seu escritório. O curso também ensina boas práticas de uso de IA respeitando sigilo profissional e a LGPD.",
     reaction: "🔒",
   },
 ];
@@ -104,13 +104,13 @@ const jsonLd = {
   "@type": "Course",
   name: "Claude Cowork para advogados — Mini curso de IA generativa",
   description:
-    "Mini curso gratuito sobre Claude e IA generativa aplicada à advocacia. Aprenda a automatizar peças, rotinas e comunicação do escritório.",
+    "Curso de Claude e IA generativa aplicada à advocacia — disponível em breve. Aprenda a automatizar peças, rotinas e comunicação do escritório.",
   provider: {
     "@type": "Organization",
     name: "Cortex.adv.br",
     url: "https://cortex.adv.br",
   },
-  isAccessibleForFree: true,
+  isAccessibleForFree: false,
   inLanguage: "pt-BR",
   audience: {
     "@type": "Audience",
@@ -191,7 +191,7 @@ export default function Home() {
           <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-[1.1fr_0.9fr] md:items-center">
             <div>
               <p className="text-sm font-medium tracking-wide text-[var(--accent)]">
-                Mini curso gratuito · Comunidade no WhatsApp
+                Em breve · Comunidade no WhatsApp
               </p>
               <h1 className="mt-4 font-serif text-4xl leading-[1.08] tracking-tight text-[var(--foreground)] md:text-5xl lg:text-[3.35rem]">
                 IA generativa para advogados
@@ -202,7 +202,7 @@ export default function Home() {
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--muted)]">
                 Prompts, automações e fluxos completos — do zero ao avançado.
                 Entre no grupo do WhatsApp para trocar com outros advogados e
-                acesse o mini curso gratuito na área de membros.
+                acesse a área de membros quando o curso abrir.
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a
@@ -273,7 +273,7 @@ export default function Home() {
         <section className="border-t border-[var(--border)] px-6 py-16 text-center">
           <div className="mx-auto max-w-xl">
             <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">
-              Quiz gratuito · 2 minutos
+              Quiz · 2 minutos
             </p>
             <h2 className="mt-4 font-serif text-2xl tracking-tight text-[var(--foreground)] md:text-3xl">
               Quão atualizado você está com IA?

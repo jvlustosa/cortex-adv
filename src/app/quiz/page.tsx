@@ -5,7 +5,7 @@ import { questions } from "./quiz-data";
 export const metadata: Metadata = {
   title: "Quiz — Quão atualizado você está com IA? | Claude para advogados",
   description:
-    "Descubra em 2 minutos se você está acompanhando os avanços da IA generativa e dos agentes de IA na advocacia. Quiz gratuito com resultado imediato.",
+    "Quiz rápido para quem já conhece o básico: mapeia onde você está com ferramentas, agentes e automação na advocacia. Resultado imediato.",
   keywords: [
     "quiz IA advogados",
     "teste inteligência artificial advocacia",
@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     "Claude para advogados quiz",
     "IA generativa escritório direito",
   ],
+  openGraph: {
+    images: [{ url: "/og/quiz.png", width: 1200, height: 630 }],
+  },
 };
 
 const quizJsonLd = {

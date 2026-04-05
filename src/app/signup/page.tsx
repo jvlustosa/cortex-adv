@@ -4,14 +4,17 @@ import { AIOrb } from "@/components/ai-orb";
 import { SignupForm } from "@/components/signup-form";
 
 export const metadata = {
-  title: "Cadastro — Curso gratuito de Claude para advogados",
+  title: "Cadastro — Curso de Claude para advogados",
   description:
-    "Crie sua conta com convite e acesse o mini curso gratuito de Claude e IA generativa para advogados. Aprenda skills de IA aplicadas ao escritório.",
+    "Crie sua conta com convite e acesse o curso de Claude e IA generativa para advogados. Aprenda skills de IA aplicadas ao escritório.",
   keywords: [
     "cadastro curso Claude advogados",
     "IA para escritório de advocacia",
-    "curso gratuito IA jurídica",
+    "curso IA jurídica",
   ],
+  openGraph: {
+    images: [{ url: "/og/signup.png", width: 1200, height: 630 }],
+  },
 };
 
 type PageProps = {
