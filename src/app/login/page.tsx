@@ -4,8 +4,14 @@ import { AIOrb } from "@/components/ai-orb";
 import { LoginForm } from "@/components/login-form";
 
 export const metadata = {
-  title: "Entrar — Cortex.adv.br",
-  description: "Acesse a área de membros do mini curso Claude Cowork para advogados.",
+  title: "Entrar — Área de membros | Claude para advogados",
+  description:
+    "Acesse a área de membros do mini curso gratuito de Claude e IA generativa para advogados. Login seguro com e-mail e senha.",
+  keywords: [
+    "login Claude advogados",
+    "área de membros IA jurídica",
+    "curso Claude para advogados",
+  ],
 };
 
 export default function LoginPage() {

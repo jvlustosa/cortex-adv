@@ -4,8 +4,14 @@ import { AIOrb } from "@/components/ai-orb";
 import { SignupForm } from "@/components/signup-form";
 
 export const metadata = {
-  title: "Cadastro — Cortex.adv.br",
-  description: "Crie sua conta com o token de convite para acessar o curso.",
+  title: "Cadastro — Curso gratuito de Claude para advogados",
+  description:
+    "Crie sua conta com convite e acesse o mini curso gratuito de Claude e IA generativa para advogados. Aprenda skills de IA aplicadas ao escritório.",
+  keywords: [
+    "cadastro curso Claude advogados",
+    "IA para escritório de advocacia",
+    "curso gratuito IA jurídica",
+  ],
 };
 
 type PageProps = {

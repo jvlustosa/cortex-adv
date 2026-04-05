@@ -17,17 +17,53 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   metadataBase: new URL("https://cortex.adv.br"),
   title: {
-    default: "Cortex.adv.br — Claude Cowork para advogados",
+    default:
+      "Cortex.adv.br — IA para advogados | Mini curso gratuito de Claude e IA generativa",
     template: "%s — Cortex.adv.br",
   },
   description:
-    "Mini curso Claude Cowork para advogados: automatize 100% do seu escritório. Convite para área de membros e grupo no WhatsApp.",
+    "Mini curso gratuito de Claude e IA generativa para advogados. Aprenda a automatizar peças, rotinas e comunicação do escritório. Comunidade no WhatsApp e área de membros com acesso por convite.",
+  keywords: [
+    "IA para advogados",
+    "Claude para advocacia",
+    "inteligência artificial escritório de advocacia",
+    "automação jurídica",
+    "IA generativa direito",
+    "Claude vs ChatGPT advogado",
+    "curso IA advogados",
+    "prompt engineering jurídico",
+    "Claude Cowork",
+    "Cortex adv",
+  ],
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "Cortex.adv.br — Claude Cowork",
+    title: "Cortex.adv.br — IA para advogados",
     description:
-      "Claude Cowork para advogados. Mini curso com acesso por convite e comunidade no WhatsApp.",
+      "Mini curso gratuito de Claude e IA generativa para advogados. Automatize peças, rotinas e comunicação do seu escritório.",
     locale: "pt_BR",
     type: "website",
+    siteName: "Cortex.adv.br",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cortex.adv.br — IA para advogados",
+    description:
+      "Mini curso gratuito de Claude e IA generativa para advogados. Comunidade no WhatsApp.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "https://cortex.adv.br",
   },
 };
 

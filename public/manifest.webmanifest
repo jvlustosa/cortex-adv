@@ -1,0 +1,21 @@
+{
+  "name": "Cortex.adv.br — IA para advogados",
+  "short_name": "Cortex",
+  "description": "Mini curso gratuito de Claude e IA generativa para advogados",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#191918",
+  "theme_color": "#d4a574",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

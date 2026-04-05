@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)]/50 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--ring)]";
@@ -20,6 +21,7 @@ export function LoginForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isSupabaseEnabled()) return;
     setStatus("loading");
     setMessage(null);
 
@@ -37,6 +39,19 @@ export function LoginForm() {
 
     router.push(next);
     router.refresh();
+  }
+
+  if (!isSupabaseEnabled()) {
+    return (
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-3 text-sm text-[var(--muted)]">
+        Login desativado por enquanto. A área de membros está acessível em modo demo
+        (sem conta). Para ligar o Supabase, defina{" "}
+        <code className="rounded bg-[var(--border)]/40 px-1 font-mono text-xs">
+          NEXT_PUBLIC_SUPABASE_ENABLED=true
+        </code>{" "}
+        e as variáveis do projeto.
+      </div>
+    );
   }
 
   return (

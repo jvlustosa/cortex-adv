@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 import { createClient } from "@/lib/supabase/server";
 import { AIOrb } from "@/components/ai-orb";
 import { SignOutButton } from "@/components/sign-out-button";
 
 export const metadata = {
-  title: "Claude Cowork — membros",
-  description: "Material do mini curso Claude Cowork para advogados.",
+  title: "Skills de Claude para advogados — Mini curso gratuito",
+  description:
+    "Material do mini curso de Claude para advogados: geração de peças, pesquisa jurídica, automação de rotinas, relatórios e gestão de prazos com IA generativa.",
+  keywords: [
+    "skills Claude advogados",
+    "Claude para advocacia",
+    "IA generativa peças jurídicas",
+    "automação escritório advocacia",
+    "curso Claude gratuito",
+  ],
 };
 
 const modules = [
@@ -25,12 +34,13 @@ const modules = [
 ];
 
 export default async function MembrosPage() {
+  const authOn = isSupabaseEnabled();
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authOn && !user) {
     redirect("/login?next=/membros");
   }
 
@@ -45,7 +55,7 @@ export default async function MembrosPage() {
               <p className="text-xs text-[var(--muted)]">Membros</p>
             </div>
           </Link>
-          <SignOutButton />
+          {authOn ? <SignOutButton /> : null}
         </div>
       </header>
       <main className="mx-auto max-w-2xl px-6 py-12">
@@ -55,7 +65,13 @@ export default async function MembrosPage() {
         <h1 className="mt-2 font-serif text-3xl tracking-tight text-[var(--foreground)] md:text-[2rem]">
           Automatize 100% do seu escritório
         </h1>
-        <p className="mt-4 text-sm text-[var(--muted)]">{user.email}</p>
+        {user?.email ? (
+          <p className="mt-4 text-sm text-[var(--muted)]">{user.email}</p>
+        ) : (
+          <p className="mt-4 text-sm text-[var(--muted)]">
+            Autenticação desativada — conteúdo em modo demo.
+          </p>
+        )}
         <p className="mt-6 text-base leading-relaxed text-[var(--foreground)]/90">
           Abaixo está o esqueleto do material. Substitua por vídeos, PDFs ou links
           hospedados onde preferir.
