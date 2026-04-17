@@ -41,7 +41,7 @@ function renderOrbSvg(size, particleCount) {
   const cx = size / 2;
   const cy = size / 2;
   const radius = size * 0.38;
-  const t = 1.2; // frozen time
+  const t = 1.35; // frozen time — alinhado ao modo ativo do AIOrb (ai-orb.tsx)
 
   const rotY = t * 0.6;
   const rotX = Math.sin(t * 0.15) * 0.3;
@@ -53,7 +53,7 @@ function renderOrbSvg(size, particleCount) {
   const dots = [];
 
   for (const p of particles) {
-    const wobble = Math.sin(t * 0.5 * p.speed + p.offset) * 0.03;
+    const wobble = Math.sin(t * 2 * p.speed + p.offset) * 0.08;
     const r = radius * (1 + wobble);
     const phi = p.phi + p.drift * t;
     const theta = p.theta;

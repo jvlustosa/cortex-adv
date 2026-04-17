@@ -74,11 +74,6 @@ export default function GrupoPage() {
           Abrir grupo no WhatsApp
         </a>
 
-        {/* Invite link for copy */}
-        <p className="text-sm break-all" style={{ color: "#71717a" }}>
-          {WHATSAPP_LINK}
-        </p>
-
         {/* Back link */}
         <Link
           href="/"
