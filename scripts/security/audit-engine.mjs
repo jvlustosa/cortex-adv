@@ -198,8 +198,7 @@ export function runStaticAudit(root = PROJECT_ROOT) {
     const content = readText(callbackFile);
     if (
       content.includes('searchParams.get("next")') &&
-      !content.includes("isSafeRedirect") &&
-      !content.includes("startsWith(\"/\")")
+      !content.includes("safeRedirectPath")
     ) {
       findings.push({
         id: "open-redirect-auth-callback",
@@ -208,8 +207,7 @@ export function runStaticAudit(root = PROJECT_ROOT) {
         detail:
           "Parâmetro `next` em /auth/callback é concatenado ao origin sem validação de path relativo.",
         file: "src/app/auth/callback/route.ts",
-        remediation:
-          "Validar next: só paths relativos que começam com / e não com //.",
+        remediation: "Usar safeRedirectPath() para validar destinos internos.",
       });
     }
   }
@@ -217,16 +215,27 @@ export function runStaticAudit(root = PROJECT_ROOT) {
   const loginForm = join(root, "src/components/login-form.tsx");
   if (existsSync(loginForm)) {
     const content = readText(loginForm);
-    if (content.includes("router.push(next)") && !content.includes("startsWith(\"/\")")) {
+    if (content.includes("router.push(next)") && !content.includes("safeRedirectPath")) {
       findings.push({
         id: "open-redirect-login",
         severity: "high",
         title: "Open redirect pós-login",
         detail: "LoginForm faz router.push(next) sem validar que next é path interno.",
         file: "src/components/login-form.tsx",
-        remediation: "Rejeitar next absoluto ou protocol-relative (//).",
+        remediation: "Usar safeRedirectPath() no parâmetro next.",
       });
     }
+  }
+
+  const recoveryPage = join(root, "src/app/recuperar-senha/page.tsx");
+  if (!existsSync(recoveryPage)) {
+    findings.push({
+      id: "password-recovery-missing",
+      severity: "medium",
+      title: "Fluxo de recuperação de senha ausente",
+      detail: "Página /recuperar-senha não encontrada.",
+      remediation: "Implementar resetPasswordForEmail + /auth/atualizar-senha.",
+    });
   }
 
   // ── Middleware não protege rotas sensíveis ────────────────────────────────
@@ -430,17 +439,17 @@ export function runStaticAudit(root = PROJECT_ROOT) {
   });
 
   // ── Demo mode em produção ─────────────────────────────────────────────────
-  const requireAccess = join(root, "src/lib/course/require-access.ts");
-  if (existsSync(requireAccess)) {
-    const content = readText(requireAccess);
-    if (content.includes("authOn && !user") && !content.includes("NODE_ENV")) {
+  const enabledFile = join(root, "src/lib/supabase/enabled.ts");
+  if (existsSync(enabledFile)) {
+    const content = readText(enabledFile);
+    if (!content.includes("isDemoMode")) {
       findings.push({
-        id: "course-demo-without-auth",
-        severity: "info",
-        title: "Modo demo permite acesso sem login",
-        detail:
-          "Com Supabase desligado (dev), aulas ficam acessíveis sem conta. Em produção isSupabaseEnabled() é sempre true.",
-        file: "src/lib/course/require-access.ts",
+        id: "demo-mode-not-gated",
+        severity: "high",
+        title: "Modo demo sem restrição a localhost",
+        detail: "isDemoMode() ausente — curso pode ficar aberto fora de localhost.",
+        file: "src/lib/supabase/enabled.ts",
+        remediation: "Implementar isDemoMode() com isLocalhostSite() + production guard.",
       });
     }
   }

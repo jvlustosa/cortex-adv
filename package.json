@@ -14,7 +14,12 @@
     "audit:live": "node scripts/security-audit.mjs --live",
     "audit:report": "node scripts/security-audit.mjs --write-report",
     "test:security": "node --test tests/security/*.test.mjs",
-    "test:security:live": "node --test tests/security/*.test.mjs"
+    "test:security:live": "node --test tests/security/*.test.mjs",
+    "test:auth": "node --test tests/auth/*.test.mjs",
+    "playwright:install": "playwright install chromium",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test": "npm run test:security && npm run test:auth"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.0",
@@ -27,6 +32,7 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

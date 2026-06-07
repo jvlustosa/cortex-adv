@@ -4,7 +4,13 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { isSignupEnabled, isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { mapSignInError } from "@/lib/auth/errors";
+import { safeRedirectPath } from "@/lib/auth/safe-redirect";
+import {
+  isDemoMode,
+  isSignupEnabled,
+  isSupabaseEnabled,
+} from "@/lib/supabase/enabled";
 
 const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20";
@@ -16,7 +22,7 @@ type SignupFormProps = {
 export function SignupForm({ initialToken }: SignupFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/area-de-membros";
+  const next = safeRedirectPath(searchParams.get("next"));
 
   const [token, setToken] = useState(initialToken);
   const [email, setEmail] = useState("");
@@ -53,7 +59,7 @@ export function SignupForm({ initialToken }: SignupFormProps) {
     if (signErr) {
       setStatus("error");
       setMessage(
-        "Conta criada, mas o login automático falhou. Tente Entrar com e-mail e senha.",
+        `Conta criada, mas o login automático falhou: ${mapSignInError(signErr)}`,
       );
       return;
     }
@@ -63,20 +69,33 @@ export function SignupForm({ initialToken }: SignupFormProps) {
   }
 
   if (!isSupabaseEnabled()) {
+    if (isDemoMode()) {
+      return (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-5 text-center">
+          <p className="font-serif text-xl tracking-tight text-[var(--foreground)]">
+            Em breve
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+            Cadastro com convite em breve. Em localhost, o conteúdo já está em{" "}
+            <Link
+              href="/area-de-membros"
+              className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
+            >
+              modo demo
+            </Link>
+            .
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-5 text-center">
         <p className="font-serif text-xl tracking-tight text-[var(--foreground)]">
-          Em breve
+          Cadastro indisponível
         </p>
         <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-          Cadastro com convite em breve. O conteúdo já está disponível em{" "}
-          <Link
-            href="/area-de-membros"
-            className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
-          >
-            modo demo
-          </Link>
-          .
+          O cadastro exige Supabase configurado. Modo demo só existe em localhost.
         </p>
       </div>
     );

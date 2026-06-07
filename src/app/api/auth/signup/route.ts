@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { mapSignupServerError } from "@/lib/errors/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSignupEnabled, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
@@ -93,7 +94,10 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
-    return NextResponse.json({ error: createErr.message }, { status: 400 });
+    return NextResponse.json(
+      { error: mapSignupServerError(createErr.message) },
+      { status: 400 },
+    );
   }
 
   const { error: updateErr } = await admin

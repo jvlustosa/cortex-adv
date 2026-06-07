@@ -1,12 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { safeRedirectPath } from "@/lib/auth/safe-redirect";
 import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/area-de-membros";
+  const next = safeRedirectPath(searchParams.get("next"));
 
   if (!isSupabaseEnabled()) {
     return NextResponse.redirect(`${origin}/login?error=auth`);

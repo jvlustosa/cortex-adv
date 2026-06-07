@@ -10,9 +10,12 @@
 --      • Confirm email: opcional (API usa email_confirm: true no admin.createUser)
 -- 4. Authentication → URL Configuration:
 --      Site URL:     https://claudeacademy.chatjuridico.com.br
---      Redirect URLs:
+--      Redirect URLs (login OAuth + recuperação de senha):
 --        https://claudeacademy.chatjuridico.com.br/auth/callback
+--        https://claudeacademy.chatjuridico.com.br/auth/atualizar-senha
 --        http://localhost:3000/auth/callback
+--        http://localhost:3000/auth/atualizar-senha
+-- 4b. Authentication → Email Templates → Reset password: manter padrão Supabase
 -- 5. Cole e execute ESTE arquivo no SQL Editor (Run)
 -- 6. Settings → API: copie URL, anon key e service_role para a Vercel / .env.local
 --

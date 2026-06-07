@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { readApiErrorMessage } from "@/lib/errors/format";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
 import styles from "./admin-dashboard.module.css";
@@ -189,8 +190,7 @@ export function AdminDashboard() {
       });
 
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? "Erro ao salvar.");
+        throw new Error(await readApiErrorMessage(res, "Erro ao salvar."));
       }
 
       setEditing(null);

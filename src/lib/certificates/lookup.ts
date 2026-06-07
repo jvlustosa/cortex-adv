@@ -1,6 +1,6 @@
 import { SITE_URL } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isDemoMode } from "@/lib/supabase/enabled";
 import { DEMO_CERTIFICATE_CODE } from "./constants";
 import { isCertificateCodeFormat, normalizeCertificateCode } from "./normalize";
 import type { CertificateLookupResult, CertificatePublic } from "./types";
@@ -62,7 +62,7 @@ export async function lookupCertificate(
     return { status: "invalid", code };
   }
 
-  if (!isSupabaseEnabled()) {
+  if (isDemoMode()) {
     return demoLookup(code);
   }
 
@@ -70,7 +70,7 @@ export async function lookupCertificate(
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
-    return demoLookup(code);
+    return { status: "unconfigured" };
   }
 
   try {
@@ -81,7 +81,7 @@ export async function lookupCertificate(
 
     if (error) {
       console.error("[certificates/lookup]", error.message);
-      if (code === DEMO_CERTIFICATE_CODE) {
+      if (isDemoMode() && code === DEMO_CERTIFICATE_CODE) {
         return demoLookup(code);
       }
       return { status: "unconfigured" };
@@ -96,7 +96,7 @@ export async function lookupCertificate(
     return { status: "valid", certificate: toPublic(row) };
   } catch (err) {
     console.error("[certificates/lookup]", err);
-    if (code === DEMO_CERTIFICATE_CODE) {
+    if (isDemoMode() && code === DEMO_CERTIFICATE_CODE) {
       return demoLookup(code);
     }
     return { status: "unconfigured" };

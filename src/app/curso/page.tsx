@@ -60,7 +60,7 @@ export default function CursoSalesPage() {
         </div>
       </header>
 
-      <LaunchBanner ctaHref="#precos" ctaLabel="Ver preços" showCta />
+      <LaunchBanner />
 
       <main className="flex flex-1 flex-col">
         <section className="relative overflow-hidden px-4 pt-12 pb-14 sm:px-6 sm:pt-14 sm:pb-16 md:pt-20 md:pb-20">

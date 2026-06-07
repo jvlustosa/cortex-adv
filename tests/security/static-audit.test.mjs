@@ -44,18 +44,16 @@ describe("security audit — estático", () => {
     assert.equal(exposed.length, 0, exposed.map((f) => f.detail).join("; "));
   });
 
-  it("detecta open redirect no auth callback", () => {
+  it("não flaga open redirect quando safeRedirectPath está em uso", () => {
     const findings = runStaticAudit(PROJECT_ROOT);
-    const openRedirect = findings.find((f) => f.id === "open-redirect-auth-callback");
-    assert.ok(openRedirect, "deveria flagar open redirect em /auth/callback");
-    assert.equal(openRedirect.severity, "high");
-  });
-
-  it("detecta open redirect no login form", () => {
-    const findings = runStaticAudit(PROJECT_ROOT);
-    const openRedirect = findings.find((f) => f.id === "open-redirect-login");
-    assert.ok(openRedirect, "deveria flagar router.push(next) sem validação");
-    assert.equal(openRedirect.severity, "high");
+    const openRedirect = findings.filter((f) =>
+      f.id.startsWith("open-redirect-"),
+    );
+    assert.equal(
+      openRedirect.length,
+      0,
+      `open redirect não mitigado: ${openRedirect.map((f) => f.id).join(", ")}`,
+    );
   });
 
   it("detecta race condition no signup de convite", () => {
@@ -103,15 +101,13 @@ describe("security audit — estático", () => {
     const findings = runStaticAudit(PROJECT_ROOT);
     const summary = summarize(findings);
     assert.ok(summary.total > 5, "auditoria deve produzir achados documentados");
-    assert.ok(
-      summary.high >= 2,
-      "esperado >=2 high (open redirects conhecidos)",
-    );
+    assert.equal(summary.critical, 0);
+    assert.equal(summary.high, 0);
   });
 
-  it("exit code 1 quando há critical ou high", () => {
+  it("exit code 0 sem critical ou high", () => {
     const findings = runStaticAudit(PROJECT_ROOT);
     const code = exitCodeFor(findings);
-    assert.equal(code, 1, "high findings devem falhar o gate");
+    assert.equal(code, 0);
   });
 });

@@ -10,7 +10,10 @@ type Body = {
 export async function POST(request: Request) {
   const webhook = process.env.SLACK_QUIZ_WEBHOOK_URL;
   if (!webhook) {
-    return NextResponse.json({ ok: false, error: "Webhook not configured" }, { status: 503 });
+    return NextResponse.json(
+      { ok: false, error: "Serviço temporariamente indisponível." },
+      { status: 503 },
+    );
   }
 
   let body: Body;
@@ -32,7 +35,10 @@ export async function POST(request: Request) {
   });
 
   if (!res.ok) {
-    return NextResponse.json({ ok: false }, { status: 502 });
+    return NextResponse.json(
+      { ok: false, error: "Não foi possível registrar o resultado do quiz." },
+      { status: 502 },
+    );
   }
 
   return NextResponse.json({ ok: true });

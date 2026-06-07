@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   if (!checkRateLimit(ip)) {
     return NextResponse.json(
       {
-        error: "Too many requests",
+        error: "Muitas solicitações",
         message: "Aguarde um pouco antes de enviar de novo.",
       },
       { status: 429 },
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     console.error("[api/waitlist] webhook não configurado");
     return NextResponse.json(
       {
-        error: "Slack error",
+        error: "Falha no envio",
         message: "Envio temporariamente indisponível.",
       },
       { status: 503 },
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       console.error("[api/waitlist] Slack failed", response.status, text.slice(0, 200));
       return NextResponse.json(
         {
-          error: "Slack error",
+          error: "Falha no envio",
           message: "Não foi possível registrar agora. Tente novamente.",
         },
         { status: 502 },
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     console.error("[api/waitlist]", error);
     return NextResponse.json(
       {
-        error: "Network error",
+        error: "Falha de conexão",
         message: "Falha ao enviar. Tente novamente.",
       },
       { status: 502 },

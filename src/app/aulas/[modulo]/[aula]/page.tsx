@@ -48,7 +48,9 @@ export default async function AulaPlayerPage({ params }: PageProps) {
     notFound();
   }
 
-  const { authOn, user } = await requireCourseAccess(`/aulas/${modulo}/${aula}`);
+  const { authOn, user, demoMode } = await requireCourseAccess(
+    `/aulas/${modulo}/${aula}`,
+  );
 
   return (
     <AulasShell authOn={authOn} userEmail={user?.email} active="player">
@@ -57,7 +59,7 @@ export default async function AulaPlayerPage({ params }: PageProps) {
           <CourseArea
             course={course}
             userEmail={user?.email}
-            demoMode={!authOn || !user}
+            demoMode={demoMode}
             moduleId={modulo}
             lessonId={aula}
           />

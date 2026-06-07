@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { upsertLessonFeedback } from "@/lib/lessons/repository";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isDemoMode, isSupabaseEnabled } from "@/lib/supabase/enabled";
 import { createClient } from "@/lib/supabase/server";
 
 type Body = {
@@ -11,7 +11,7 @@ type Body = {
 };
 
 export async function POST(request: Request) {
-  if (!isSupabaseEnabled()) {
+  if (isDemoMode() || !isSupabaseEnabled()) {
     return NextResponse.json(
       { error: "Feedback indisponível no modo demo." },
       { status: 503 },

@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { LoginForm } from "@/components/login-form";
+import { LoginStatusBanner } from "@/components/login-status-banner";
 import { buildCourseSupportWhatsAppUrl } from "@/lib/support";
 
 export const metadata = {
@@ -33,6 +34,9 @@ export default function LoginPage() {
           Entre com o e-mail e a senha cadastrados no convite.
         </p>
         <div className="mt-8">
+          <Suspense fallback={null}>
+            <LoginStatusBanner />
+          </Suspense>
           <Suspense
             fallback={
               <div className="h-40 animate-pulse rounded-xl bg-[var(--border)]/30" />

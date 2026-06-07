@@ -11,8 +11,8 @@ type LaunchBannerProps = {
 
 export function LaunchBanner({
   ctaHref = "#precos",
-  ctaLabel = "Ver preços",
-  showCta = false,
+  ctaLabel = "Garantir vaga",
+  showCta = true,
 }: LaunchBannerProps) {
   const ctaIsExternal = ctaHref.startsWith("http");
 

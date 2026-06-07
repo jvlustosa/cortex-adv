@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { readApiErrorMessage } from "@/lib/errors/format";
 import styles from "./lesson-feedback-form.module.css";
 
 type LessonFeedbackFormProps = {
@@ -40,14 +41,15 @@ export function LessonFeedbackForm({
       });
 
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? "Erro ao enviar.");
+        setStatus("error");
+        setError(await readApiErrorMessage(res, "Não foi possível enviar sua avaliação."));
+        return;
       }
 
       setStatus("done");
-    } catch (err) {
+    } catch {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Erro ao enviar.");
+      setError("Falha de conexão. Verifique a internet e tente novamente.");
     }
   }
 

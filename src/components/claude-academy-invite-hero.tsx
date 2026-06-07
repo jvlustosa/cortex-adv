@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
+import { readApiErrorMessage } from "@/lib/errors/format";
 import { COURSE_MENTOR, OPEN_WHATSAPP_GROUP_URL, WAITLIST_API_URL } from "@/lib/site";
 import styles from "./claude-academy-invite-hero.module.css";
 
@@ -129,9 +130,10 @@ export function ClaudeAcademyWaitlist({
         }),
       });
 
-      const data = (await res.json()) as { message?: string };
       if (!res.ok) {
-        setError(data.message ?? "Não foi possível enviar. Tente de novo em instantes.");
+        setError(
+          await readApiErrorMessage(res, "Não foi possível enviar. Tente de novo em instantes."),
+        );
         return;
       }
 
