@@ -7,19 +7,19 @@ Projeto dedicado à área de membros e catálogo de aulas.
 ```
 migrations/
   001_invite_tokens.sql   # Convites de cadastro (já existia)
-  002_profiles.sql        # Perfis student/admin + trigger auth
+  002_users.sql           # Espelho auth.users → public.users + trigger
   003_course_tables.sql   # courses, modules, lessons
   004_lesson_progress.sql # Progresso por aluno
   005_rls_policies.sql    # Row Level Security
   006_seed_curso.sql      # Roteiro completo (34 aulas)
   007_views.sql           # Views de leitura
+  008_auth_users_mirror.sql # Espelho auth → public.users (cria ou migra de profiles)
 ```
 
 ## Modelo (básico)
 
 ```
-auth.users
-    └── profiles (role: student | admin)
+auth.users  ──trigger──►  public.users (espelho, role: student | admin)
 
 courses
     └── modules (níveis 0–5 + bonus)
@@ -32,7 +32,19 @@ lesson_progress (user_id + lesson_id)
 
 1. Crie um projeto em [supabase.com](https://supabase.com) (ex.: `claude-academy`).
 
-2. **SQL Editor** → execute as migrations **na ordem** (`001` … `007`).
+2. **SQL Editor** — ordem para rodar do zero:
+
+| # | Arquivo |
+|---|---------|
+| 1 | `migrations/000_reset.sql` — só se já rodou algo antes |
+| 2 | `setup-completo.sql` |
+| 3 | `migrations/003_course_tables.sql` |
+| 4 | `migrations/004_lesson_progress.sql` |
+| 5 | `migrations/005_rls_policies.sql` |
+| 6 | `migrations/006_seed_curso.sql` |
+| 7 | `migrations/007_views.sql` |
+
+Não rode `002_users.sql` nem `008` se já executou `setup-completo.sql` (users já está incluso).
 
 3. **Authentication → Providers → Email** → habilitado.
 
@@ -52,12 +64,12 @@ insert into public.invite_tokens (token, label, max_uses)
 values ('turma-dev-001', 'Dev local', 50);
 ```
 
-6. Promova seu usuário a admin (após primeiro cadastro):
+6. Cadastre admins do painel:
 
-```sql
-update public.profiles
-set role = 'admin'
-where email = 'seu@email.com';
+```bash
+npm run admin:create
+# ou com login auth + senha temporária:
+npm run admin:create -- --provision
 ```
 
 ## Regenerar seed do roteiro
@@ -90,7 +102,7 @@ Admin preenche `video_url` e libera módulos/aulas via `published = true`.
 select * from public.v_course_outline;
 
 -- Promover admin
-update public.profiles set role = 'admin' where email = '...';
+update public.users set role = 'admin' where email = '...';
 
 -- Publicar módulo 1
 update public.modules set published = true

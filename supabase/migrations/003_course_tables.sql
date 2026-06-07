@@ -1,11 +1,15 @@
 -- Curso, módulos (níveis) e aulas
 
-create type public.lesson_badge as enum (
-  'gratis',
-  'ancora',
-  'entregavel',
-  'capstone'
-);
+do $$ begin
+  create type public.lesson_badge as enum (
+    'gratis',
+    'ancora',
+    'entregavel',
+    'capstone'
+  );
+exception
+  when duplicate_object then null;
+end $$;
 
 create table if not exists public.courses (
   id uuid primary key default gen_random_uuid(),
