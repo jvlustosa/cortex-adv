@@ -2,32 +2,25 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
-import { AIOrb } from "@/components/ai-orb";
+import {
+  ClaudeAcademyBrand,
+  CLAUDE_ACADEMY_LOGO,
+} from "@/components/claude-academy-brand";
+import { OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
 import { questions, getResult, maxScore } from "./quiz-data";
 
 function QuizHeader() {
   return (
     <header className="shrink-0 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center justify-center px-6 py-3">
-        <Link href="/" className="flex items-center gap-3">
-          <AIOrb size="sm" />
-          <div className="flex flex-col text-left leading-tight">
-            <span className="font-serif text-lg tracking-tight text-[var(--foreground)]">
-              Cortex
-            </span>
-            <span className="text-xs text-[var(--muted)]">cortex.adv.br · Quiz</span>
-          </div>
-        </Link>
+        <ClaudeAcademyBrand size="sm" />
       </div>
     </header>
   );
 }
-
-const whatsappUrl =
-  process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL ??
-  "https://chat.whatsapp.com/G2VXJ9UManZ77Rx7Uzn7NT";
 
 // ── Confetti ──
 
@@ -62,12 +55,12 @@ function Confetti() {
     ctx.scale(dpr, dpr);
 
     const colors = [
-      "#d4a574",
-      "#e0b88a",
-      "#c8956c",
-      "#8c8a85",
-      "#e8e4dc",
-      "#b8845a",
+      "#d97757",
+      "#e8886a",
+      "#c2410c",
+      "#0a0a0a",
+      "#161616",
+      "#c96840",
     ];
 
     const particles: Particle[] = Array.from({ length: 80 }, () => ({
@@ -229,18 +222,26 @@ export function QuizClient() {
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-lg text-center">
             <div className="flex justify-center">
-              <AIOrb size="lg" />
+              <Image
+                src={CLAUDE_ACADEMY_LOGO}
+                alt=""
+                width={72}
+                height={72}
+                className="rounded-lg shadow-[0_0_32px_rgba(217,119,87,0.2)]"
+                aria-hidden
+              />
             </div>
             <h1 className="mt-8 font-serif text-3xl tracking-tight text-[var(--foreground)] md:text-4xl">
-              Quão atualizado você está com IA?
+              Quão atualizado você está com Claude e IA?
             </h1>
             <p className="mt-4 text-lg text-[var(--muted)]">
               {questions.length} perguntas · menos de 2 minutos · resultado
               imediato
             </p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Começa com situações do dia a dia e vai subindo para conceitos e
-              tendências. Foco na prática (ferramentas, agentes, automação).
+              Começa com situações do dia a dia no escritório e vai subindo
+              para Cowork, agentes e tendências. Foco no Claude na prática
+              jurídica.
             </p>
             <button
               onClick={beginQuiz}
@@ -272,14 +273,7 @@ export function QuizClient() {
 
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-lg text-center">
-            {/* Orb behind score (centered behind the ring) */}
-            <div className="relative mx-auto mb-6 flex h-44 w-full max-w-[11rem] items-center justify-center">
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="opacity-30">
-                  <AIOrb size="lg" active />
-                </div>
-              </div>
-              <div className="relative z-10 size-36">
+            <div className="relative mx-auto mb-6 size-36">
                 <svg viewBox="0 0 120 120" className="size-full -rotate-90">
                   <circle
                     cx="60"
@@ -310,7 +304,6 @@ export function QuizClient() {
                   </span>
                 </div>
               </div>
-            </div>
 
             <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">
               {result.emoji} {result.level}
@@ -323,16 +316,28 @@ export function QuizClient() {
             </p>
 
             <div className="mt-10 flex flex-col items-center gap-3">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/#lista-espera"
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-8 py-4 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
               >
-                <WhatsAppIcon className="size-5" />
-                Entrar no grupo do WhatsApp
+                {result.cta}
                 <ArrowRight className="size-4 opacity-80" aria-hidden />
+              </Link>
+              <a
+                href={OPEN_WHATSAPP_GROUP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]"
+              >
+                <WhatsAppIcon className="size-4" />
+                Entrar no grupo aberto
               </a>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]"
+              >
+                Já é aluno? Comunidade VIP
+              </Link>
               <button
                 onClick={reset}
                 className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]"

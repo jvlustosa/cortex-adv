@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <style>
+    .cw-eye-radar { animation: cwRadarPing 2.5s ease-out infinite; }
+    @keyframes cwRadarPing {
+      0% { r: 4; opacity: .5; }
+      100% { r: 12; opacity: 0; }
+    }
+    .cw-eye-pupil { animation: cwPupilGlow 2.5s ease-in-out infinite; }
+    @keyframes cwPupilGlow {
+      0%, 100% { opacity: .6; }
+      50% { opacity: 1; }
+    }
+  </style>
+  <path d="M2 16 C2 16 7 8 16 8 C25 8 30 16 30 16 C30 16 25 24 16 24 C7 24 2 16 2 16 Z" stroke="#D97757" stroke-width="1.5" fill="none"/>
+  <circle cx="16" cy="16" r="4" stroke="#D97757" stroke-width="1.5" fill="none"/>
+  <circle class="cw-eye-pupil" cx="16" cy="16" r="2" fill="#D97757"/>
+  <circle class="cw-eye-radar" cx="16" cy="16" r="6" stroke="#D97757" stroke-width="1" fill="none" opacity="0"/>
+</svg>

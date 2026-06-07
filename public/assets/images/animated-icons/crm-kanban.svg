@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <style>
+    .cw-kanban-card { animation: cwKanbanSlide 3s ease-in-out infinite; }
+    @keyframes cwKanbanSlide {
+      0%, 100% { transform: translateX(0); opacity: .7; }
+      50% { transform: translateX(-9px); opacity: .4; }
+    }
+    .cw-kanban-arrow { animation: cwArrowPulse 3s ease-in-out infinite; }
+    @keyframes cwArrowPulse {
+      0%, 100% { opacity: .3; }
+      50% { opacity: .8; transform: translateX(2px); }
+    }
+  </style>
+  <rect x="2" y="4" width="28" height="24" rx="3" stroke="#D97757" stroke-width="1.5"/>
+  <line x1="12" y1="4" x2="12" y2="28" stroke="#D97757" stroke-width="1" opacity=".3"/>
+  <line x1="21" y1="4" x2="21" y2="28" stroke="#D97757" stroke-width="1" opacity=".3"/>
+  <rect x="4" y="8" width="6" height="4" rx="1" fill="#D97757" opacity=".25"/>
+  <rect x="4" y="14" width="6" height="4" rx="1" fill="#D97757" opacity=".15"/>
+  <rect x="14" y="8" width="5" height="4" rx="1" fill="#D97757" opacity=".4"/>
+  <rect class="cw-kanban-card" x="23" y="8" width="5" height="4" rx="1" fill="#D97757" opacity=".7"/>
+  <path class="cw-kanban-arrow" d="M18 22 L22 22" stroke="#D97757" stroke-width="1.5" stroke-linecap="round" opacity=".6"/>
+  <path class="cw-kanban-arrow" d="M20.5 20 L22 22 L20.5 24" stroke="#D97757" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".6"/>
+</svg>

@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { AIOrb } from "@/components/ai-orb";
+import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { SignupForm } from "@/components/signup-form";
 
 export const metadata = {
-  title: "Cadastro — Cortex",
+  title: "Cadastro | Claude Academy",
   description:
-    "Conta com convite para o mini curso de Claude e IA para advogados.",
+    "Conta com convite para o curso completo de Claude e IA para advogados.",
   keywords: [
     "cadastro curso Claude advogados",
     "IA para escritório de advocacia",
@@ -25,15 +25,9 @@ export default async function SignupPage({ searchParams }: PageProps) {
   const { token } = await searchParams;
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center px-6 py-16">
-      <Link
-        href="/"
-        className="mb-10 flex items-center gap-3 text-[var(--foreground)]"
-      >
-        <AIOrb size="sm" />
-        <span className="font-serif text-xl tracking-tight">Cortex</span>
-      </Link>
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
+      <ClaudeAcademyBrand size="md" className="mb-10 max-w-full" />
+      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm sm:p-8">
         <h1 className="font-serif text-2xl tracking-tight text-[var(--foreground)]">
           Cadastro
         </h1>

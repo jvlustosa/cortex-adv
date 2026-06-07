@@ -1,0 +1,190 @@
+.section {
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--claude);
+}
+
+.title {
+  margin-top: 0.35rem;
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  max-width: 32rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.progressCard {
+  padding: 1.15rem 1.25rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.progressMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.progressLabel {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.progressValue {
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.progressTrack {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--claude), var(--accent));
+  transition: width 0.4s ease;
+}
+
+.progressHint {
+  margin-top: 0.65rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.certificateWrap {
+  position: relative;
+  margin-top: 1.5rem;
+}
+
+.certificatePreview {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(217, 119, 87, 0.25);
+  background: linear-gradient(155deg, #0a0a0a 0%, #111111 45%, #0a0a0a 100%);
+  aspect-ratio: 1.414 / 1;
+  width: 100%;
+  max-width: min(28rem, 100%);
+}
+
+.certificatePreviewLocked {
+  filter: blur(2px) saturate(0.7);
+  opacity: 0.55;
+}
+
+.certificateInner {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.certTitle {
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: 1.35rem;
+  color: var(--foreground);
+}
+
+.certSubtitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lockOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(1px);
+}
+
+.lockIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--muted);
+}
+
+.lockTitle {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.lockText {
+  max-width: 16rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.unlockedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(217, 119, 87, 0.35);
+  background: rgba(217, 119, 87, 0.08);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--claude);
+}
+
+@media (max-width: 639px) {
+  .section {
+    margin-top: 2rem;
+    padding-top: 1.75rem;
+  }
+
+  .progressCard {
+    padding: 1rem;
+  }
+}

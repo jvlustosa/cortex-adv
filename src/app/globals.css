@@ -1,35 +1,25 @@
 @import "tailwindcss";
 
+/* Paleta Claude Academy: preto + terracota Claude (#D97757) */
 :root {
-  --background: #191918;
-  --foreground: #e8e4dc;
-  --muted: #8c8a85;
-  --accent: #d4a574;
-  --accent-hover: #e0b88a;
-  --surface: #232322;
-  --border: #2e2d2b;
-  --ring: #d4a57433;
-  --surface-raised: #2a2a28;
-  --surface-overlay: #1f1f1e;
-  --danger: #e5736a;
-  --success: #7ec699;
-}
+  --claude: #d97757;
+  --claude-hover: #e8886a;
+  --claude-deep: #c2410c;
+  --claude-dim: rgba(217, 119, 87, 0.16);
+  --claude-glow: rgba(217, 119, 87, 0.12);
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: #faf9f6;
-    --foreground: #1a1a19;
-    --muted: #6b6a66;
-    --accent: #b8845a;
-    --accent-hover: #a07248;
-    --surface: #ffffff;
-    --border: #e8e5df;
-    --ring: #b8845a33;
-    --surface-raised: #f5f4f0;
-    --surface-overlay: #f0efeb;
-    --danger: #c4453b;
-    --success: #3d8c5c;
-  }
+  --background: #0a0a0a;
+  --foreground: #e4e4e7;
+  --muted: #a1a1aa;
+  --accent: var(--claude);
+  --accent-hover: var(--claude-hover);
+  --surface: #111111;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: rgba(217, 119, 87, 0.28);
+  --surface-raised: #161616;
+  --surface-overlay: #0d0d0d;
+  --danger: #f87171;
+  --success: #4ade80;
 }
 
 @theme inline {
@@ -43,16 +33,25 @@
   --color-border: var(--border);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-claude: var(--claude);
   --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
 }
 
 html {
   font-size: 112.5%;
+  color-scheme: dark;
+  overflow-x: clip;
 }
 
 body {
-  background: var(--background);
+  overflow-x: clip;
+  background-color: var(--background);
+  background-image: radial-gradient(
+    ellipse 90% 55% at 50% -15%,
+    var(--claude-glow),
+    transparent 58%
+  );
   color: var(--foreground);
   font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   line-height: 1.65;
@@ -63,6 +62,6 @@ body {
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--background);
+  background: var(--claude);
+  color: #0a0a0a;
 }

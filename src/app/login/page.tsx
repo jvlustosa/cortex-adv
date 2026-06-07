@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { AIOrb } from "@/components/ai-orb";
+import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
+import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { LoginForm } from "@/components/login-form";
+import { buildCourseSupportWhatsAppUrl } from "@/lib/support";
 
 export const metadata = {
-  title: "Entrar — Área de membros | Claude para advogados",
+  title: "Entrar | Área de membros | Claude para advogados",
   description:
     "Acesse a área de membros do curso de Claude e IA generativa para advogados. Login seguro com e-mail e senha.",
   keywords: [
@@ -18,16 +20,12 @@ export const metadata = {
 };
 
 export default function LoginPage() {
+  const supportUrl = buildCourseSupportWhatsAppUrl();
+
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center px-6 py-16">
-      <Link
-        href="/"
-        className="mb-10 flex items-center gap-3 text-[var(--foreground)]"
-      >
-        <AIOrb size="sm" />
-        <span className="font-serif text-xl tracking-tight">Cortex</span>
-      </Link>
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
+      <ClaudeAcademyBrand size="md" className="mb-10 max-w-full" />
+      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm sm:p-8">
         <h1 className="font-serif text-2xl tracking-tight text-[var(--foreground)]">
           Área de membros
         </h1>
@@ -45,6 +43,18 @@ export default function LoginPage() {
         </div>
       </div>
       <p className="mt-8 text-center text-sm text-[var(--muted)]">
+        <a
+          href={supportUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-[var(--foreground)]"
+        >
+          <WhatsAppIcon className="size-3.5" />
+          Suporte no WhatsApp
+        </a>
+        <span className="mx-2" aria-hidden>
+          ·
+        </span>
         <Link
           href="/"
           className="underline underline-offset-4 hover:text-[var(--foreground)]"

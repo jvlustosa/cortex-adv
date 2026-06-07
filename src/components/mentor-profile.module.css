@@ -1,0 +1,241 @@
+.section {
+  position: relative;
+  overflow: hidden;
+  padding: 3.5rem 1rem;
+  background: linear-gradient(180deg, #110d0a 0%, var(--background) 100%);
+  border-top: 1px solid var(--border);
+}
+
+@media (min-width: 480px) {
+  .section {
+    padding: 5rem 1.5rem;
+  }
+}
+
+.glow {
+  pointer-events: none;
+  position: absolute;
+  right: -6rem;
+  bottom: -6rem;
+  z-index: 0;
+  height: 24rem;
+  width: 24rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 119, 87, 0.18) 0%, transparent 70%);
+  filter: blur(40px);
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  max-width: 56rem;
+}
+
+.head {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: clamp(1.75rem, 4vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2.5rem;
+  align-items: center;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--foreground) 3%, var(--surface));
+  padding: 2.25rem;
+  box-shadow:
+    0 10px 40px rgba(217, 119, 87, 0.08),
+    inset 0 0 0 1px color-mix(in srgb, var(--foreground) 2%, transparent);
+}
+
+.photoWrap {
+  position: relative;
+  overflow: hidden;
+  width: 280px;
+  height: 280px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--accent) 0%, #c2410c 100%);
+  box-shadow: 0 12px 32px rgba(217, 119, 87, 0.35);
+}
+
+.photo {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  filter: sepia(35%) saturate(1.15) contrast(1.02) brightness(1.02) hue-rotate(-8deg);
+}
+
+.photoOverlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(217, 119, 87, 0.18) 0%,
+    transparent 55%,
+    rgba(194, 65, 12, 0.2) 100%
+  );
+  mix-blend-mode: soft-light;
+}
+
+.photoGlow {
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--accent) 0%, #c2410c 100%);
+  filter: blur(20px);
+  opacity: 0.5;
+  animation: mentorGlow 4s ease-in-out infinite;
+}
+
+@keyframes mentorGlow {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+.bio {
+  text-align: left;
+}
+
+.name {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.role {
+  display: inline-block;
+  margin-bottom: 1.1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  padding: 0.3rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.desc {
+  margin: 0 0 1.25rem;
+  font-size: 0.97rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.creds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cred {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--foreground) 4%, var(--surface));
+  padding: 0.4rem 0.85rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.credIcon {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .card {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+    padding: 1.75rem;
+    text-align: center;
+  }
+
+  .photoWrap {
+    margin: 0 auto;
+    width: 220px;
+    height: 220px;
+  }
+
+  .bio {
+    text-align: center;
+  }
+
+  .creds {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .section {
+    padding: 3.5rem 1rem 4rem;
+  }
+
+  .card {
+    padding: 1.5rem 1.25rem;
+    border-radius: 18px;
+  }
+
+  .photoWrap {
+    width: 180px;
+    height: 180px;
+    border-radius: 16px;
+  }
+
+  .name {
+    font-size: 1.4rem;
+  }
+
+  .desc {
+    font-size: 0.9rem;
+  }
+
+  .role {
+    font-size: 0.76rem;
+  }
+
+  .cred {
+    padding: 0.32rem 0.7rem;
+    font-size: 0.72rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photoGlow {
+    animation: none;
+  }
+}

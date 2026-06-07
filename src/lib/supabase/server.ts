@@ -32,7 +32,7 @@ export async function createClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // Server Component — cookies() read-only in some contexts
+            // Server Component: cookies() read-only in some contexts
           }
         },
       },

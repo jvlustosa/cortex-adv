@@ -6,7 +6,7 @@ import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/membros";
+  const next = searchParams.get("next") ?? "/area-de-membros";
 
   if (!isSupabaseEnabled()) {
     return NextResponse.redirect(`${origin}/login?error=auth`);

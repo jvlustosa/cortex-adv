@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { COURSE_MENTOR } from "@/lib/site";
 import styles from "./faq-whatsapp.module.css";
 
 export interface FaqItem {
@@ -8,6 +9,11 @@ export interface FaqItem {
   answer: string;
   reaction?: string;
 }
+
+const FAQ_MENTOR = {
+  ...COURSE_MENTOR,
+  initial: "M",
+} as const;
 
 interface FaqWhatsappProps {
   heading?: string;
@@ -124,6 +130,14 @@ export function FaqWhatsapp({
                 <div className={styles.answer} data-faq-answer>
                   <div className={styles.aWrap}>
                     <div className={styles.aBubbles}>
+                      <div className={styles.aSender}>
+                        <span className={styles.aSenderName}>
+                          {FAQ_MENTOR.name}
+                        </span>
+                        <span className={styles.aSenderRole}>
+                          {FAQ_MENTOR.role}
+                        </span>
+                      </div>
                       <div className={styles.aBubble}>
                         <div className={styles.aBubbleInner}>
                           <span className={styles.aText}>{faq.answer}</span>
@@ -133,8 +147,12 @@ export function FaqWhatsapp({
                         </div>
                       </div>
                     </div>
-                    <div className={styles.aAvatar} aria-hidden="true">
-                      C
+                    <div
+                      className={styles.aAvatar}
+                      aria-hidden="true"
+                      title={FAQ_MENTOR.name}
+                    >
+                      {FAQ_MENTOR.initial}
                     </div>
                   </div>
                 </div>

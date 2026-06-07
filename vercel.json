@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.claudeacademy.chatjuridico.com.br"
+        }
+      ],
+      "destination": "https://claudeacademy.chatjuridico.com.br/:path*",
+      "permanent": true
+    }
+  ]
+}

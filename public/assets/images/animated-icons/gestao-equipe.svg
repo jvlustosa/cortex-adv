@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <style>
+    .cw-dist-line { animation: cwDistFlow 2.5s linear infinite; }
+    .cw-dist-1 { animation-delay: 0s; }
+    .cw-dist-2 { animation-delay: .4s; }
+    .cw-dist-3 { animation-delay: .8s; }
+    @keyframes cwDistFlow {
+      0% { stroke-dashoffset: 0; opacity: .3; }
+      50% { stroke-dashoffset: -8; opacity: .7; }
+      100% { stroke-dashoffset: -16; opacity: .3; }
+    }
+  </style>
+  <circle cx="16" cy="8" r="4" stroke="#D97757" stroke-width="1.5" fill="none"/>
+  <circle cx="7" cy="24" r="3.5" stroke="#D97757" stroke-width="1.5" fill="none"/>
+  <circle cx="16" cy="24" r="3.5" stroke="#D97757" stroke-width="1.5" fill="none"/>
+  <circle cx="25" cy="24" r="3.5" stroke="#D97757" stroke-width="1.5" fill="none"/>
+  <path class="cw-dist-line cw-dist-1" d="M14 11.5 L8.5 20.5" stroke="#D97757" stroke-width="1.2" stroke-dasharray="2 2" opacity=".5"/>
+  <path class="cw-dist-line cw-dist-2" d="M16 12 L16 20.5" stroke="#D97757" stroke-width="1.2" stroke-dasharray="2 2" opacity=".5"/>
+  <path class="cw-dist-line cw-dist-3" d="M18 11.5 L23.5 20.5" stroke="#D97757" stroke-width="1.2" stroke-dasharray="2 2" opacity=".5"/>
+</svg>

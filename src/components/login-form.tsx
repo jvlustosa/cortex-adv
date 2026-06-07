@@ -12,7 +12,7 @@ const inputClass =
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/membros";
+  const next = searchParams.get("next") ?? "/area-de-membros";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,9 +48,9 @@ export function LoginForm() {
           Em breve
         </p>
         <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-          Login com convite em breve. Enquanto isso, o mini curso segue acessível em{" "}
+          Login com convite em breve. Enquanto isso, o curso segue acessível em{" "}
           <Link
-            href="/membros"
+            href="/area-de-membros"
             className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
           >
             modo demo

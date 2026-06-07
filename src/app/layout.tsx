@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Instrument_Serif } from "next/font/google";
+import { SITE_BRAND, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -15,15 +16,15 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cortex.adv.br"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default:
-      "Cortex.adv.br — IA para advogados | Curso de Claude e IA generativa",
-    template: "%s — Cortex.adv.br",
+    default: `${SITE_BRAND} | Claude para Advogados | curso de IA generativa`,
+    template: `%s | ${SITE_BRAND}`,
   },
   description:
-    "Curso de Claude e IA generativa para advogados — disponível em breve. Aprenda a automatizar peças, rotinas e comunicação do escritório. Comunidade no WhatsApp e área de membros com acesso por convite.",
+    "Curso completo Claude para Advogados do Chat Jurídico: trilha em vídeo, Comunidade VIP de alunos e certificado ao concluir.",
   keywords: [
+    "Claude Academy",
     "IA para advogados",
     "Claude para advocacia",
     "inteligência artificial escritório de advocacia",
@@ -33,11 +34,13 @@ export const metadata: Metadata = {
     "curso IA advogados",
     "prompt engineering jurídico",
     "Claude Cowork",
-    "Cortex adv",
+    "Chat Jurídico",
   ],
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
@@ -45,19 +48,19 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "Cortex.adv.br — IA para advogados",
+    title: `${SITE_BRAND} | IA para advogados`,
     description:
-      "Curso de Claude e IA generativa para advogados — em breve. Automatize peças, rotinas e comunicação do seu escritório.",
+      "Curso completo Claude Academy: automatize peças, rotinas e comunicação do escritório com Claude e Comunidade VIP.",
     locale: "pt_BR",
     type: "website",
-    siteName: "Cortex.adv.br",
+    siteName: SITE_BRAND,
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cortex.adv.br — IA para advogados",
+    title: `${SITE_BRAND} | IA para advogados`,
     description:
-      "Curso de Claude e IA generativa para advogados — em breve. Comunidade no WhatsApp.",
+      "Curso completo Claude Academy do Chat Jurídico com Comunidade VIP de alunos.",
     images: ["/og/home.png"],
   },
   robots: {
@@ -65,7 +68,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   alternates: {
-    canonical: "https://cortex.adv.br",
+    canonical: SITE_URL,
   },
 };
 

@@ -16,7 +16,7 @@ type SignupFormProps = {
 export function SignupForm({ initialToken }: SignupFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/membros";
+  const next = searchParams.get("next") ?? "/area-de-membros";
 
   const [token, setToken] = useState(initialToken);
   const [email, setEmail] = useState("");
@@ -71,7 +71,7 @@ export function SignupForm({ initialToken }: SignupFormProps) {
         <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
           Cadastro com convite em breve. O conteúdo já está disponível em{" "}
           <Link
-            href="/membros"
+            href="/area-de-membros"
             className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
           >
             modo demo
@@ -139,7 +139,7 @@ export function SignupForm({ initialToken }: SignupFormProps) {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+        className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[#0a0a0a] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
       >
         {status === "loading" ? "Cadastrando…" : "Cadastrar"}
       </button>
