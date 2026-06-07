@@ -15,10 +15,9 @@ export const SITE_BRAND = `${SITE_NAME} · Chat Jurídico`;
 export const CHAT_JURIDICO_URL =
   "https://chatjuridico.com.br?utm_source=claude_academy&utm_medium=referral";
 
-/** Mesmo endpoint da LP /claude-academy/ no website (api/claude-academy-waitlist.js). */
+/** Lista de espera — padrão: API local com SLACK_WEBHOOK_CLAUDE_ACADEMY (mesma env do website). */
 export const WAITLIST_API_URL =
-  process.env.NEXT_PUBLIC_WAITLIST_API_URL ??
-  "https://chatjuridico.com.br/api/claude-academy-waitlist";
+  process.env.NEXT_PUBLIC_WAITLIST_API_URL ?? "/api/waitlist";
 
 export const COURSE_MENTOR = {
   name: "Prof Marcos Vilas Boas",

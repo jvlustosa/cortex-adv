@@ -1,11 +1,10 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { WhatsAppIcon } from "@/components/icons/whatsapp";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
-import { COURSE_MENTOR, OPEN_WHATSAPP_GROUP_URL, WAITLIST_API_URL } from "@/lib/site";
+import { COURSE_MENTOR, WAITLIST_API_URL } from "@/lib/site";
 import styles from "./claude-academy-invite-hero.module.css";
 
 const LEAD_KEY = "cj_claude_academy_lead";
@@ -46,11 +45,17 @@ function formatBrazilPhone(value: string): string {
   return "";
 }
 
+function obrigadoPath(search: string): string {
+  return search ? `/obrigado?${search}` : "/obrigado";
+}
+
 export function ClaudeAcademyWaitlist({
   compact = false,
 }: ClaudeAcademyWaitlistProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const queryString = searchParams.toString();
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -60,7 +65,6 @@ export function ClaudeAcademyWaitlist({
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   const isBrazil = ddi === "+55";
   const selectedDdi = DDI_OPTIONS.find((option) => option.value === ddi) ?? DDI_OPTIONS[0];
@@ -68,12 +72,12 @@ export function ClaudeAcademyWaitlist({
   useEffect(() => {
     try {
       if (localStorage.getItem(LEAD_KEY) === "1") {
-        setSubmitted(true);
+        router.replace(obrigadoPath(queryString));
       }
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [router, queryString]);
 
   function handleWhatsappChange(value: string) {
     if (isBrazil) {
@@ -124,7 +128,7 @@ export function ClaudeAcademyWaitlist({
           whatsapp_local: whatsappTrim,
           is_client: isClient,
           page: pathname,
-          url_params: searchParams.toString() ? `?${searchParams.toString()}` : "",
+          url_params: queryString ? `?${queryString}` : "",
           referrer: typeof document !== "undefined" ? document.referrer : "",
           website: honeypot,
         }),
@@ -134,18 +138,18 @@ export function ClaudeAcademyWaitlist({
         setError(
           await readApiErrorMessage(res, "Não foi possível enviar. Tente de novo em instantes."),
         );
+        setLoading(false);
         return;
       }
 
-      setSubmitted(true);
       try {
         localStorage.setItem(LEAD_KEY, "1");
       } catch {
         /* ignore */
       }
+      router.push(obrigadoPath(queryString));
     } catch {
       setError("Erro de conexão. Verifique a internet e tente novamente.");
-    } finally {
       setLoading(false);
     }
   }
@@ -170,8 +174,7 @@ export function ClaudeAcademyWaitlist({
           </>
         )}
 
-        {!submitted ? (
-          <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
             <input
               type="text"
               name="website"
@@ -259,32 +262,20 @@ export function ClaudeAcademyWaitlist({
               {error}
             </p>
 
-            <button type="submit" className={styles.cta} disabled={loading}>
+            <button
+              type="submit"
+              className={styles.cta}
+              disabled={loading}
+              aria-busy={loading}
+            >
               <span>{loading ? "Enviando…" : "Entrar na fila de espera"}</span>
-              <ArrowRight className="size-[18px]" aria-hidden />
+              {loading ? (
+                <Loader2 className="size-[18px] animate-spin" aria-hidden />
+              ) : (
+                <ArrowRight className="size-[18px]" aria-hidden />
+              )}
             </button>
           </form>
-        ) : (
-          <div className={`${styles.success} ${styles.successVisible}`} role="status">
-            <strong>Você está na fila!</strong>
-            Avisamos no WhatsApp assim que as inscrições do Claude Academy abrirem.
-
-            <div className={styles.communityCta}>
-              <p className={styles.communityQ}>
-                Enquanto isso, entre no grupo aberto (grátis)
-              </p>
-              <a
-                href={OPEN_WHATSAPP_GROUP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.communityBtn}
-              >
-                <WhatsAppIcon className="size-5" />
-                <span>Entrar no grupo aberto</span>
-              </a>
-            </div>
-          </div>
-        )}
 
         {!compact && (
           <p className={styles.footerNote}>Sem spam. Avisamos só quando a turma abrir.</p>
