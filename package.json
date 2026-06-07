@@ -10,6 +10,7 @@
     "og": "node scripts/generate-og-images.mjs",
     "favicon": "node scripts/generate-favicon.mjs",
     "invite": "node scripts/generate-invite.mjs",
+    "db:seed": "node scripts/generate-course-seed.mjs",
     "audit": "node scripts/security-audit.mjs",
     "audit:live": "node scripts/security-audit.mjs --live",
     "audit:report": "node scripts/security-audit.mjs --write-report",

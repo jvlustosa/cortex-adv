@@ -1,23 +1,28 @@
 {
-  "name": "Claude Academy | IA para advogados",
+  "name": "Claude Academy by Chat Jurídico",
   "short_name": "Claude Academy",
-  "description": "Curso Claude Academy do Chat Jurídico: Claude e IA generativa para advogados",
+  "description": "Curso de Claude e IA generativa para advogados",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
+  "background_color": "#0a0a0f",
   "theme_color": "#d97757",
   "icons": [
     {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
+      "src": "/assets/images/claude-hub/claude-para-advogados-academy.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ]
 }

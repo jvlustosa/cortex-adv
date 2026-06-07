@@ -18,16 +18,15 @@ const outDir = resolve(root, "public/og");
 
 mkdirSync(outDir, { recursive: true });
 
-const SITE_HOST = "claudeacademy.chatjuridico.com.br";
-const SITE_BRAND = "Claude Academy · Chat Jurídico";
+// ─── Design tokens ───────────────────────────────────────────────
 
 const T = {
-  bg: "#191918",
-  surface: "#232322",
-  text: "#e8e4dc",
-  muted: "#8c8a85",
-  accent: "#d4a574",
-  border: "#2e2d2b",
+  bg: "#0a0a0f",
+  surface: "rgba(255, 255, 255, 0.04)",
+  text: "#e4e4e7",
+  muted: "#a1a1aa",
+  accent: "#d97757",
+  border: "rgba(255, 255, 255, 0.08)",
 };
 
 const W = 1200;
@@ -175,7 +174,7 @@ function footer() {
             children: "C",
           },
         },
-        { type: "span", props: { children: SITE_HOST } },
+        { type: "span", props: { children: "claudeacademy.chatjuridico.com.br" } },
       ],
     },
   };
@@ -241,10 +240,10 @@ const pages = [
       container([
         glow(-120, -80, 500, 0.15),
         orbDots(),
-        tag("Curso completo + Comunidade VIP"),
+        tag("Mini curso gratuito + Comunidade no WhatsApp"),
         title("IA generativa para advogados", 64),
         subtitle(
-          "Aprenda a usar o Claude no seu escritório: prompts, automações e fluxos completos"
+          "Aprenda a usar o Claude no seu escritório — prompts, automações e fluxos completos"
         ),
         pills([
           "Geração de peças",
@@ -275,10 +274,10 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
-        tag(SITE_BRAND),
+        tag("Cortex.adv.br"),
         title("Área de membros"),
         subtitle(
-          "Acesse o curso completo de Claude e IA generativa para advogados. Login seguro com e-mail e senha."
+          "Acesse o mini curso de Claude e IA generativa para advogados. Login seguro com e-mail e senha."
         ),
         footer(),
       ]),
@@ -288,7 +287,7 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
-        tag(`${SITE_BRAND} · Cadastro com convite`),
+        tag("Cortex.adv.br · Cadastro com convite"),
         title("Curso gratuito de Claude para advogados"),
         subtitle(
           "Crie sua conta e acesse o material completo: prompts, automações e fluxos para o escritório."
@@ -301,10 +300,10 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
-        tag("Curso completo · Claude Cowork"),
+        tag("Mini curso gratuito · Claude Cowork"),
         title("Skills de Claude para advogados"),
         subtitle(
-          "Peças, pesquisa jurídica, automação de rotinas, relatórios e comunicação com clientes, tudo com IA."
+          "Peças, pesquisa jurídica, automação de rotinas, relatórios e comunicação com clientes — tudo com IA."
         ),
         pills(["Petições", "Jurisprudência", "Automação", "Prazos", "Relatórios"]),
         footer(),

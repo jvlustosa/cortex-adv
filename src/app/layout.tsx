@@ -6,7 +6,6 @@ import "./globals.css";
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
 });
 
 const instrumentSerif = Instrument_Serif({
@@ -30,8 +29,7 @@ export const metadata: Metadata = {
     "inteligência artificial escritório de advocacia",
     "automação jurídica",
     "IA generativa direito",
-    "Claude vs ChatGPT advogado",
-    "curso IA advogados",
+    "curso Claude advogados",
     "prompt engineering jurídico",
     "Claude Cowork",
     "Chat Jurídico",
@@ -54,6 +52,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     type: "website",
     siteName: SITE_BRAND,
+    url: SITE_URL,
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
   },
   twitter: {
