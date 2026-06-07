@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { AIOrb } from "@/components/ai-orb";
+import { BrandLogo } from "@/components/brand-logo";
 import { LoginForm } from "@/components/login-form";
 
 export const metadata = {
-  title: "Entrar — Área de membros | Claude para advogados",
+  title: "Entrar — Área de membros",
   description:
     "Acesse a área de membros do curso de Claude e IA generativa para advogados. Login seguro com e-mail e senha.",
   keywords: [
@@ -24,8 +24,7 @@ export default function LoginPage() {
         href="/"
         className="mb-10 flex items-center gap-3 text-[var(--foreground)]"
       >
-        <AIOrb size="sm" />
-        <span className="font-serif text-xl tracking-tight">Cortex</span>
+        <BrandLogo size="sm" />
       </Link>
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm">
         <h1 className="font-serif text-2xl tracking-tight text-[var(--foreground)]">

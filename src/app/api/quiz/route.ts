@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const { score, maxScore, level, title } = body;
   const pct = Math.round((score / maxScore) * 100);
 
-  const text = `Quiz Cortex · ${level} (${pct}%) — ${score}/${maxScore} pts\n${title}`;
+  const text = `Quiz Claude Academy · ${level} (${pct}%) — ${score}/${maxScore} pts\n${title}`;
 
   const res = await fetch(webhook, {
     method: "POST",

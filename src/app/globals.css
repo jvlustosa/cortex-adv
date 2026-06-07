@@ -1,18 +1,21 @@
 @import "tailwindcss";
 
+/* Tokens alinhados ao Claude Hub (website-chat-juridico/assets/css/claude-hub.css) */
 :root {
-  --background: #191918;
-  --foreground: #e8e4dc;
-  --muted: #8c8a85;
-  --accent: #d4a574;
-  --accent-hover: #e0b88a;
-  --surface: #232322;
-  --border: #2e2d2b;
-  --ring: #d4a57433;
-  --surface-raised: #2a2a28;
-  --surface-overlay: #1f1f1e;
+  --background: #0a0a0f;
+  --foreground: #e4e4e7;
+  --muted: #a1a1aa;
+  --accent: #d97757;
+  --accent-hover: #c2410c;
+  --accent-dim: rgba(217, 119, 87, 0.2);
+  --surface: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: rgba(217, 119, 87, 0.35);
+  --surface-raised: rgba(255, 255, 255, 0.06);
+  --surface-overlay: rgba(255, 255, 255, 0.02);
   --danger: #e5736a;
-  --success: #7ec699;
+  --success: #22c55e;
+  --radius: 18px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -20,15 +23,16 @@
     --background: #faf9f6;
     --foreground: #1a1a19;
     --muted: #6b6a66;
-    --accent: #b8845a;
-    --accent-hover: #a07248;
+    --accent: #c2410c;
+    --accent-hover: #d97757;
+    --accent-dim: rgba(194, 65, 12, 0.12);
     --surface: #ffffff;
     --border: #e8e5df;
-    --ring: #b8845a33;
+    --ring: rgba(194, 65, 12, 0.25);
     --surface-raised: #f5f4f0;
     --surface-overlay: #f0efeb;
     --danger: #c4453b;
-    --success: #3d8c5c;
+    --success: #16a34a;
   }
 }
 
@@ -43,8 +47,7 @@
   --color-border: var(--border);
   --color-danger: var(--danger);
   --color-success: var(--success);
-  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
@@ -54,15 +57,242 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   line-height: 1.65;
 }
 
+/* Display headings — Inter 800, como .ch-hero h1 no Claude Hub */
 .font-serif {
-  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.035em;
 }
 
 ::selection {
   background: var(--accent);
   color: var(--background);
+}
+
+@keyframes ch-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.ch-badge-dot {
+  animation: ch-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ch-badge-dot,
+  .ca-orb,
+  .ca-stardust,
+  .ca-mentor-glow {
+    animation: none;
+  }
+}
+
+/* Hero background — LP Claude Academy (website-chat-juridico) */
+.ca-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform, opacity;
+}
+
+.ca-orb-1 {
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(
+    circle,
+    rgba(217, 119, 87, 0.55) 0%,
+    rgba(217, 119, 87, 0) 70%
+  );
+  top: -120px;
+  left: -120px;
+  animation: ca-orb-float 14s ease-in-out infinite;
+}
+
+.ca-orb-2 {
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(
+    circle,
+    rgba(240, 164, 132, 0.4) 0%,
+    rgba(240, 164, 132, 0) 70%
+  );
+  bottom: -100px;
+  right: -100px;
+  animation: ca-orb-float 18s ease-in-out infinite reverse;
+}
+
+.ca-orb-3 {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(
+    circle,
+    rgba(194, 65, 12, 0.35) 0%,
+    rgba(194, 65, 12, 0) 70%
+  );
+  top: 40%;
+  right: 15%;
+  animation: ca-orb-pulse 11s ease-in-out infinite;
+}
+
+@keyframes ca-orb-float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.45;
+  }
+  33% {
+    transform: translate(40px, -30px) scale(1.08);
+    opacity: 0.6;
+  }
+  66% {
+    transform: translate(-25px, 35px) scale(0.95);
+    opacity: 0.35;
+  }
+}
+
+@keyframes ca-orb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 0.55;
+  }
+}
+
+.ca-stardust {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 75% 60%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 45% 80%, rgba(217, 119, 87, 0.5), transparent),
+    radial-gradient(1px 1px at 88% 20%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 10% 70%, rgba(217, 119, 87, 0.4), transparent),
+    radial-gradient(2px 2px at 60% 15%, rgba(240, 164, 132, 0.45), transparent),
+    radial-gradient(1px 1px at 30% 50%, rgba(255, 255, 255, 0.3), transparent);
+  background-size: 100% 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.7;
+  animation: ca-stardust-twinkle 8s ease-in-out infinite;
+}
+
+@keyframes ca-stardust-twinkle {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.ca-gradient-text {
+  background: linear-gradient(
+    135deg,
+    #f0a484 0%,
+    var(--accent) 50%,
+    var(--accent-hover) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ca-mentor-glow {
+  animation: ca-mentor-glow 4s ease-in-out infinite;
+}
+
+@keyframes ca-mentor-glow {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+.ca-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  padding: 0.95rem 2rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(217, 119, 87, 0.3);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.ca-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(217, 119, 87, 0.4);
+}
+
+.ca-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  padding: 0.95rem 2rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.ca-btn-ghost:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--foreground);
+}
+
+@media (max-width: 576px) {
+  .ca-orb-1 {
+    width: 320px;
+    height: 320px;
+    filter: blur(60px);
+    top: -80px;
+    left: -80px;
+  }
+  .ca-orb-2 {
+    width: 280px;
+    height: 280px;
+    filter: blur(60px);
+    bottom: -60px;
+    right: -60px;
+  }
+  .ca-orb-3 {
+    width: 200px;
+    height: 200px;
+    filter: blur(50px);
+  }
 }

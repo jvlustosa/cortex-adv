@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { AIOrb } from "@/components/ai-orb";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function NotFound() {
   return (
     <div className="flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center">
-      <AIOrb size="lg" />
+      <BrandLogo size="lg" className="justify-center" />
       <p className="mt-8 font-serif text-6xl tracking-tight text-[var(--foreground)]">
         404
       </p>

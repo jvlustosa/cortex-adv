@@ -1,12 +1,19 @@
 {
-  "name": "Cortex.adv.br — IA para advogados",
-  "short_name": "Cortex",
-  "description": "Mini curso gratuito de Claude e IA generativa para advogados",
+  "name": "Claude Academy by Chat Jurídico",
+  "short_name": "Claude Academy",
+  "description": "Curso de Claude e IA generativa para advogados",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#191918",
-  "theme_color": "#d4a574",
+  "background_color": "#0a0a0f",
+  "theme_color": "#d97757",
   "icons": [
+    {
+      "src": "/assets/images/claude-hub/claude-para-advogados-academy.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

@@ -7,7 +7,7 @@ const WHATSAPP_LINK = "https://chat.whatsapp.com/G2VXJ9UManZ77Rx7Uzn7NT";
 export const metadata: Metadata = {
   title: "Entre no grupo Claude Cowork",
   description:
-    "Grupo de WhatsApp da comunidade Cortex — troca entre advogados que usam IA no escritório.",
+    "Grupo de WhatsApp da Claude Academy — troca entre advogados que usam IA no escritório.",
   robots: { index: false, follow: false },
 };
 
@@ -80,7 +80,7 @@ export default function GrupoPage() {
           className="mt-4 text-sm transition-colors hover:text-white"
           style={{ color: "#a1a1aa" }}
         >
-          &larr; Voltar para cortex.adv.br
+          &larr; Voltar para Claude Academy
         </Link>
       </div>
     </main>

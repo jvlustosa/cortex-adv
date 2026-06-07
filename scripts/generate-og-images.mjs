@@ -21,12 +21,12 @@ mkdirSync(outDir, { recursive: true });
 // ─── Design tokens ───────────────────────────────────────────────
 
 const T = {
-  bg: "#191918",
-  surface: "#232322",
-  text: "#e8e4dc",
-  muted: "#8c8a85",
-  accent: "#d4a574",
-  border: "#2e2d2b",
+  bg: "#0a0a0f",
+  surface: "rgba(255, 255, 255, 0.04)",
+  text: "#e4e4e7",
+  muted: "#a1a1aa",
+  accent: "#d97757",
+  border: "rgba(255, 255, 255, 0.08)",
 };
 
 const W = 1200;
@@ -174,7 +174,7 @@ function footer() {
             children: "C",
           },
         },
-        { type: "span", props: { children: "cortex.adv.br" } },
+        { type: "span", props: { children: "claudeacademy.chatjuridico.com.br" } },
       ],
     },
   };

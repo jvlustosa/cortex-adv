@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { AIOrb } from "@/components/ai-orb";
+import { BrandLogo } from "@/components/brand-logo";
 import { SignupForm } from "@/components/signup-form";
 
 export const metadata = {
-  title: "Cadastro — Cortex",
+  title: "Cadastro",
   description:
     "Conta com convite para o mini curso de Claude e IA para advogados.",
   keywords: [
@@ -30,8 +30,7 @@ export default async function SignupPage({ searchParams }: PageProps) {
         href="/"
         className="mb-10 flex items-center gap-3 text-[var(--foreground)]"
       >
-        <AIOrb size="sm" />
-        <span className="font-serif text-xl tracking-tight">Cortex</span>
+        <BrandLogo size="sm" />
       </Link>
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm">
         <h1 className="font-serif text-2xl tracking-tight text-[var(--foreground)]">

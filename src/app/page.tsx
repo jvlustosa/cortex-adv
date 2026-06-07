@@ -1,15 +1,27 @@
 import Link from "next/link";
-import { AIOrb } from "@/components/ai-orb";
+import { BrandLogo } from "@/components/brand-logo";
+import { TrilhaSneakPeek } from "@/components/trilha-sneak-peek";
+import { FeaturesSection } from "@/components/features-section";
+import { HeroBackground } from "@/components/hero-background";
+import { MentorSection } from "@/components/mentor-section";
+import { SkillsDeepSection } from "@/components/skills-deep-section";
 import { isSignupEnabled } from "@/lib/supabase/enabled";
-import { ArrowRight, KeyRound, Zap, FileText, BarChart3, Search, Calendar, Users } from "lucide-react";
+import {
+  BRAND_FULL,
+  BRAND_LOGO_ALT,
+  BRAND_LOGO_SRC,
+  BRAND_SITE_URL,
+  CHAT_JURIDICO_URL,
+} from "@/lib/brand";
+import { ArrowRight, KeyRound } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { FaqWhatsapp, type FaqItem } from "@/components/faq-whatsapp";
 
 const faqItems: FaqItem[] = [
   {
-    question: "O que é o Cortex e o mini curso?",
+    question: "O que é o Claude Academy?",
     answer:
-      "O Cortex é uma comunidade e mini curso pra advogados que querem usar IA no dia a dia do escritório. Você aprende a usar o Claude pra redigir peças, pesquisar jurisprudência, automatizar rotinas e ganhar tempo de verdade.",
+      "O Claude Academy é o curso do Chat Jurídico para advogados. Microaulas em vídeo do básico ao avançado, com teto em Skills — prompts, documentos, Projects e biblioteca de skills com disciplina ética e antialucinação.",
     reaction: "🤯",
   },
   {
@@ -52,64 +64,19 @@ const whatsappUrl =
   process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL ??
   "https://chat.whatsapp.com/G2VXJ9UManZ77Rx7Uzn7NT";
 
-const chatJuridicoUrl =
-  "https://chatjuridico.com.br?utm_source=cortex_adv&utm_medium=referral";
-
-const skills = [
-  {
-    icon: FileText,
-    title: "Geração de peças",
-    description:
-      "Petições iniciais, contestações e recursos com base no contexto do caso. O Claude lê documentos longos e mantém coerência do começo ao fim.",
-    example: '"Monte uma contestação com base nessa inicial de 40 páginas"',
-  },
-  {
-    icon: Search,
-    title: "Pesquisa jurídica",
-    description:
-      "Busca inteligente em jurisprudência, doutrina e legislação. Resume decisões e destaca os argumentos relevantes pro seu caso.",
-    example: '"Encontre precedentes do STJ sobre dano moral em relação de consumo"',
-  },
-  {
-    icon: Zap,
-    title: "Automação de rotinas",
-    description:
-      "Follow-ups, classificação de leads, resumos diários e relatórios automáticos. O Claude executa fluxos inteiros do escritório.",
-    example: '"Envie follow-up para os leads que não responderam em 48h"',
-  },
-  {
-    icon: BarChart3,
-    title: "Relatórios e análises",
-    description:
-      "Visão completa do pipeline, métricas de leads e resumo de atividades. Dados do escritório organizados em segundos.",
-    example: '"Me dê o resumo do pipeline e conversas pendentes de hoje"',
-  },
-  {
-    icon: Calendar,
-    title: "Gestão de prazos",
-    description:
-      "Controle de prazos processuais, agendamento de tarefas e lembretes automáticos. Nunca mais perca um prazo por esquecimento.",
-    example: '"Quais prazos vencem essa semana e o que preciso preparar?"',
-  },
-  {
-    icon: Users,
-    title: "Comunicação com clientes",
-    description:
-      "Rascunhos de mensagens, respostas a dúvidas frequentes e atualização de status dos casos — tudo no tom do seu escritório.",
-    example: '"Prepare uma atualização pro cliente sobre o andamento do processo"',
-  },
-];
+const chatJuridicoUrl = CHAT_JURIDICO_URL;
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Course",
-  name: "Claude Cowork para advogados — Mini curso de IA generativa",
+  name: "Claude Academy — Curso de Claude para advogados",
   description:
-    "Curso de Claude e IA generativa aplicada à advocacia — disponível em breve. Aprenda a automatizar peças, rotinas e comunicação do escritório.",
+    "Claude Academy by Chat Jurídico. Curso de Claude e IA generativa aplicada à advocacia — disponível em breve. Aprenda a automatizar peças, rotinas e comunicação do escritório.",
+  url: BRAND_SITE_URL,
   provider: {
     "@type": "Organization",
-    name: "Cortex.adv.br",
-    url: "https://cortex.adv.br",
+    name: "Chat Jurídico",
+    url: "https://chatjuridico.com.br",
   },
   isAccessibleForFree: false,
   inLanguage: "pt-BR",
@@ -147,13 +114,7 @@ export default function Home() {
       <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-6 px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <AIOrb size="md" />
-            <div className="flex flex-col leading-tight">
-              <span className="font-serif text-xl tracking-tight text-[var(--foreground)]">
-                Cortex
-              </span>
-              <span className="text-xs text-[var(--muted)]">cortex.adv.br</span>
-            </div>
+            <BrandLogo size="md" />
           </Link>
           <nav className="flex items-center gap-3 text-sm">
             <Link
@@ -172,7 +133,7 @@ export default function Home() {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
+              className="ca-btn-primary px-4 py-2 text-sm"
             >
               <WhatsAppIcon className="size-4" />
               Entrar no grupo
@@ -182,94 +143,64 @@ export default function Home() {
       </header>
 
       <main className="flex flex-1 flex-col">
-        <section className="relative overflow-hidden px-6 pt-16 pb-20 md:pt-24 md:pb-28">
-          <div
-            className="pointer-events-none absolute inset-0 -z-10 opacity-40"
-            aria-hidden
-          >
-            <div className="absolute -top-32 left-1/2 h-96 w-[min(100%,48rem)] -translate-x-1/2 rounded-full bg-gradient-to-b from-[var(--accent)]/10 to-transparent blur-[100px]" />
-          </div>
-          <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-[1.1fr_0.9fr] md:items-center">
-            <div>
-              <p className="text-sm font-medium tracking-wide text-[var(--accent)]">
-                Em breve · Comunidade no WhatsApp
-              </p>
-              <h1 className="mt-4 font-serif text-4xl leading-[1.08] tracking-tight text-[var(--foreground)] md:text-5xl lg:text-[3.35rem]">
-                IA generativa para advogados
-              </h1>
-              <p className="mt-5 max-w-xl text-xl font-medium leading-snug text-[var(--foreground)]/95 md:text-2xl">
-                Aprenda a usar o Claude no seu escritório
-              </p>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--muted)]">
-                Prompts, automações e fluxos completos — do zero ao avançado.
-                Entre no grupo do WhatsApp para trocar com outros advogados e
-                acesse a área de membros quando o curso abrir.
-              </p>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3.5 text-sm font-medium text-[var(--background)] shadow-sm transition hover:bg-[var(--accent-hover)]"
-                >
-                  <WhatsAppIcon className="size-5" />
-                  Entrar no grupo do WhatsApp
-                  <ArrowRight className="size-4 opacity-80" aria-hidden />
-                </a>
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-6 py-3.5 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--accent)]/35"
-                >
-                  <KeyRound className="size-5 text-[var(--muted)]" aria-hidden />
-                  Área de membros
-                </Link>
-              </div>
+        <section className="relative flex min-h-[calc(100dvh-65px)] items-center justify-center overflow-hidden px-6 py-16 text-center md:py-24">
+          <HeroBackground />
+          <div className="relative z-10 mx-auto max-w-[480px]">
+            <div className="mx-auto mb-8 flex size-[88px] items-center justify-center rounded-[24px] border border-[var(--accent)]/25 bg-[var(--accent-dim)] p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={BRAND_LOGO_SRC}
+                alt={BRAND_LOGO_ALT}
+                width={64}
+                height={64}
+                className="size-full rounded-xl object-cover"
+              />
             </div>
-            <div className="flex justify-center md:justify-end">
-              <div className="relative flex flex-col items-center rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-10 shadow-[0_0_40px_-12px_var(--accent)/15]">
-                <AIOrb size="lg" />
-                <p className="mt-8 text-center font-serif text-xl text-[var(--foreground)]">
-                  Claude Cowork
-                </p>
-                <p className="mt-2 max-w-xs text-center text-sm text-[var(--muted)]">
-                  Do primeiro prompt ao fluxo completo do escritório.
-                </p>
-              </div>
+
+            <p className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/25 bg-[var(--accent-dim)] px-4 py-1.5 text-[0.78rem] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">
+              <span className="ch-badge-dot size-2 rounded-full bg-[var(--accent)] shadow-[0_0_8px_rgba(217,119,87,0.6)]" />
+              Primeira turma em breve
+            </p>
+
+            <h1 className="mt-7 font-serif text-[2.5rem] leading-[1.15] tracking-tight text-white md:text-[2.75rem]">
+              Domine o <span className="ca-gradient-text">Claude</span> na advocacia
+            </h1>
+            <p className="mt-4 text-[1.05rem] leading-relaxed text-white/55">
+              O curso do Chat Jurídico para usar IA no escritório. Mentoria com{" "}
+              <strong className="font-semibold text-[#fbcab1]">
+                Dr. Marcos Vilas Boas
+              </strong>
+              .
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ca-btn-primary"
+              >
+                <WhatsAppIcon className="size-5" />
+                Entrar no grupo do WhatsApp
+                <ArrowRight className="size-4 opacity-80" aria-hidden />
+              </a>
+              <Link href="/login" className="ca-btn-ghost">
+                <KeyRound className="size-5" aria-hidden />
+                Área de membros
+              </Link>
             </div>
+
+            <p className="mt-6 text-[0.78rem] tracking-wide text-white/30">
+              Sem spam. Avisamos só quando a turma abrir.
+            </p>
           </div>
         </section>
 
-        <section className="border-t border-[var(--border)] bg-[var(--surface-overlay)] px-6 py-16">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="text-center font-serif text-2xl tracking-tight text-[var(--foreground)] md:text-3xl">
-              O que o Claude faz pelo seu escritório
-            </h2>
-            <p className="mt-3 text-center text-[var(--muted)]">
-              Skills reais que você aprende no curso e aplica no dia a dia
-            </p>
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {skills.map((skill) => (
-                <article
-                  key={skill.title}
-                  className="group rounded-2xl border border-[var(--border)] bg-[var(--background)] p-6 transition hover:border-[var(--accent)]/30"
-                >
-                  <div className="mb-4 inline-flex rounded-xl bg-[var(--surface-raised)] p-2.5">
-                    <skill.icon className="size-5 text-[var(--accent)]" aria-hidden />
-                  </div>
-                  <h3 className="font-serif text-lg text-[var(--foreground)]">
-                    {skill.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                    {skill.description}
-                  </p>
-                  <p className="mt-3 rounded-lg bg-[var(--surface)] px-3 py-2 text-xs italic text-[var(--muted)]">
-                    {skill.example}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+        <MentorSection />
+        <FeaturesSection />
+        <SkillsDeepSection />
+
+        <TrilhaSneakPeek />
 
         <section className="border-t border-[var(--border)] px-6 py-16 text-center">
           <div className="mx-auto max-w-xl">
@@ -308,7 +239,7 @@ export default function Home() {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-8 py-4 text-sm font-medium text-[var(--background)] shadow-sm transition hover:bg-[var(--accent-hover)]"
+              className="ca-btn-primary mt-8"
             >
               <WhatsAppIcon className="size-5" />
               Entrar no grupo do WhatsApp
@@ -320,7 +251,17 @@ export default function Home() {
 
       <footer className="border-t border-[var(--border)] px-6 py-8">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 text-center text-sm text-[var(--muted)] sm:flex-row sm:text-left">
-          <span>© {new Date().getFullYear()} Cortex.adv.br</span>
+          <span>
+            © {new Date().getFullYear()}{" "}
+            <a
+              href={chatJuridicoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition hover:text-[var(--foreground)]"
+            >
+              {BRAND_FULL}
+            </a>
+          </span>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
             {isSignupEnabled() && (
               <Link
@@ -337,22 +278,6 @@ export default function Home() {
               Área de membros
             </Link>
           </div>
-        </div>
-        <div className="mx-auto mt-6 flex max-w-5xl items-center justify-center gap-2 border-t border-[var(--border)] pt-6 text-xs text-[var(--muted)]">
-          <span>Feito por</span>
-          <a
-            href={chatJuridicoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 transition hover:text-[var(--foreground)]"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/assets/chat-juridico-logo-white.svg"
-              alt="Chat Jurídico"
-              className="h-5 opacity-70 transition hover:opacity-100"
-            />
-          </a>
         </div>
       </footer>
     </div>

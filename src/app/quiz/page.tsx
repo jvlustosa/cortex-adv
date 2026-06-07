@@ -3,7 +3,7 @@ import { QuizClient } from "./quiz-client";
 import { questions } from "./quiz-data";
 
 export const metadata: Metadata = {
-  title: "Quiz — Quão atualizado você está com IA? | Claude para advogados",
+  title: "Quiz — Quão atualizado você está com IA?",
   description:
     "Quiz rápido para quem já conhece o básico: mapeia onde você está com ferramentas, agentes e automação na advocacia. Resultado imediato.",
   keywords: [

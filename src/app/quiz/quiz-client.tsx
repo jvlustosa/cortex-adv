@@ -3,8 +3,9 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, RotateCcw } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
+import { BRAND_LOGO_ALT, BRAND_LOGO_SRC } from "@/lib/brand";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
-import { AIOrb } from "@/components/ai-orb";
 import { questions, getResult, maxScore } from "./quiz-data";
 
 function QuizHeader() {
@@ -12,13 +13,7 @@ function QuizHeader() {
     <header className="shrink-0 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center justify-center px-6 py-3">
         <Link href="/" className="flex items-center gap-3">
-          <AIOrb size="sm" />
-          <div className="flex flex-col text-left leading-tight">
-            <span className="font-serif text-lg tracking-tight text-[var(--foreground)]">
-              Cortex
-            </span>
-            <span className="text-xs text-[var(--muted)]">cortex.adv.br · Quiz</span>
-          </div>
+          <BrandLogo size="sm" suffix="Quiz" showByline={false} />
         </Link>
       </div>
     </header>
@@ -62,12 +57,12 @@ function Confetti() {
     ctx.scale(dpr, dpr);
 
     const colors = [
-      "#d4a574",
-      "#e0b88a",
-      "#c8956c",
-      "#8c8a85",
-      "#e8e4dc",
-      "#b8845a",
+      "#d97757",
+      "#f0a484",
+      "#c2410c",
+      "#a1a1aa",
+      "#e4e4e7",
+      "#fbcab1",
     ];
 
     const particles: Particle[] = Array.from({ length: 80 }, () => ({
@@ -229,7 +224,15 @@ export function QuizClient() {
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-lg text-center">
             <div className="flex justify-center">
-              <AIOrb size="lg" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={BRAND_LOGO_SRC}
+                alt={BRAND_LOGO_ALT}
+                width={72}
+                height={72}
+                className="rounded-xl object-cover"
+                aria-hidden
+              />
             </div>
             <h1 className="mt-8 font-serif text-3xl tracking-tight text-[var(--foreground)] md:text-4xl">
               Quão atualizado você está com IA?
@@ -274,10 +277,16 @@ export function QuizClient() {
           <div className="w-full max-w-lg text-center">
             {/* Orb behind score (centered behind the ring) */}
             <div className="relative mx-auto mb-6 flex h-44 w-full max-w-[11rem] items-center justify-center">
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="opacity-30">
-                  <AIOrb size="lg" active />
-                </div>
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={BRAND_LOGO_SRC}
+                  alt={BRAND_LOGO_ALT}
+                  width={72}
+                  height={72}
+                  className="rounded-xl object-cover"
+                  aria-hidden
+                />
               </div>
               <div className="relative z-10 size-36">
                 <svg viewBox="0 0 120 120" className="size-full -rotate-90">

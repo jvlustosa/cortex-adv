@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function CursoRedirectPage() {
-  redirect("/membros");
+/** Roteiro completo é interno — redireciona para sneak peek público. */
+export default function CursoPage() {
+  redirect("/#trilha");
 }
