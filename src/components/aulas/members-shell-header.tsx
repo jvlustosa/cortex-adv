@@ -51,7 +51,7 @@ export function MembersShellHeader({
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <ClaudeAcademyBrand size="sm" showByline={false} />
+        <ClaudeAcademyBrand size="sm" />
 
         <nav className={styles.desktopNav} aria-label="Navegação da área de membros">
           <Link

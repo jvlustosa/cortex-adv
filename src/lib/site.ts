@@ -1,3 +1,5 @@
+import { PRICING } from "@/lib/pricing";
+
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   "https://claudeacademy.chatjuridico.com.br";
@@ -5,6 +7,8 @@ export const SITE_URL =
 export const SITE_HOST = new URL(SITE_URL).host;
 
 export const SITE_NAME = "Claude Academy";
+
+export const SITE_BYLINE = "by Chat Jurídico";
 
 export const SITE_BRAND = `${SITE_NAME} · Chat Jurídico`;
 
@@ -49,11 +53,11 @@ export const COMMUNITY = {
     badge: "Só alunos",
     tagline: "Incluída na matrícula do curso",
     perks: [
-      "Receba skills primeiro",
+      `Skills premium liberadas após ${PRICING.guaranteeDays} dias da compra`,
       "Dúvidas sobre as aulas respondidas no grupo",
       "Networking com quem já aplica Claude no escritório",
       "Materiais extras e atualizações antes do público",
     ],
-    note: "Acesso liberado automaticamente após a compra do curso.",
+    note: `Grupo VIP na matrícula. Skills premium após ${PRICING.guaranteeDays} dias.`,
   },
 } as const;

@@ -9,7 +9,12 @@
     "lint": "eslint",
     "og": "node scripts/generate-og-images.mjs",
     "favicon": "node scripts/generate-favicon.mjs",
-    "invite": "node scripts/generate-invite.mjs"
+    "invite": "node scripts/generate-invite.mjs",
+    "audit": "node scripts/security-audit.mjs",
+    "audit:live": "node scripts/security-audit.mjs --live",
+    "audit:report": "node scripts/security-audit.mjs --write-report",
+    "test:security": "node --test tests/security/*.test.mjs",
+    "test:security:live": "node --test tests/security/*.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.0",

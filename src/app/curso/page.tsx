@@ -28,8 +28,8 @@ export default function CursoSalesPage() {
     <div className="flex min-h-[100dvh] flex-col">
       <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
-          <ClaudeAcademyBrand size="sm" showByline={false} className="shrink sm:hidden" />
-          <ClaudeAcademyBrand size="md" showByline={false} className="hidden shrink sm:flex" />
+          <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
+          <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
           <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
             <a
               href="#precos"

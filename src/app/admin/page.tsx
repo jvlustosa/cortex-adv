@@ -18,7 +18,7 @@ export default async function AdminPage() {
     <div className="min-h-[100dvh]">
       <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
-          <ClaudeAcademyBrand size="sm" showByline={false} />
+          <ClaudeAcademyBrand size="sm" />
           <nav className="flex items-center gap-3">
             <Link
               href="/area-de-membros"

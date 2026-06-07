@@ -17,6 +17,7 @@ import { FaqWhatsapp, type FaqItem } from "@/components/faq-whatsapp";
 import { CertificatePreview } from "@/components/certificate-preview";
 import { LaunchBanner } from "@/components/launch-banner";
 import { MentorProfile } from "@/components/mentor-profile";
+import { PRICING } from "@/lib/pricing";
 
 const faqItems: FaqItem[] = [
   {
@@ -50,7 +51,7 @@ const faqItems: FaqItem[] = [
   {
     question: "O que é a Comunidade VIP?",
     answer:
-      "Grupo exclusivo no WhatsApp só para alunos matriculados. Incluída na compra do curso. Lá você tira dúvidas das aulas, troca experiências com quem já aplica Claude no escritório e recebe conteúdo extra. O acesso é liberado automaticamente na matrícula.",
+      `Grupo exclusivo no WhatsApp só para alunos matriculados. Incluída na compra do curso. Lá você tira dúvidas das aulas, troca experiências com quem já aplica Claude no escritório e recebe conteúdo extra. As skills premium são liberadas após ${PRICING.guaranteeDays} dias da compra. O acesso ao grupo é imediato na matrícula.`,
   },
   {
     question: "Quanto custa o curso?",
@@ -123,8 +124,8 @@ export default function Home() {
 
       <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
-          <ClaudeAcademyBrand size="sm" showByline={false} className="shrink sm:hidden" />
-          <ClaudeAcademyBrand size="md" showByline={false} className="hidden shrink sm:flex" />
+          <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
+          <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
           <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
             <a
               href="#precos"

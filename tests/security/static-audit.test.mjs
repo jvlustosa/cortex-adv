@@ -1,0 +1,117 @@
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { existsSync } from "fs";
+import { join } from "path";
+import {
+  PROJECT_ROOT,
+  runStaticAudit,
+  walkSourceFiles,
+  summarize,
+  exitCodeFor,
+  ADMIN_API_ROUTES,
+  RLS_TABLES_EXPECTED,
+} from "../../scripts/security/audit-engine.mjs";
+
+describe("security audit — estático", () => {
+  it("encontra arquivos fonte do projeto", () => {
+    const files = walkSourceFiles(join(PROJECT_ROOT, "src"));
+    assert.ok(files.length > 20, "esperado >20 arquivos em src/");
+    assert.ok(files.some((f) => f.endsWith("middleware.ts") || f.includes("api/")));
+  });
+
+  it("todas as rotas admin existem no filesystem", () => {
+    for (const route of ADMIN_API_ROUTES) {
+      const file = join(PROJECT_ROOT, "src/app", `${route}/route.ts`);
+      assert.ok(existsSync(file), `rota admin ausente: ${route}`);
+    }
+  });
+
+  it("rotas admin usam assertAdminApi", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const unprotected = findings.filter((f) =>
+      f.id.startsWith("admin-route-unprotected-"),
+    );
+    assert.equal(
+      unprotected.length,
+      0,
+      `APIs admin sem proteção: ${unprotected.map((f) => f.id).join(", ")}`,
+    );
+  });
+
+  it("service role não aparece em componentes client", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const exposed = findings.filter((f) => f.id === "service-role-client");
+    assert.equal(exposed.length, 0, exposed.map((f) => f.detail).join("; "));
+  });
+
+  it("detecta open redirect no auth callback", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const openRedirect = findings.find((f) => f.id === "open-redirect-auth-callback");
+    assert.ok(openRedirect, "deveria flagar open redirect em /auth/callback");
+    assert.equal(openRedirect.severity, "high");
+  });
+
+  it("detecta open redirect no login form", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const openRedirect = findings.find((f) => f.id === "open-redirect-login");
+    assert.ok(openRedirect, "deveria flagar router.push(next) sem validação");
+    assert.equal(openRedirect.severity, "high");
+  });
+
+  it("detecta race condition no signup de convite", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const race = findings.find((f) => f.id === "signup-invite-race");
+    assert.ok(race, "deveria flagar incremento não-atômico de used_count");
+  });
+
+  it("detecta lesson view sem autenticação obrigatória", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const anon = findings.find((f) => f.id === "lesson-view-anonymous");
+    assert.ok(anon);
+  });
+
+  it("detecta endpoints sem rate limit", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const expected = [
+      "signup-no-rate-limit",
+      "quiz-no-rate-limit",
+      "lesson-view-no-rate-limit",
+      "certificate-no-rate-limit",
+    ];
+    for (const id of expected) {
+      assert.ok(
+        findings.some((f) => f.id === id),
+        `deveria flagar ${id}`,
+      );
+    }
+  });
+
+  it("SQL habilita RLS nas tabelas sensíveis", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const rlsDisabled = findings.filter((f) => f.id.startsWith("rls-disabled-"));
+    assert.equal(rlsDisabled.length, 0, rlsDisabled.map((f) => f.title).join("; "));
+
+    const sqlPath = join(PROJECT_ROOT, "supabase/setup-completo.sql");
+    assert.ok(existsSync(sqlPath));
+    for (const table of RLS_TABLES_EXPECTED) {
+      const missing = findings.find((f) => f.id === `rls-table-missing-${table}`);
+      assert.equal(missing, undefined, `tabela ${table} ausente no SQL`);
+    }
+  });
+
+  it("gera relatório com categorias de severidade", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const summary = summarize(findings);
+    assert.ok(summary.total > 5, "auditoria deve produzir achados documentados");
+    assert.ok(
+      summary.high >= 2,
+      "esperado >=2 high (open redirects conhecidos)",
+    );
+  });
+
+  it("exit code 1 quando há critical ou high", () => {
+    const findings = runStaticAudit(PROJECT_ROOT);
+    const code = exitCodeFor(findings);
+    assert.equal(code, 1, "high findings devem falhar o gate");
+  });
+});

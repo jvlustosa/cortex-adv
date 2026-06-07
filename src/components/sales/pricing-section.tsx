@@ -24,6 +24,7 @@ const features = [
   "Certificado digital ao concluir",
   "Novas aulas e atualizações incluídas, sem pagar de novo",
   "Comunidade VIP no WhatsApp: suporte às aulas e networking entre alunos",
+  `Skills premium exclusivas — liberadas após ${PRICING.guaranteeDays} dias da compra`,
 ] as const;
 
 export function PricingSection() {

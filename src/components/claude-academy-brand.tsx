@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_BYLINE, SITE_NAME } from "@/lib/site";
 
 export const CLAUDE_ACADEMY_LOGO =
   "/assets/images/claude-para-advogados-academy.png";
@@ -50,7 +50,7 @@ export function ClaudeAcademyBrand({
         </span>
         {showByline ? (
           <span className={cn(s.byline, "text-[var(--muted)]")}>
-            by Chat Jurídico
+            {SITE_BYLINE}
           </span>
         ) : null}
       </div>
@@ -64,7 +64,11 @@ export function ClaudeAcademyBrand({
       <Link
         href={href ?? "/"}
         className={classes}
-        aria-label={`${SITE_NAME}, página inicial`}
+        aria-label={
+          showByline
+            ? `${SITE_NAME} ${SITE_BYLINE}, página inicial`
+            : `${SITE_NAME}, página inicial`
+        }
       >
         {content}
       </Link>
