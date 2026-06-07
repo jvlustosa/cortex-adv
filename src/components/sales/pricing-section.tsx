@@ -1,4 +1,5 @@
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { COURSE } from "@/data/course-content";
 import {
   formatBRL,
   getPricingSummary,
@@ -15,45 +16,46 @@ function checkoutHref(plan: "installments" | "upfront") {
     plan === "installments" ? checkoutInstallments : checkoutUpfront;
   if (url) return url;
 
-  const message =
-    plan === "installments"
-      ? "Olá! Quero garantir minha vaga no curso Claude para Advogados no plano 12x de R$ 49."
-      : "Olá! Quero garantir minha vaga no curso Claude para Advogados à vista com 40% de desconto.";
-
-  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  return "#lista-espera";
 }
 
 const features = [
-  "Acesso completo aos 3 módulos e todas as aulas",
-  "Certificado ao concluir a trilha",
-  "Atualizações do conteúdo incluídas",
-  "Comunidade VIP de alunos no WhatsApp",
-];
+  `Trilha completa em vídeo — ${COURSE.modules.length} módulos, do primeiro prompt à automação`,
+  "Certificado digital ao concluir",
+  "Novas aulas e atualizações incluídas, sem pagar de novo",
+  "Comunidade VIP no WhatsApp: suporte às aulas e networking entre alunos",
+] as const;
 
 export function PricingSection() {
-  const { total, upfront, savings } = getPricingSummary();
+  const { total, upfront, savings, upfrontDiscountPercent } =
+    getPricingSummary();
 
   return (
-    <section className={styles.section} aria-labelledby="pricing-heading">
+    <section
+      id="precos"
+      className={styles.section}
+      aria-labelledby="pricing-heading"
+    >
       <div className={styles.inner}>
         <header className={styles.header}>
           <p className={styles.eyebrow}>Investimento</p>
           <h2 id="pricing-heading" className={styles.title}>
-            Escolha como prefere pagar
+            Quanto custa o curso
           </h2>
           <p className={styles.subtitle}>
-            Parcelado no cartão ou à vista com desconto. Você decide.
+            Curso completo + Comunidade VIP. Parcela em 12× no cartão ou paga
+            à vista e economiza {formatBRL(savings)}.
           </p>
         </header>
 
         <div className={styles.grid}>
           <article className={styles.card}>
-            <p className={styles.planLabel}>Parcelado</p>
+            <p className={styles.planLabel}>12× no cartão</p>
             <p className={styles.price}>
               12× {formatBRL(PRICING.installments.amount)}
             </p>
             <p className={styles.priceDetail}>
-              Total de {formatBRL(total)} no cartão
+              {formatBRL(total)} em 12 parcelas iguais
             </p>
             <ul className={styles.features}>
               {features.map((feature) => (
@@ -65,26 +67,27 @@ export function PricingSection() {
             </ul>
             <a
               href={checkoutHref("installments")}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(checkoutInstallments
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               className={`${styles.cta} ${styles.ctaSecondary}`}
             >
-              Garantir vaga: 12×
+              Garantir vaga em 12×
               <ArrowRight className="size-4 opacity-80" aria-hidden />
             </a>
           </article>
 
           <article className={`${styles.card} ${styles.cardFeatured}`}>
             <span className={styles.badge}>
-              {PRICING.upfrontDiscountPercent}% off à vista
+              {upfrontDiscountPercent}% mais barato à vista
             </span>
-            <p className={styles.planLabel}>À vista</p>
+            <p className={styles.planLabel}>Pagamento único</p>
             <p className={styles.price}>{formatBRL(upfront)}</p>
             <p className={styles.priceDetail}>
-              De {formatBRL(total)} por {formatBRL(upfront)}
+              Era {formatBRL(total)} parcelado — paga uma vez e pronto
             </p>
             <p className={styles.savings}>
-              Economia de {formatBRL(savings)}
+              Você leva {formatBRL(savings)} de desconto
             </p>
             <ul className={styles.features}>
               {features.map((feature) => (
@@ -96,8 +99,9 @@ export function PricingSection() {
             </ul>
             <a
               href={checkoutHref("upfront")}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(checkoutUpfront
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               className={`${styles.cta} ${styles.ctaPrimary}`}
             >
               Garantir vaga à vista
@@ -108,8 +112,7 @@ export function PricingSection() {
 
         <p className={styles.guarantee}>
           <ShieldCheck className={`size-4 ${styles.guaranteeIcon}`} aria-hidden />
-          Garantia de {PRICING.guaranteeDays} dias · reembolso integral se não
-          servir pra você
+          {PRICING.guaranteeDays} dias pra testar · não gostou, devolvemos 100%
         </p>
       </div>
     </section>

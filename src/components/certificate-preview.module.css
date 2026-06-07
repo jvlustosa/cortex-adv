@@ -235,6 +235,13 @@
   color: rgba(217, 119, 87, 0.85);
 }
 
+.certCourseLine {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .recipient {
   margin-top: 0.5rem;
   font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;

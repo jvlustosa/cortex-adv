@@ -87,20 +87,7 @@
   }
 }
 
-.courseName {
-  display: inline-block;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--accent);
-  padding: 0.4rem 0.9rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-
 .title {
-  margin-top: 0.75rem;
   font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
   font-size: clamp(1.65rem, 6vw, 3.25rem);
   line-height: 1.06;

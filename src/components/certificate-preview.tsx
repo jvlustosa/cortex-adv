@@ -5,9 +5,20 @@ import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import { Award, ShieldCheck, Sparkles } from "lucide-react";
 import { CLAUDE_ACADEMY_LOGO } from "@/components/claude-academy-brand";
-import { COURSE_MENTOR } from "@/lib/site";
-import { DEMO_CERTIFICATE_CODE } from "@/lib/certificates/constants";
+import { COURSE } from "@/data/course-content";
+import {
+  CERTIFICATE_COURSE_LINE,
+  CERTIFICATE_DEMO_DATE,
+  CERTIFICATE_DEMO_RECIPIENT,
+  CERTIFICATE_LABEL,
+  CERTIFICATE_MENTOR_NAME,
+  CERTIFICATE_MENTOR_ROLE,
+  CERTIFICATE_PREVIEW_BADGE,
+  DEMO_CERTIFICATE_CODE,
+  certificateCompletionText,
+} from "@/lib/certificates/constants";
 import { certificateVerifyPath } from "@/lib/certificates/normalize";
+import { SITE_NAME } from "@/lib/site";
 import styles from "./certificate-preview.module.css";
 
 function ClaudeMark({ className }: { className?: string }) {
@@ -103,42 +114,40 @@ export function CertificatePreview() {
                 <div>
                   <span className={styles.badge}>
                     <Sparkles className="size-3" aria-hidden />
-                    Preview · 2026
+                    {CERTIFICATE_PREVIEW_BADGE}
                   </span>
 
                   <div className={`${styles.logoRow} mt-4`}>
                     <Image
                       src={CLAUDE_ACADEMY_LOGO}
-                      alt="Claude Academy"
+                      alt=""
                       width={48}
                       height={48}
                       className={styles.logoAcademy}
+                      aria-hidden
                     />
                   </div>
 
-                  <p className={styles.certSubtitle}>Certificado de conclusão</p>
-                  <h3 className={styles.certTitle}>Claude Academy</h3>
-                  <p className={styles.certSubtitle}>
-                    IA generativa para advogados
-                  </p>
+                  <h3 className={styles.certTitle}>{SITE_NAME}</h3>
+                  <p className={styles.certSubtitle}>{CERTIFICATE_LABEL}</p>
+                  <p className={styles.certCourseLine}>{CERTIFICATE_COURSE_LINE}</p>
                 </div>
 
                 <div>
                   <p className="text-[0.65rem] uppercase tracking-[0.14em] text-[var(--muted)]">
                     Certificamos que
                   </p>
-                  <p className={styles.recipient}>Dra. Maria Silva</p>
+                  <p className={styles.recipient}>{CERTIFICATE_DEMO_RECIPIENT}</p>
                   <p className={`${styles.bodyText} mx-auto mt-2`}>
-                    concluiu com aproveitamento o programa de formação em Claude
-                    e automação jurídica, com carga horária de 12 horas.
+                    {certificateCompletionText(COURSE.title)}
                   </p>
                 </div>
 
                 <div className={styles.footerRow}>
                   <div className={styles.sigBlock}>
                     <div className={styles.sigLine} aria-hidden />
-                    <p className={styles.sigName}>{COURSE_MENTOR.name}</p>
-                    <p className={styles.sigRole}>{COURSE_MENTOR.role} · Chat Jurídico</p>
+                    <p className={styles.sigName}>{CERTIFICATE_MENTOR_NAME}</p>
+                    <p className={styles.sigRole}>{CERTIFICATE_MENTOR_ROLE}</p>
                   </div>
 
                   <div className={styles.seal} aria-hidden>
@@ -152,7 +161,7 @@ export function CertificatePreview() {
                     >
                       ID · {DEMO_CERTIFICATE_CODE}
                     </Link>
-                    <p className={styles.meta}>Jun 2026</p>
+                    <p className={styles.meta}>{CERTIFICATE_DEMO_DATE}</p>
                   </div>
                 </div>
               </div>

@@ -146,7 +146,7 @@ export function ValidarPageShell({
       <div className={styles.glow} aria-hidden />
       <header className="relative border-b border-[var(--border)] bg-[var(--background)]/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-6 py-4">
-          <ClaudeAcademyBrand size="sm" />
+          <ClaudeAcademyBrand size="sm" showByline={false} />
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]"

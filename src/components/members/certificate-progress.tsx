@@ -2,6 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Award, Lock, Sparkles } from "lucide-react";
 import { CLAUDE_ACADEMY_LOGO } from "@/components/claude-academy-brand";
+import {
+  CERTIFICATE_COURSE_LINE,
+  CERTIFICATE_LABEL,
+} from "@/lib/certificates/constants";
+import { SITE_NAME } from "@/lib/site";
 import type { CourseProgress } from "@/lib/course/progress";
 import styles from "./certificate-progress.module.css";
 
@@ -76,11 +81,10 @@ export function CertificateProgress({
               height={40}
               aria-hidden
             />
-            <p className={styles.certSubtitle}>Certificado de conclusão</p>
-            <p className={styles.certTitle}>Claude Academy</p>
-            <p className={styles.certSubtitle}>
-              {userName ?? "Seu nome"} · IA generativa para advogados
-            </p>
+            <p className={styles.certTitle}>{SITE_NAME}</p>
+            <p className={styles.certSubtitle}>{CERTIFICATE_LABEL}</p>
+            <p className={styles.certRecipient}>{userName ?? "Seu nome"}</p>
+            <p className={styles.certCourseLine}>{CERTIFICATE_COURSE_LINE}</p>
           </div>
         </div>
 

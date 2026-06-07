@@ -1,4 +1,5 @@
 .section {
+  scroll-margin-top: 5rem;
   border-top: 1px solid var(--border);
   background: var(--surface-overlay);
   padding: 4rem 1.5rem 5rem;

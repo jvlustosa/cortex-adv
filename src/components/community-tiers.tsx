@@ -10,14 +10,18 @@ type CommunityTiersProps = {
 };
 
 export function CommunityTiers({
-  vipCtaHref = "#lista-espera",
+  vipCtaHref = "#precos",
   vipCtaLabel = "Garantir vaga no curso",
 }: CommunityTiersProps) {
   const { open, vip } = COMMUNITY;
   const vipIsExternal = vipCtaHref.startsWith("http");
 
   return (
-    <section className={styles.section} aria-labelledby="community-tiers-heading">
+    <section
+      id="comunidade"
+      className={styles.section}
+      aria-labelledby="community-tiers-heading"
+    >
       <div className={styles.inner}>
         <header className={styles.header}>
           <p className={styles.eyebrow}>Duas comunidades, propósitos diferentes</p>

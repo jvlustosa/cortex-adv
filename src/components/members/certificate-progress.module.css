@@ -125,6 +125,18 @@
   color: var(--muted);
 }
 
+.certRecipient {
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--foreground);
+}
+
+.certCourseLine {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 .lockOverlay {
   position: absolute;
   inset: 0;

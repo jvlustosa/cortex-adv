@@ -16,7 +16,7 @@ function QuizHeader() {
   return (
     <header className="shrink-0 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center justify-center px-6 py-3">
-        <ClaudeAcademyBrand size="sm" />
+        <ClaudeAcademyBrand size="sm" showByline={false} />
       </div>
     </header>
   );

@@ -49,6 +49,7 @@ export const COMMUNITY = {
     badge: "Só alunos",
     tagline: "Incluída na matrícula do curso",
     perks: [
+      "Receba skills primeiro",
       "Dúvidas sobre as aulas respondidas no grupo",
       "Networking com quem já aplica Claude no escritório",
       "Materiais extras e atualizações antes do público",

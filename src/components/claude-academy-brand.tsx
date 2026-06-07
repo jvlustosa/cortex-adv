@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { SITE_HOST, SITE_NAME } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
 
 export const CLAUDE_ACADEMY_LOGO =
   "/assets/images/claude-para-advogados-academy.png";
@@ -16,14 +16,14 @@ type ClaudeAcademyBrandProps = {
   size?: keyof typeof SIZE;
   /** Omit or pass null for static display (no link). */
   href?: string | null;
-  showHost?: boolean;
+  showByline?: boolean;
   className?: string;
 };
 
 export function ClaudeAcademyBrand({
   size = "md",
   href = "/",
-  showHost = false,
+  showByline = true,
   className,
 }: ClaudeAcademyBrandProps) {
   const s = SIZE[size];
@@ -48,14 +48,11 @@ export function ClaudeAcademyBrand({
         >
           {SITE_NAME}
         </span>
-        <span className={cn(s.byline, "text-[var(--muted)]")}>
-          by Chat Jurídico
-        </span>
-        {showHost && (
-          <span className="hidden text-[10px] text-[var(--muted)] sm:inline">
-            {SITE_HOST}
+        {showByline ? (
+          <span className={cn(s.byline, "text-[var(--muted)]")}>
+            by Chat Jurídico
           </span>
-        )}
+        ) : null}
       </div>
     </>
   );

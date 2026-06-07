@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { CourseEnrollment } from "@/components/course-enrollment";
 import { CourseHero } from "@/components/course-hero";
+import { PricingSection } from "@/components/sales/pricing-section";
 import { isSignupEnabled } from "@/lib/supabase/enabled";
 import {
   CHAT_JURIDICO_SOCIAL,
   CHAT_JURIDICO_URL,
-  OPEN_WHATSAPP_GROUP_URL,
   SITE_BRAND,
 } from "@/lib/site";
 import { AnimatedFeatureGrid } from "@/components/animated-feature-grid";
@@ -15,6 +15,7 @@ import { InstagramIcon, YoutubeIcon } from "@/components/icons/social";
 import { CommunityTiers } from "@/components/community-tiers";
 import { FaqWhatsapp, type FaqItem } from "@/components/faq-whatsapp";
 import { CertificatePreview } from "@/components/certificate-preview";
+import { LaunchBanner } from "@/components/launch-banner";
 import { MentorProfile } from "@/components/mentor-profile";
 
 const faqItems: FaqItem[] = [
@@ -122,13 +123,15 @@ export default function Home() {
 
       <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
-          <ClaudeAcademyBrand size="sm" showHost className="shrink sm:hidden" />
-          <ClaudeAcademyBrand
-            size="md"
-            showHost
-            className="hidden shrink sm:flex"
-          />
+          <ClaudeAcademyBrand size="sm" showByline={false} className="shrink sm:hidden" />
+          <ClaudeAcademyBrand size="md" showByline={false} className="hidden shrink sm:flex" />
           <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
+            <a
+              href="#precos"
+              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
+            >
+              Preços
+            </a>
             <Link
               href="/quiz"
               className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
@@ -142,12 +145,10 @@ export default function Home() {
               Entrar
             </Link>
             <a
-              href={OPEN_WHATSAPP_GROUP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#comunidade"
               className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
             >
-              Grupo aberto
+              Entrar na comunidade
             </a>
             <a
               href="#lista-espera"
@@ -160,16 +161,20 @@ export default function Home() {
         </div>
       </header>
 
+      <LaunchBanner />
+
       <main className="flex flex-1 flex-col">
         <CourseHero />
 
         <MentorProfile />
 
-        <CourseEnrollment />
-
         <AnimatedFeatureGrid />
 
         <CertificatePreview />
+
+        <PricingSection />
+
+        <CourseEnrollment />
 
         <section className="border-t border-[var(--border)] bg-[var(--surface-overlay)] px-4 py-10 sm:px-6 sm:py-12">
           <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
@@ -193,24 +198,23 @@ export default function Home() {
               Quiz · 2 minutos
             </p>
             <h2 className="mt-4 font-serif text-2xl tracking-tight text-[var(--foreground)] md:text-3xl">
-              Você está usando Claude ou só assistindo?
+              Você ainda usa Claude só pra fazer perguntas?
             </h2>
             <p className="mt-3 text-[var(--muted)]">
-              2 minutos, 8 perguntas. Descubra onde você está com Claude e IA
-              e o que está perdendo enquanto outros advogados já automatizam o
-              escritório.
+              8 perguntas, 2 minutos. Descubra se você já usa IA no escritório
+              de verdade — ou se ainda está no modo “pergunta e copia”.
             </p>
             <Link
               href="/quiz"
               className="mt-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-8 py-4 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
-              Fazer o quiz
+              Ver meu nível
               <ArrowRight className="size-4 opacity-80 text-[var(--accent)]" aria-hidden />
             </Link>
           </div>
         </section>
 
-        <CommunityTiers />
+        <CommunityTiers vipCtaHref="#precos" vipCtaLabel="Ver preços" />
 
         <FaqWhatsapp items={faqItems} heading="Perguntas frequentes" subtitle="Curso, grupo aberto e Comunidade VIP" />
       </main>

@@ -24,14 +24,13 @@ export function CourseHero() {
       <div className={styles.wrap}>
         <div className={styles.intro}>
           <div className={styles.copy}>
-            <p className={styles.courseName}>{COURSE.subtitle}</p>
             <h1 id="course-hero-heading" className={styles.title}>
               {COURSE.title}
             </h1>
             <p className={styles.lead}>
-              O curso completo do Chat Jurídico para dominar o Claude Cowork na
-              bancada: peças, automação e uso ético, sem programar. Inclui
-              Comunidade VIP de alunos e mentoria com{" "}
+              {COURSE.subtitle}. O curso completo do Chat Jurídico para dominar
+              o Claude Cowork na bancada — peças, automação e uso ético, sem
+              programar. Inclui Comunidade VIP e mentoria com{" "}
               <strong className="text-[var(--foreground)]">
                 {COURSE_MENTOR.name}
               </strong>
@@ -65,10 +64,10 @@ export function CourseHero() {
 
             <div className={styles.ctaRow}>
               <a
-                href="#lista-espera"
+                href="#precos"
                 className={styles.ctaPrimary}
               >
-                Garantir minha vaga
+                Ver preços
                 <ArrowRight className="size-4 opacity-80" aria-hidden />
               </a>
               <Link href="/curso" className={styles.ctaSecondary}>

@@ -13,12 +13,13 @@ export function CourseEnrollment() {
       aria-labelledby="course-enrollment-heading"
     >
       <div className={styles.wrap}>
-        <p className={styles.eyebrow}>Primeira turma · Lista de espera</p>
+        <p className={styles.eyebrow}>Lista de espera</p>
         <h2 id="course-enrollment-heading" className={styles.title}>
           Garanta sua vaga
         </h2>
         <p className={styles.subtitle}>
-          Avisamos no WhatsApp quando as inscrições abrirem. Mentoria com{" "}
+          Viu o investimento? Entre na fila — avisamos no WhatsApp quando as
+          inscrições abrirem. Mentoria com{" "}
           <strong className="text-[var(--foreground)]">
             {COURSE_MENTOR.name}
           </strong>
