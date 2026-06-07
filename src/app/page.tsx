@@ -17,7 +17,9 @@ import { FaqWhatsapp, type FaqItem } from "@/components/faq-whatsapp";
 import { CertificatePreview } from "@/components/certificate-preview";
 import { LaunchBanner } from "@/components/launch-banner";
 import { MentorProfile } from "@/components/mentor-profile";
+import { pageShellClass } from "@/lib/layout";
 import { PRICING } from "@/lib/pricing";
+import { cn } from "@/lib/utils";
 
 const faqItems: FaqItem[] = [
   {
@@ -123,7 +125,12 @@ export default function Home() {
       />
 
       <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-5xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
+        <div
+          className={cn(
+            pageShellClass,
+            "flex items-center justify-between gap-3 py-3 sm:gap-6 sm:py-4",
+          )}
+        >
           <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
           <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
           <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
@@ -221,7 +228,12 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-[var(--border)] px-4 py-8 sm:px-6">
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 text-center text-sm text-[var(--muted)] sm:flex-row sm:text-left">
+        <div
+          className={cn(
+            pageShellClass,
+            "flex flex-col items-center justify-between gap-6 text-center text-sm text-[var(--muted)] sm:flex-row sm:text-left",
+          )}
+        >
           <span>© {new Date().getFullYear()} {SITE_BRAND}</span>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
             {isSignupEnabled() && (
@@ -240,7 +252,12 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        <div className="mx-auto mt-6 flex max-w-5xl flex-col items-center gap-4 border-t border-[var(--border)] pt-6 text-xs text-[var(--muted)] sm:flex-row sm:justify-between">
+        <div
+          className={cn(
+            pageShellClass,
+            "mt-6 flex flex-col items-center gap-4 border-t border-[var(--border)] pt-6 text-xs text-[var(--muted)] sm:flex-row sm:justify-between",
+          )}
+        >
           <div className="flex items-center gap-2">
             <span>Feito por</span>
             <a

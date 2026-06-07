@@ -14,7 +14,9 @@ import {
 } from "@/lib/pricing";
 import { LaunchBanner } from "@/components/launch-banner";
 import { CommunityTiers } from "@/components/community-tiers";
+import { pageShellClass } from "@/lib/layout";
 import { OPEN_WHATSAPP_GROUP_URL, SITE_BRAND } from "@/lib/site";
+import { cn } from "@/lib/utils";
 
 const { upfront, upfrontDiscountPercent } = getPricingSummary();
 
@@ -27,7 +29,12 @@ export default function CursoSalesPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-5xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
+        <div
+          className={cn(
+            pageShellClass,
+            "flex items-center justify-between gap-3 py-3 sm:gap-6 sm:py-4",
+          )}
+        >
           <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
           <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
           <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
@@ -123,7 +130,12 @@ export default function CursoSalesPage() {
       </main>
 
       <footer className="border-t border-[var(--border)] px-4 py-8 sm:px-6">
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 text-center text-sm text-[var(--muted)] sm:flex-row sm:text-left">
+        <div
+          className={cn(
+            pageShellClass,
+            "flex flex-col items-center justify-between gap-4 text-center text-sm text-[var(--muted)] sm:flex-row sm:text-left",
+          )}
+        >
           <span>© {new Date().getFullYear()} {SITE_BRAND}</span>
           <Link
             href="/"

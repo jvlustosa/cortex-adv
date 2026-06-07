@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { pageShellClass } from "@/lib/layout";
 import { LAUNCH } from "@/lib/pricing";
+import { cn } from "@/lib/utils";
 import styles from "./launch-banner.module.css";
 
 type LaunchBannerProps = {
@@ -18,7 +20,7 @@ export function LaunchBanner({
 
   return (
     <div className={styles.banner} role="status" aria-live="polite">
-      <div className={styles.inner}>
+      <div className={cn(pageShellClass, styles.inner)}>
         <p className={styles.text}>
           <span className={styles.cohort}>{LAUNCH.cohort}</span>
           <span className={styles.message}>
