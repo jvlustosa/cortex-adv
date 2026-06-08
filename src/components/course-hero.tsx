@@ -11,6 +11,17 @@ const HIGHLIGHTS = [
   "Comunidade VIP de alunos: suporte às aulas na matrícula",
 ] as const;
 
+// Legendas que rodam embaixo do logo: identidade + benefícios com gatilhos
+// sutis de diferenciação (exclusividade, domínio, escassez). Cada uma ocupa
+// uma fatia igual do ciclo.
+const CAPTION_SLICE_SECONDS = 5;
+const LOGO_CAPTIONS = [
+  "Claude · Cowork para advogados",
+  "Turma pequena, mentoria direta",
+  "Do prompt à peça pronta",
+  "Poucos usam o Claude assim",
+] as const;
+
 export function CourseHero() {
   const lessonCount = COURSE.modules.reduce(
     (sum, mod) => sum + mod.lessons.length,
@@ -81,12 +92,19 @@ export function CourseHero() {
               <ClaudePixelLogo size={320} cellSize={3} morph morphCycle={24} />
             </div>
             <p className={styles.logoCaption}>
-              <span className={styles.logoCaptionA}>
-                Claude · Cowork para advogados
-              </span>
-              <span className={styles.logoCaptionB} aria-hidden>
-                Balança · IA na bancada
-              </span>
+              {LOGO_CAPTIONS.map((caption, index) => (
+                <span
+                  key={caption}
+                  className={styles.logoCaptionItem}
+                  aria-hidden={index > 0}
+                  style={{
+                    animationDuration: `${LOGO_CAPTIONS.length * CAPTION_SLICE_SECONDS}s`,
+                    animationDelay: `${index * CAPTION_SLICE_SECONDS}s`,
+                  }}
+                >
+                  {caption}
+                </span>
+              ))}
             </p>
           </div>
         </div>

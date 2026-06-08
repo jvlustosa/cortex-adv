@@ -1,9 +1,10 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
+import { fireSubtleConfetti } from "@/lib/confetti";
 import { COURSE_MENTOR, WAITLIST_API_URL } from "@/lib/site";
 import styles from "./claude-academy-invite-hero.module.css";
 
@@ -65,6 +66,13 @@ export function ClaudeAcademyWaitlist({
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const redirectTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimer.current) window.clearTimeout(redirectTimer.current);
+    };
+  }, []);
 
   const isBrazil = ddi === "+55";
   const selectedDdi = DDI_OPTIONS.find((option) => option.value === ddi) ?? DDI_OPTIONS[0];
@@ -147,7 +155,15 @@ export function ClaudeAcademyWaitlist({
       } catch {
         /* ignore */
       }
-      router.push(obrigadoPath(queryString));
+
+      // Confete sutil antes de seguir pro /obrigado.
+      // Sem animação (reduced-motion / sem canvas), redireciona na hora.
+      const next = obrigadoPath(queryString);
+      if (fireSubtleConfetti()) {
+        redirectTimer.current = window.setTimeout(() => router.push(next), 650);
+      } else {
+        router.push(next);
+      }
     } catch {
       setError("Erro de conexão. Verifique a internet e tente novamente.");
       setLoading(false);

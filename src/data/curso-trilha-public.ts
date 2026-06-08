@@ -4,46 +4,65 @@ export const TRILHA_PUBLIC_META = {
   kicker: "Sneak peek da trilha",
   title: "O que você vai percorrer",
   subtitle:
-    "Organizado por tarefa jurídica, do básico ao avançado. O roteiro completo fica na área de membros.",
-  duration: "≈ 3h em microaulas",
-  format: "Screencast · 4–5 min por aula",
+    "Organizado por tarefa do escritório, do básico ao avançado. O roteiro completo fica na área de membros.",
+  duration: "8 blocos em microaulas",
+  format: "Screencast · direto ao ponto",
 } as const;
 
 export type TrilhaNivelPublic = {
+  /** Rótulo curto exibido no marcador da timeline */
   level: string;
   title: string;
   teaser: string;
+  /** Conteúdo premium — exibido borrado com cadeado para gerar curiosidade */
+  premium?: boolean;
 };
 
 export const TRILHA_NIVEIS_PUBLIC: TrilhaNivelPublic[] = [
   {
     level: "0",
-    title: "Fundamentos e Segurança",
-    teaser: "Ética, sigilo, LGPD e a regra de ouro da advocacia com IA",
+    title: "Comece aqui",
+    teaser: "O que é o Claude, a Anthropic, Claude vs ChatGPT e qual plano escolher",
   },
   {
     level: "1",
-    title: "Prompting Jurídico",
-    teaser: "Anatomia do prompt, iteração e biblioteca inicial",
+    title: "Fundação prática",
+    teaser: "Assinatura, privacidade (OAB), os 3 modos e a anatomia do prompt jurídico",
   },
   {
     level: "2",
-    title: "Trabalho com Documentos",
-    teaser: "PDFs, contratos, artifacts e casos práticos",
+    title: "Economia do Claude",
+    teaser: "Tokens em linguagem de advogado, input vs output e o ROI do seu tempo",
   },
   {
     level: "3",
-    title: "Projects e Memória",
-    teaser: "Contexto do escritório e continuidade por caso",
+    title: "Projects",
+    teaser: "Montando o Project “Meu Escritório” e Projects por área de atuação",
   },
   {
     level: "4",
-    title: "Pesquisa e Jurisprudência",
-    teaser: "Pesquisa assistida com validação na fonte oficial",
+    title: "Cowork",
+    teaser:
+      "4 demos ao vivo: organizar pasta caótica, extrair dados pra planilha, minuta recorrente e briefing semanal automático",
+    premium: true,
   },
   {
     level: "5",
-    title: "Skills",
-    teaser: "Habilidades plugáveis e capstone do escritório",
+    title: "Escritório no automático",
+    teaser:
+      "Os 5 fluxos que todo escritório deveria automatizar e Chat Jurídico + Claude integrados na prática",
+    premium: true,
+  },
+  {
+    level: "6",
+    title: "Artefatos",
+    teaser:
+      "Calculadora trabalhista do zero, Live Artifacts com IA por dentro e triagem inicial de cliente",
+    premium: true,
+  },
+  {
+    level: "7",
+    title: "Encerramento",
+    teaser: "Plano de ação de 30 dias, certificado e próximos passos",
   },
 ];

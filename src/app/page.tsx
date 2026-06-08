@@ -17,6 +17,7 @@ import { FaqWhatsapp, type FaqItem } from "@/components/faq-whatsapp";
 import { CertificatePreview } from "@/components/certificate-preview";
 import { LaunchBanner } from "@/components/launch-banner";
 import { MentorProfile } from "@/components/mentor-profile";
+import { TrilhaSneakPeek } from "@/components/trilha-sneak-peek";
 import { pageShellClass } from "@/lib/layout";
 import { PRICING } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
@@ -177,6 +178,8 @@ export default function Home() {
         <MentorProfile />
 
         <AnimatedFeatureGrid />
+
+        <TrilhaSneakPeek />
 
         <CertificatePreview />
 

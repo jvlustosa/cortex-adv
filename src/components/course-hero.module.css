@@ -254,15 +254,13 @@
     letter-spacing: 0.08em;
   }
 
-  .logoCaptionA,
-  .logoCaptionB {
+  .logoCaptionItem {
     white-space: normal;
     padding-inline: 0.25rem;
   }
 }
 
-.logoCaptionA,
-.logoCaptionB {
+.logoCaptionItem {
   position: absolute;
   inset: 0;
   display: flex;
@@ -270,41 +268,26 @@
   justify-content: center;
   white-space: nowrap;
   color: var(--accent);
-  animation-duration: 24s;
+  opacity: 0;
+  animation-name: captionRotate;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
 
-.logoCaptionA {
-  animation-name: captionClaude;
-}
-
-.logoCaptionB {
-  animation-name: captionScales;
-}
-
-@keyframes captionClaude {
-  0%,
-  45% {
-    opacity: 1;
-  }
-  55%,
-  95% {
+/* Cada legenda aparece só na sua fatia do ciclo; o stagger vem do
+   animation-delay inline. A janela visível é ~25% (1/4 das legendas). */
+@keyframes captionRotate {
+  0% {
     opacity: 0;
   }
-  100% {
+  2% {
     opacity: 1;
   }
-}
-
-@keyframes captionScales {
-  0%,
-  45% {
+  22% {
+    opacity: 1;
+  }
+  25% {
     opacity: 0;
-  }
-  55%,
-  95% {
-    opacity: 1;
   }
   100% {
     opacity: 0;
@@ -312,13 +295,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logoCaptionB {
+  .logoCaptionItem {
     display: none;
+    animation: none;
   }
 
-  .logoCaptionA {
+  .logoCaptionItem:first-child {
+    display: flex;
     position: static;
-    animation: none;
+    opacity: 1;
   }
 }
 

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Lock, KeyRound } from "lucide-react";
+import { ArrowRight, Lock, KeyRound, Sparkles } from "lucide-react";
 import {
   TRILHA_NIVEIS_PUBLIC,
   TRILHA_PUBLIC_META,
 } from "@/data/curso-trilha-public";
+import { PRICING } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 type TrilhaSneakPeekProps = {
@@ -36,7 +37,7 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
             className="absolute left-[1.125rem] top-3 bottom-3 w-px bg-gradient-to-b from-[var(--accent)]/50 via-[var(--border)] to-[var(--border)]"
             aria-hidden
           />
-          {TRILHA_NIVEIS_PUBLIC.map((nivel, index) => (
+          {TRILHA_NIVEIS_PUBLIC.map((nivel) => (
             <li key={nivel.level} className="relative flex gap-4 pb-6 last:pb-0">
               <span className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--accent)]/30 bg-[var(--accent-dim)] text-sm font-extrabold text-[var(--accent)]">
                 {nivel.level}
@@ -46,20 +47,51 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
                   <h3 className="font-semibold tracking-tight text-[var(--foreground)]">
                     {nivel.title}
                   </h3>
-                  {index > 0 ? (
-                    <Lock
-                      className="size-3.5 shrink-0 text-[var(--muted)]/60"
-                      aria-hidden
-                    />
+                  {nivel.premium ? (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--accent)]/35 bg-[var(--accent-dim)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent)]">
+                      <Lock className="size-3" aria-hidden />
+                      Premium
+                    </span>
                   ) : null}
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
-                  {nivel.teaser}
-                </p>
+                {nivel.premium ? (
+                  <p
+                    className="mt-1 select-none text-sm leading-relaxed text-[var(--muted)] blur-[5px]"
+                    aria-hidden
+                  >
+                    {nivel.teaser}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
+                    {nivel.teaser}
+                  </p>
+                )}
+                {nivel.premium ? (
+                  <span className="sr-only">
+                    Conteúdo premium disponível para alunos matriculados.
+                  </span>
+                ) : null}
               </div>
             </li>
           ))}
         </ol>
+
+        <div className="mt-8 flex items-start gap-4 rounded-[var(--radius)] border border-[var(--accent)]/30 bg-[var(--accent-dim)] px-5 py-5">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--accent)]/40 bg-[var(--background)] text-[var(--accent)]">
+            <Sparkles className="size-5" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold uppercase tracking-wider text-[var(--accent)]">
+              Pack de Skills premium incluso
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-[var(--foreground)]/90">
+              As skills jurídicas prontas do curso, instaláveis direto no seu
+              Claude — triagem, minuta e análise de contrato no seu formato.
+              Liberado para quem assina, após os {PRICING.guaranteeDays} dias de
+              garantia.
+            </p>
+          </div>
+        </div>
 
         {showCta ? (
           <div className="mt-10 rounded-[var(--radius)] border border-[var(--accent)]/20 bg-[var(--accent-dim)] px-5 py-5 text-center">
