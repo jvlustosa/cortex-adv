@@ -53,14 +53,14 @@ export const metadata: Metadata = {
     type: "website",
     siteName: SITE_BRAND,
     url: SITE_URL,
-    images: [{ url: "/og/home.png", width: 1200, height: 630 }],
+    images: [{ url: "/og/default.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE_BRAND} | IA para advogados`,
     description:
       "Curso completo Claude Academy do Chat Jurídico com Comunidade VIP de alunos.",
-    images: ["/og/home.png"],
+    images: ["/og/default.png"],
   },
   robots: {
     index: true,

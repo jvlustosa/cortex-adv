@@ -4,7 +4,7 @@ import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { LoginForm } from "@/components/login-form";
 import { LoginStatusBanner } from "@/components/login-status-banner";
-import { buildCourseSupportWhatsAppUrl } from "@/lib/support";
+import { OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
 
 export const metadata = {
   title: "Entrar | Área de membros | Claude para advogados",
@@ -21,8 +21,6 @@ export const metadata = {
 };
 
 export default function LoginPage() {
-  const supportUrl = buildCourseSupportWhatsAppUrl();
-
   return (
     <div className="flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
       <ClaudeAcademyBrand size="md" className="mb-10 max-w-full" />
@@ -46,26 +44,35 @@ export default function LoginPage() {
           </Suspense>
         </div>
       </div>
-      <p className="mt-8 text-center text-sm text-[var(--muted)]">
-        <a
-          href={supportUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-[var(--foreground)]"
-        >
-          <WhatsAppIcon className="size-3.5" />
-          Suporte no WhatsApp
-        </a>
-        <span className="mx-2" aria-hidden>
-          ·
-        </span>
-        <Link
-          href="/"
-          className="underline underline-offset-4 hover:text-[var(--foreground)]"
-        >
-          Voltar à página inicial
-        </Link>
-      </p>
+      <div className="mt-8 text-center text-sm text-[var(--muted)]">
+        <p>Ainda não faz parte?</p>
+        <p className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+          <Link
+            href="/#precos"
+            className="font-medium text-[var(--accent)] underline underline-offset-4 hover:text-[var(--foreground)]"
+          >
+            Seja membro VIP
+          </Link>
+          <span aria-hidden>·</span>
+          <a
+            href={OPEN_WHATSAPP_GROUP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-[var(--foreground)]"
+          >
+            <WhatsAppIcon className="size-3.5" />
+            Entre na comunidade gratuita
+          </a>
+        </p>
+        <p className="mt-4">
+          <Link
+            href="/"
+            className="underline underline-offset-4 hover:text-[var(--foreground)]"
+          >
+            Voltar à página inicial
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

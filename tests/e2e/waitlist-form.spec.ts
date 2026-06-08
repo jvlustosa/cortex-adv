@@ -57,6 +57,30 @@ test.describe("Formulário de lista de espera", () => {
     });
   });
 
+  test("lead que retorna vê estado inline, sem redirect nem loop", async ({
+    page,
+  }) => {
+    // Simula quem já entrou na lista.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("cj_claude_academy_lead", "1");
+      } catch {
+        /* ignore */
+      }
+    });
+
+    await page.goto("/");
+
+    // NÃO redireciona pra /obrigado — fica na home.
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByText(/você já está na lista/i)).toBeVisible();
+    // O formulário some (sem re-submissão), mas a página segue navegável.
+    await expect(page.getByPlaceholder("Seu nome")).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: /entrar na comunidade gratuita/i }).first(),
+    ).toBeVisible();
+  });
+
   test("bloqueia envio com e-mail inválido", async ({ page }) => {
     await page.goto("/");
     const nome = page.getByPlaceholder("Seu nome");

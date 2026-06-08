@@ -1,14 +1,30 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import { fireSubtleConfetti } from "@/lib/confetti";
-import { COURSE_MENTOR, WAITLIST_API_URL } from "@/lib/site";
+import {
+  COURSE_MENTOR,
+  OPEN_WHATSAPP_GROUP_URL,
+  WAITLIST_API_URL,
+} from "@/lib/site";
 import styles from "./claude-academy-invite-hero.module.css";
 
 const LEAD_KEY = "cj_claude_academy_lead";
+
+// Leitura SSR-safe do flag de lead (localStorage) sem setState-in-effect.
+const subscribeLead = () => () => {};
+const getLeadSnapshot = () => {
+  try {
+    return localStorage.getItem(LEAD_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+const getLeadServerSnapshot = () => false;
 
 const DDI_OPTIONS = [
   { value: "+55", label: "🇧🇷 +55", min: 10, max: 11 },
@@ -67,6 +83,11 @@ export function ClaudeAcademyWaitlist({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const redirectTimer = useRef<number | undefined>(undefined);
+  const alreadyLead = useSyncExternalStore(
+    subscribeLead,
+    getLeadSnapshot,
+    getLeadServerSnapshot,
+  );
 
   useEffect(() => {
     return () => {
@@ -76,16 +97,6 @@ export function ClaudeAcademyWaitlist({
 
   const isBrazil = ddi === "+55";
   const selectedDdi = DDI_OPTIONS.find((option) => option.value === ddi) ?? DDI_OPTIONS[0];
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(LEAD_KEY) === "1") {
-        router.replace(obrigadoPath(queryString));
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [router, queryString]);
 
   function handleWhatsappChange(value: string) {
     if (isBrazil) {
@@ -177,6 +188,36 @@ export function ClaudeAcademyWaitlist({
       aria-labelledby={compact ? undefined : "waitlist-heading"}
     >
       <div className={styles.content}>
+        {alreadyLead ? (
+          <div
+            className={`${styles.success} ${styles.successVisible}`}
+            role="status"
+          >
+            <CheckCircle2
+              className="mx-auto mb-2 size-7 text-[var(--accent)]"
+              aria-hidden
+            />
+            <strong>Você já está na lista</strong>
+            Avisamos no WhatsApp assim que as inscrições abrirem.
+            <div className={styles.communityCta}>
+              <p className={styles.communityQ}>Enquanto isso</p>
+              <p className={styles.communitySub}>
+                Entre no grupo aberto e acompanhe as novidades do Claude para
+                advogados.
+              </p>
+              <a
+                className={styles.communityBtn}
+                href={OPEN_WHATSAPP_GROUP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <WhatsAppIcon className="size-[18px]" />
+                Entrar na comunidade gratuita
+              </a>
+            </div>
+          </div>
+        ) : (
+          <>
         {!compact && (
           <>
             <p className={styles.eyebrow}>Primeira turma · Lista de espera</p>
@@ -295,6 +336,8 @@ export function ClaudeAcademyWaitlist({
 
         {!compact && (
           <p className={styles.footerNote}>Sem spam. Avisamos só quando a turma abrir.</p>
+        )}
+          </>
         )}
       </div>
     </section>

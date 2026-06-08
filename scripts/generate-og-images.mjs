@@ -32,15 +32,18 @@ const T = {
 const W = 1200;
 const H = 630;
 
+// Marca do Claude (Bootstrap Icons bi-claude, 16×16) — mesma usada no app.
+const CLAUDE_MARK_PATH =
+  "m3.127 10.604 3.135-1.76.053-.153-.053-.085H6.11l-.525-.032-1.791-.048-1.554-.065-1.505-.08-.38-.081L0 7.832l.036-.234.32-.214.455.04 1.009.069 1.513.105 1.097.064 1.626.17h.259l.036-.105-.089-.065-.068-.064-1.566-1.062-1.695-1.121-.887-.646-.48-.327-.243-.306-.104-.67.435-.48.585.04.15.04.593.456 1.267.981 1.654 1.218.242.202.097-.068.012-.049-.109-.181-.9-1.626-.96-1.655-.428-.686-.113-.411a2 2 0 0 1-.068-.484l.496-.674L4.446 0l.662.089.279.242.411.94.666 1.48 1.033 2.014.302.597.162.553.06.17h.105v-.097l.085-1.134.157-1.392.154-1.792.052-.504.25-.605.497-.327.387.186.319.456-.045.294-.19 1.23-.37 1.93-.243 1.29h.142l.161-.16.654-.868 1.097-1.372.484-.545.565-.601.363-.287h.686l.505.751-.226.775-.707.895-.585.759-.839 1.13-.524.904.048.072.125-.012 1.897-.403 1.024-.186 1.223-.21.553.258.06.263-.218.536-1.307.323-1.533.307-2.284.54-.028.02.032.04 1.029.098.44.024h1.077l2.005.15.525.346.315.424-.053.323-.807.411-3.631-.863-.872-.218h-.12v.073l.726.71 1.331 1.202 1.667 1.55.084.383-.214.302-.226-.032-1.464-1.101-.565-.497-1.28-1.077h-.084v.113l.295.432 1.557 2.34.08.718-.112.234-.404.141-.444-.08-.911-1.28-.94-1.44-.759-1.291-.093.053-.448 4.821-.21.246-.484.186-.403-.307-.214-.496.214-.98.258-1.28.21-1.016.19-1.263.112-.42-.008-.028-.092.012-.953 1.307-1.448 1.957-1.146 1.227-.274.109-.477-.247.045-.44.266-.39 1.586-2.018.956-1.25.617-.723-.004-.105h-.036l-4.212 2.736-.75.096-.324-.302.04-.496.154-.162 1.267-.871z";
+
 // ─── Font loading ────────────────────────────────────────────────
 
 async function loadGoogleFont(family, weight) {
   const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@${weight}&display=swap`;
+  // UA neutro (curl): o Google Fonts serve TTF, que o satori/opentype parseia.
+  // Um UA de browser moderno devolveria woff2 (não suportado) e quebraria o build.
   const css = await fetch(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-    },
+    headers: { "User-Agent": "curl/8.0" },
   }).then((r) => r.text());
 
   const match = css.match(/src:\s*url\(([^)]+)\)/);
@@ -231,9 +234,101 @@ function container(children) {
   };
 }
 
+// ─── Minimal brand card (default OG) ─────────────────────────────
+
+function claudeMark(size, color) {
+  return {
+    type: "svg",
+    props: {
+      width: size,
+      height: size,
+      viewBox: "0 0 16 16",
+      children: { type: "path", props: { d: CLAUDE_MARK_PATH, fill: color } },
+    },
+  };
+}
+
+function markTile() {
+  return {
+    type: "div",
+    props: {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "176px",
+        height: "176px",
+        borderRadius: "38px",
+        background: "rgba(217, 119, 87, 0.10)",
+        border: "1px solid rgba(217, 119, 87, 0.35)",
+        boxShadow: "0 24px 80px rgba(217, 119, 87, 0.18)",
+      },
+      children: claudeMark(96, T.accent),
+    },
+  };
+}
+
+function centeredText(text, style) {
+  return { type: "div", props: { style, children: text } };
+}
+
+function minimalContainer(children) {
+  return {
+    type: "div",
+    props: {
+      style: {
+        width: `${W}px`,
+        height: `${H}px`,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: `radial-gradient(circle at 50% 36%, #16100c 0%, ${T.bg} 62%)`,
+        fontFamily: "DM Sans, system-ui, sans-serif",
+        position: "relative",
+        overflow: "hidden",
+      },
+      children: children.filter(Boolean),
+    },
+  };
+}
+
 // ─── Page definitions ────────────────────────────────────────────
 
 const pages = [
+  {
+    name: "default",
+    build: () =>
+      minimalContainer([
+        glow(-160, -120, 580, 0.16),
+        markTile(),
+        centeredText("Claude Academy", {
+          marginTop: "44px",
+          fontFamily: "Instrument Serif, Georgia, serif",
+          fontSize: "96px",
+          color: T.text,
+          lineHeight: 1,
+        }),
+        centeredText("by Chat Jurídico", {
+          marginTop: "14px",
+          fontSize: "30px",
+          color: T.muted,
+          letterSpacing: "0.01em",
+        }),
+        centeredText("Claude para advogados — do primeiro prompt à peça pronta", {
+          marginTop: "34px",
+          fontSize: "26px",
+          color: T.accent,
+          fontWeight: 500,
+        }),
+        centeredText("claudeacademy.chatjuridico.com.br", {
+          position: "absolute",
+          bottom: "46px",
+          fontSize: "22px",
+          color: "rgba(161, 161, 170, 0.7)",
+        }),
+      ]),
+  },
   {
     name: "home",
     build: () =>
@@ -316,14 +411,16 @@ const pages = [
 async function main() {
   console.log("Loading fonts…");
 
-  const [dmSansRegular, dmSansBold] = await Promise.all([
+  const [dmSansRegular, dmSansBold, instrumentSerif] = await Promise.all([
     loadGoogleFont("DM Sans", 400),
     loadGoogleFont("DM Sans", 700),
+    loadGoogleFont("Instrument Serif", 400),
   ]);
 
   const fonts = [
     { name: "DM Sans", data: dmSansRegular, weight: 400, style: "normal" },
     { name: "DM Sans", data: dmSansBold, weight: 700, style: "normal" },
+    { name: "Instrument Serif", data: instrumentSerif, weight: 400, style: "normal" },
   ];
 
   console.log(`Generating ${pages.length} OG images…\n`);

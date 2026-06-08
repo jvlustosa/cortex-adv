@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
+import { LandingMobileMenu } from "@/components/landing-mobile-menu";
 import { CourseEnrollment } from "@/components/course-enrollment";
 import { CourseHero } from "@/components/course-hero";
 import { PricingSection } from "@/components/sales/pricing-section";
@@ -166,6 +167,7 @@ export default function Home() {
               <span className="sm:hidden">Vaga</span>
               <span className="hidden sm:inline">Garantir vaga</span>
             </a>
+            <LandingMobileMenu />
           </nav>
         </div>
       </header>
