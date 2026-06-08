@@ -50,11 +50,19 @@ export function CourseArea({
   const [moduleId, setModuleId] = useState(moduleIdProp);
   const [lessonId, setLessonId] = useState(lessonIdProp);
 
-  useEffect(() => {
+  // Ressincroniza o estado local quando a navegação externa muda as props da URL
+  // (ex.: voltar/avançar do navegador). Ajuste durante o render — padrão oficial
+  // do React para derivar estado de props sem useEffect e sem flash de tela.
+  const [syncedFrom, setSyncedFrom] = useState({ moduleIdProp, lessonIdProp });
+  if (
+    syncedFrom.moduleIdProp !== moduleIdProp ||
+    syncedFrom.lessonIdProp !== lessonIdProp
+  ) {
+    setSyncedFrom({ moduleIdProp, lessonIdProp });
     const next = pickInitial(course, moduleIdProp, lessonIdProp);
     setModuleId(next.moduleId);
     setLessonId(next.lessonId);
-  }, [course, moduleIdProp, lessonIdProp]);
+  }
 
   const activeModule = course.modules.find((m) => m.id === moduleId)!;
   const activeLesson =

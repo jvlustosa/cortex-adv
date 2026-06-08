@@ -56,10 +56,14 @@ describe("security audit — estático", () => {
     );
   });
 
-  it("detecta race condition no signup de convite", () => {
+  it("signup de convite usa consumo atômico (sem race)", () => {
     const findings = runStaticAudit(PROJECT_ROOT);
     const race = findings.find((f) => f.id === "signup-invite-race");
-    assert.ok(race, "deveria flagar incremento não-atômico de used_count");
+    assert.equal(
+      race,
+      undefined,
+      "signup deve consumir o convite via RPC atômica consume_invite_token",
+    );
   });
 
   it("detecta lesson view sem autenticação obrigatória", () => {

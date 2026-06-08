@@ -56,7 +56,6 @@ const ADMIN_API_ROUTES = [
 const PUBLIC_API_ROUTES = [
   { path: "/api/auth/signup", methods: ["POST"], note: "Cadastro com convite" },
   { path: "/api/certificados/CA-2026-0000", methods: ["GET"], note: "Validação pública" },
-  { path: "/api/invites", methods: ["POST"], note: "Convites via secret" },
   { path: "/api/lessons/feedback", methods: ["POST"], note: "Feedback autenticado" },
   { path: "/api/lessons/view", methods: ["POST"], note: "View sem auth obrigatória" },
   { path: "/api/quiz", methods: ["POST"], note: "Webhook Slack" },
@@ -457,7 +456,6 @@ export function runStaticAudit(root = PROJECT_ROOT) {
   // ── Env vars sensíveis documentadas ───────────────────────────────────────
   const requiredSecrets = [
     "SUPABASE_SERVICE_ROLE_KEY",
-    "INVITE_ADMIN_SECRET",
     "SLACK_QUIZ_WEBHOOK_URL",
   ];
   for (const key of requiredSecrets) {
@@ -540,17 +538,6 @@ export async function runLiveProbe(baseUrl) {
       severity: "critical",
       title: "Signup aceita payload vazio",
       detail: "POST /api/auth/signup retornou 200 sem email/senha/token.",
-    });
-  }
-
-  // Invites sem secret
-  const invites = await probe("POST", "/api/invites", { body: { label: "audit" } });
-  if (!("error" in invites) && invites.status === 200) {
-    findings.push({
-      id: "live-invites-open",
-      severity: "critical",
-      title: "Criação de convite sem secret",
-      detail: "POST /api/invites retornou 200 sem INVITE_ADMIN_SECRET.",
     });
   }
 

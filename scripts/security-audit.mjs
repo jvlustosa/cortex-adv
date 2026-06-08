@@ -119,7 +119,6 @@ function buildMarkdownReport(findings, summary, probeUrl) {
   lines.push("- [ ] Signup desligado em prod (`NEXT_PUBLIC_SIGNUP_ENABLED` não setado)");
   lines.push("- [ ] `admin_users` populado só com e-mails @chatjuridico.com.br");
   lines.push("- [ ] Redirect URLs do Supabase Auth restritas ao domínio");
-  lines.push("- [ ] `INVITE_ADMIN_SECRET` forte e rotacionado");
   lines.push("");
 
   return lines.join("\n");

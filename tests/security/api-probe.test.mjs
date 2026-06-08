@@ -49,18 +49,6 @@ describe("security audit — probe HTTP", { skip: process.env.SKIP_LIVE_PROBE ==
     );
   });
 
-  it("POST /api/invites rejeita sem secret", async (t) => {
-    if (!serverUp) t.skip("servidor offline");
-
-    const res = await fetch(`${BASE_URL}/api/invites`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ label: "probe-test" }),
-    });
-    assert.notEqual(res.status, 200, "criar convite sem secret não deve retornar 200");
-    assert.ok([401, 403, 503].includes(res.status), `status inesperado: ${res.status}`);
-  });
-
   it("POST /api/lessons/feedback exige autenticação", async (t) => {
     if (!serverUp) t.skip("servidor offline");
 

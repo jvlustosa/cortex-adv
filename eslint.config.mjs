@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Worktrees isoladas (cópias de branch) não fazem parte do código-fonte.
+    ".worktrees/**",
   ]),
 ]);
 

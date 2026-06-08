@@ -58,7 +58,8 @@ export async function POST(request: Request) {
       lessonId: body.lessonId,
       userId: user.id,
       rating,
-      comment: typeof body.comment === "string" ? body.comment.trim() : null,
+      comment:
+        typeof body.comment === "string" ? body.comment.trim().slice(0, 1000) : null,
     });
     return NextResponse.json({ ok: true, feedback: row });
   } catch (err) {

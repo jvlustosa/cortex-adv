@@ -23,10 +23,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const { score, maxScore, level, title } = body;
-  const pct = Math.round((score / maxScore) * 100);
+  const maxScore = Number(body.maxScore);
+  const score = Number(body.score);
 
-  const text = `Quiz Claude Academy · ${level} (${pct}%) · ${score}/${maxScore} pts\n${title}`;
+  if (!Number.isFinite(maxScore) || maxScore <= 0 || !Number.isFinite(score) || score < 0) {
+    return NextResponse.json({ error: "Pontuação inválida." }, { status: 400 });
+  }
+
+  // Clamp para impedir percentuais absurdos e cap em campos de texto livres que
+  // são postados direto no Slack (evita spam/injeção de mensagem).
+  const safeScore = Math.min(score, maxScore);
+  const pct = Math.round((safeScore / maxScore) * 100);
+  const level = String(body.level ?? "").slice(0, 60).replace(/\n/g, " ");
+  const title = String(body.title ?? "").slice(0, 200).replace(/\n/g, " ");
+
+  const text = `Quiz Claude Academy · ${level} (${pct}%) · ${safeScore}/${maxScore} pts\n${title}`;
 
   const res = await fetch(webhook, {
     method: "POST",

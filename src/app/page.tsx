@@ -146,18 +146,18 @@ export default function Home() {
             >
               Quiz
             </Link>
+            <a
+              href="#comunidade"
+              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
+            >
+              Comunidade
+            </a>
             <Link
               href="/login"
               className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
             >
               Entrar
             </Link>
-            <a
-              href="#comunidade"
-              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
-            >
-              Entrar na comunidade
-            </a>
             <a
               href="#lista-espera"
               className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-3.5 py-2 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] sm:px-4"

@@ -57,26 +57,32 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: invite, error: inviteErr } = await admin
-    .from("invite_tokens")
-    .select("id, max_uses, used_count, expires_at, active")
-    .eq("token", token)
-    .maybeSingle();
+  // Consumo atômico do convite (valida + incrementa used_count sob lock no banco).
+  // Evita a race de resgate: dois cadastros simultâneos com o mesmo token de uso
+  // único não conseguem ambos passar pela validação.
+  const { data: consumed, error: consumeErr } = await admin.rpc(
+    "consume_invite_token",
+    { p_token: token },
+  );
 
-  if (inviteErr || !invite) {
+  if (consumeErr) {
+    const reason = consumeErr.message ?? "";
+    if (reason.includes("invite_inactive")) {
+      return NextResponse.json({ error: "Este convite foi desativado." }, { status: 400 });
+    }
+    if (reason.includes("invite_expired")) {
+      return NextResponse.json({ error: "Este convite expirou." }, { status: 400 });
+    }
+    if (reason.includes("invite_exhausted")) {
+      return NextResponse.json({ error: "Este convite já foi utilizado." }, { status: 400 });
+    }
+    console.error("[api/auth/signup] consume_invite_token", consumeErr);
+    return NextResponse.json({ error: "Erro ao validar convite." }, { status: 500 });
+  }
+
+  const invite = Array.isArray(consumed) ? consumed[0] : consumed;
+  if (!invite) {
     return NextResponse.json({ error: "Convite inválido ou inexistente." }, { status: 400 });
-  }
-
-  if (!invite.active) {
-    return NextResponse.json({ error: "Este convite foi desativado." }, { status: 400 });
-  }
-
-  if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
-    return NextResponse.json({ error: "Este convite expirou." }, { status: 400 });
-  }
-
-  if (invite.used_count >= invite.max_uses) {
-    return NextResponse.json({ error: "Este convite já foi utilizado." }, { status: 400 });
   }
 
   const { error: createErr } = await admin.auth.admin.createUser({
@@ -87,6 +93,18 @@ export async function POST(request: Request) {
   });
 
   if (createErr) {
+    // Usuário não foi criado: devolve o uso consumido. Compare-and-swap em used_count
+    // garante que só revertemos se nenhum outro cadastro consumiu o convite nesse meio-tempo.
+    const { error: rollbackErr } = await admin
+      .from("invite_tokens")
+      .update({ used_count: invite.used_count - 1 })
+      .eq("id", invite.id)
+      .eq("used_count", invite.used_count);
+
+    if (rollbackErr) {
+      console.error("[api/auth/signup] rollback used_count", rollbackErr);
+    }
+
     const msg = createErr.message.toLowerCase();
     if (msg.includes("already registered") || msg.includes("already been")) {
       return NextResponse.json(
@@ -98,15 +116,6 @@ export async function POST(request: Request) {
       { error: mapSignupServerError(createErr.message) },
       { status: 400 },
     );
-  }
-
-  const { error: updateErr } = await admin
-    .from("invite_tokens")
-    .update({ used_count: invite.used_count + 1 })
-    .eq("id", invite.id);
-
-  if (updateErr) {
-    console.error("Falha ao atualizar convite:", updateErr);
   }
 
   return NextResponse.json({ ok: true });

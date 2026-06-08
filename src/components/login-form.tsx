@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -25,11 +25,13 @@ export function LoginForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (searchParams.get("error")) return;
-    setMessage(null);
-    setStatus("idle");
-  }, [email, password, searchParams]);
+  // Limpa o erro do formulário assim que o usuário corrige o campo.
+  function clearFormError() {
+    if (status === "error") {
+      setStatus("idle");
+      setMessage(null);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -115,7 +117,10 @@ export function LoginForm() {
           required
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            clearFormError();
+          }}
           className={inputClass}
           placeholder="voce@escritorio.com.br"
           aria-invalid={status === "error" && message ? true : undefined}
@@ -136,7 +141,10 @@ export function LoginForm() {
           required
           autoComplete="current-password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            clearFormError();
+          }}
           className={inputClass}
           aria-invalid={status === "error" && message ? true : undefined}
         />
