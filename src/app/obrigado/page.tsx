@@ -30,9 +30,8 @@ export default function ObrigadoPage() {
 
         <div className="hidden md:block">
           <div
-            className="overflow-hidden rounded-2xl p-4"
+            className="overflow-hidden rounded-2xl bg-white p-5"
             style={{
-              background: "#1a1a1d",
               boxShadow:
                 "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)",
             }}
@@ -40,9 +39,9 @@ export default function ObrigadoPage() {
             <Image
               src="/assets/images/qr-grupo-whatsapp.png"
               alt="QR Code do grupo aberto Claude Academy no WhatsApp"
-              width={240}
-              height={240}
-              className="rounded-xl"
+              width={320}
+              height={320}
+              className="size-80 rounded-lg"
               priority
             />
           </div>
