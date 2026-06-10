@@ -82,6 +82,8 @@ export function ClaudeAcademyWaitlist({
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Lead que volta pode reabrir o form (outra pessoa, outro e-mail).
+  const [showFormAgain, setShowFormAgain] = useState(false);
   const redirectTimer = useRef<number | undefined>(undefined);
   const alreadyLead = useSyncExternalStore(
     subscribeLead,
@@ -188,7 +190,7 @@ export function ClaudeAcademyWaitlist({
       aria-labelledby={compact ? undefined : "waitlist-heading"}
     >
       <div className={styles.content}>
-        {alreadyLead ? (
+        {alreadyLead && !showFormAgain ? (
           <div
             className={`${styles.success} ${styles.successVisible}`}
             role="status"
@@ -215,6 +217,13 @@ export function ClaudeAcademyWaitlist({
                 Entrar na comunidade gratuita
               </a>
             </div>
+            <button
+              type="button"
+              className={styles.reenroll}
+              onClick={() => setShowFormAgain(true)}
+            >
+              Inscrever outra pessoa ou outro e-mail
+            </button>
           </div>
         ) : (
           <>

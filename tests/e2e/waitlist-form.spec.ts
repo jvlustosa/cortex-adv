@@ -79,6 +79,13 @@ test.describe("Formulário de lista de espera", () => {
     await expect(
       page.getByRole("link", { name: /entrar na comunidade gratuita/i }).first(),
     ).toBeVisible();
+
+    // Mas dá pra reabrir o form (outra pessoa / outro e-mail).
+    await page
+      .getByRole("button", { name: /inscrever outra pessoa ou outro e-mail/i })
+      .first()
+      .click();
+    await expect(page.getByPlaceholder("Seu nome").first()).toBeVisible();
   });
 
   test("bloqueia envio com e-mail inválido", async ({ page }) => {

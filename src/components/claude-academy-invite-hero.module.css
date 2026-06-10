@@ -242,6 +242,25 @@
   box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
 }
 
+.reenroll {
+  display: inline-block;
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.reenroll:hover {
+  color: var(--foreground);
+}
+
 .cta {
   display: inline-flex;
   align-items: center;
