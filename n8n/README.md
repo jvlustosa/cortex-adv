@@ -45,7 +45,9 @@ para o n8n. O webhook do n8n nunca fica exposto no cliente.
 2. **Salvar na planilha** (Google Sheets):
    - Conecte/selecione a credencial do Google.
    - Troque `COLE_AQUI_O_ID_DA_PLANILHA` pelo ID da planilha e selecione a aba.
-   - Cabeçalho sugerido: `recebido_em | nome | email | whatsapp | cliente | pagina | utm_source | utm_medium | utm_campaign | referrer | origem`.
+   - O mapeamento casa pelos cabeçalhos **exatos** da planilha já em uso (não renomeie):
+     `Data/Hora | Nome | E-mail | WhatsApp | Cliente Chat Jurídico | Página | UTM Source | UTM Medium | UTM Campaign | Referrer`.
+   - `Data/Hora` sai formatado em horário de São Paulo (`yyyy-LL-dd HH:mm:ss`) para bater com as linhas existentes.
 3. **Avisar no Slack** (HTTP Request):
    - Troque `COLE_AQUI_O_SLACK_INCOMING_WEBHOOK_URL` pelo Incoming Webhook do canal.
 4. **Ative** o workflow (toggle no topo). Enquanto inativo, o webhook responde 404/503.

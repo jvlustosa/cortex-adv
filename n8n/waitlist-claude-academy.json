@@ -19,14 +19,11 @@
       "parameters": {
         "assignments": {
           "assignments": [
-            { "id": "a1", "name": "recebido_em", "value": "={{ $json.body.recebido_em || $now.toISO() }}", "type": "string" },
-            { "id": "a2", "name": "origem", "value": "={{ $json.body.origem }}", "type": "string" },
+            { "id": "a1", "name": "data_hora", "value": "={{ ($json.body.recebido_em ? DateTime.fromISO($json.body.recebido_em) : $now).setZone('America/Sao_Paulo').toFormat('yyyy-LL-dd HH:mm:ss') }}", "type": "string" },
             { "id": "a3", "name": "nome", "value": "={{ $json.body.nome }}", "type": "string" },
             { "id": "a4", "name": "email", "value": "={{ $json.body.email }}", "type": "string" },
             { "id": "a5", "name": "whatsapp", "value": "={{ $json.body.whatsapp }}", "type": "string" },
-            { "id": "a6", "name": "whatsapp_digits", "value": "={{ $json.body.whatsapp_digits }}", "type": "string" },
             { "id": "a7", "name": "cliente_label", "value": "={{ $json.body.cliente_label }}", "type": "string" },
-            { "id": "a8", "name": "is_client", "value": "={{ $json.body.is_client }}", "type": "boolean" },
             { "id": "a9", "name": "pagina", "value": "={{ $json.body.pagina }}", "type": "string" },
             { "id": "a10", "name": "referrer", "value": "={{ $json.body.referrer }}", "type": "string" },
             { "id": "a11", "name": "utm_source", "value": "={{ $json.body.utm_source }}", "type": "string" },
@@ -59,17 +56,16 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "recebido_em": "={{ $json.recebido_em }}",
-            "nome": "={{ $json.nome }}",
-            "email": "={{ $json.email }}",
-            "whatsapp": "={{ $json.whatsapp }}",
-            "cliente": "={{ $json.cliente_label }}",
-            "pagina": "={{ $json.pagina }}",
-            "utm_source": "={{ $json.utm_source }}",
-            "utm_medium": "={{ $json.utm_medium }}",
-            "utm_campaign": "={{ $json.utm_campaign }}",
-            "referrer": "={{ $json.referrer }}",
-            "origem": "={{ $json.origem }}"
+            "Data/Hora": "={{ $json.data_hora }}",
+            "Nome": "={{ $json.nome }}",
+            "E-mail": "={{ $json.email }}",
+            "WhatsApp": "={{ $json.whatsapp }}",
+            "Cliente Chat Jurídico": "={{ $json.cliente_label }}",
+            "Página": "={{ $json.pagina }}",
+            "UTM Source": "={{ $json.utm_source }}",
+            "UTM Medium": "={{ $json.utm_medium }}",
+            "UTM Campaign": "={{ $json.utm_campaign }}",
+            "Referrer": "={{ $json.referrer }}"
           },
           "matchingColumns": [],
           "attemptToConvertTypes": false,
