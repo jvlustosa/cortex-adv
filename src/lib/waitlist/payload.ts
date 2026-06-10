@@ -51,13 +51,15 @@ export function validateWaitlistPayload(data: WaitlistPayload): {
   return { ok: true };
 }
 
-export function resolveSlackWebhookUrl(): string {
-  const primary = process.env.SLACK_WEBHOOK_CLAUDE_ACADEMY ?? "";
-  if (primary.startsWith("https://hooks.slack.com/")) return primary;
-
-  const testing =
-    process.env.SLACK_WEBHOOK_TESTING ?? process.env.SLACK_WEBHOOK_TEST ?? "";
-  return testing.startsWith("https://hooks.slack.com/") ? testing : "";
+/**
+ * Webhook do n8n que trata a inscrição: grava na planilha e avisa no Slack.
+ * Override via N8N_WAITLIST_WEBHOOK_URL; default aponta para produção.
+ */
+export function resolveN8nWebhookUrl(): string {
+  return (
+    process.env.N8N_WAITLIST_WEBHOOK_URL ??
+    "https://flowhook.chatjuridico.com/webhook/formulario/waitlist-claude-academy"
+  );
 }
 
 function formatWhatsapp(data: WaitlistPayload): string {
@@ -65,30 +67,28 @@ function formatWhatsapp(data: WaitlistPayload): string {
   if (data.whatsapp_ddi && data.whatsapp) {
     return `${data.whatsapp_ddi} ${data.whatsapp}`;
   }
-  return data.whatsapp || "-";
+  return data.whatsapp || "";
 }
 
-export function buildSlackWaitlistMessage(data: WaitlistPayload): { text: string } {
+/** Payload estruturado enviado ao n8n — cada campo vira uma coluna na planilha. */
+export function buildN8nWaitlistPayload(data: WaitlistPayload) {
   const params = new URLSearchParams((data.url_params || "").replace(/^\?/, ""));
-  const utm = ["utm_source", "utm_medium", "utm_campaign"]
-    .map((key) => {
-      const value = params.get(key);
-      return value ? `${key.replace("utm_", "")}: ${value}` : null;
-    })
-    .filter(Boolean)
-    .join(" · ");
 
-  const lines = [
-    "Nova inscrição Claude Academy",
-    `Nome: ${data.nome || "-"}`,
-    `E-mail: ${data.email || "-"}`,
-    `WhatsApp: ${formatWhatsapp(data)}`,
-    `Cliente Chat Jurídico: ${data.is_client ? "Sim" : "Não"}`,
-    `Página: ${data.pagina || "-"}`,
-  ];
-
-  if (utm) lines.push(`UTM: ${utm}`);
-  if (data.referrer) lines.push(`Referrer: ${data.referrer}`);
-
-  return { text: lines.join("\n") };
+  return {
+    origem: "claude-academy",
+    recebido_em: new Date().toISOString(),
+    nome: data.nome,
+    email: data.email,
+    whatsapp: formatWhatsapp(data),
+    whatsapp_ddi: data.whatsapp_ddi,
+    whatsapp_digits: data.whatsapp_digits,
+    is_client: data.is_client,
+    cliente_label: data.is_client ? "Sim" : "Não",
+    pagina: data.pagina,
+    referrer: data.referrer,
+    url_params: data.url_params,
+    utm_source: params.get("utm_source") ?? "",
+    utm_medium: params.get("utm_medium") ?? "",
+    utm_campaign: params.get("utm_campaign") ?? "",
+  };
 }

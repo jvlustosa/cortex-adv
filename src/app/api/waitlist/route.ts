@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import {
-  buildSlackWaitlistMessage,
+  buildN8nWaitlistPayload,
   parseWaitlistPayload,
-  resolveSlackWebhookUrl,
+  resolveN8nWebhookUrl,
   validateWaitlistPayload,
-} from "@/lib/waitlist/slack";
+} from "@/lib/waitlist/payload";
 
 const rateLimitStore = new Map<string, { count: number; expiresAt: number }>();
 
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const webhookUrl = resolveSlackWebhookUrl();
+  const webhookUrl = resolveN8nWebhookUrl();
   if (!webhookUrl) {
     console.error("[api/waitlist] webhook não configurado");
     return NextResponse.json(
@@ -83,12 +83,12 @@ export async function POST(request: Request) {
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildSlackWaitlistMessage(data)),
+      body: JSON.stringify(buildN8nWaitlistPayload(data)),
     });
 
     if (!response.ok) {
       const text = await response.text();
-      console.error("[api/waitlist] Slack failed", response.status, text.slice(0, 200));
+      console.error("[api/waitlist] n8n failed", response.status, text.slice(0, 200));
       return NextResponse.json(
         {
           error: "Falha no envio",

@@ -15,7 +15,7 @@ export const SITE_BRAND = `${SITE_NAME} · Chat Jurídico`;
 export const CHAT_JURIDICO_URL =
   "https://chatjuridico.com.br?utm_source=claude_academy&utm_medium=referral";
 
-/** Lista de espera — padrão: API local com SLACK_WEBHOOK_CLAUDE_ACADEMY (mesma env do website). */
+/** Lista de espera — API local /api/waitlist encaminha para o n8n (N8N_WAITLIST_WEBHOOK_URL). */
 export const WAITLIST_API_URL =
   process.env.NEXT_PUBLIC_WAITLIST_API_URL ?? "/api/waitlist";
 

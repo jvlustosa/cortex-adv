@@ -1,0 +1,135 @@
+{
+  "name": "Formulário · Waitlist Claude Academy",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "formulario/waitlist-claude-academy",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "f18aa448-7020-4a62-ac55-dab26b2b2067",
+      "name": "Webhook",
+      "webhookId": "87279fa4-cbf8-444d-bd9d-ab0d17270e26"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "recebido_em", "value": "={{ $json.body.recebido_em || $now.toISO() }}", "type": "string" },
+            { "id": "a2", "name": "origem", "value": "={{ $json.body.origem }}", "type": "string" },
+            { "id": "a3", "name": "nome", "value": "={{ $json.body.nome }}", "type": "string" },
+            { "id": "a4", "name": "email", "value": "={{ $json.body.email }}", "type": "string" },
+            { "id": "a5", "name": "whatsapp", "value": "={{ $json.body.whatsapp }}", "type": "string" },
+            { "id": "a6", "name": "whatsapp_digits", "value": "={{ $json.body.whatsapp_digits }}", "type": "string" },
+            { "id": "a7", "name": "cliente_label", "value": "={{ $json.body.cliente_label }}", "type": "string" },
+            { "id": "a8", "name": "is_client", "value": "={{ $json.body.is_client }}", "type": "boolean" },
+            { "id": "a9", "name": "pagina", "value": "={{ $json.body.pagina }}", "type": "string" },
+            { "id": "a10", "name": "referrer", "value": "={{ $json.body.referrer }}", "type": "string" },
+            { "id": "a11", "name": "utm_source", "value": "={{ $json.body.utm_source }}", "type": "string" },
+            { "id": "a12", "name": "utm_medium", "value": "={{ $json.body.utm_medium }}", "type": "string" },
+            { "id": "a13", "name": "utm_campaign", "value": "={{ $json.body.utm_campaign }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0],
+      "id": "b2c3d4e5-0001-4000-8000-000000000001",
+      "name": "Normalizar"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "COLE_AQUI_O_ID_DA_PLANILHA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Inscrições"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "recebido_em": "={{ $json.recebido_em }}",
+            "nome": "={{ $json.nome }}",
+            "email": "={{ $json.email }}",
+            "whatsapp": "={{ $json.whatsapp }}",
+            "cliente": "={{ $json.cliente_label }}",
+            "pagina": "={{ $json.pagina }}",
+            "utm_source": "={{ $json.utm_source }}",
+            "utm_medium": "={{ $json.utm_medium }}",
+            "utm_campaign": "={{ $json.utm_campaign }}",
+            "referrer": "={{ $json.referrer }}",
+            "origem": "={{ $json.origem }}"
+          },
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [440, 0],
+      "id": "c3d4e5f6-0002-4000-8000-000000000002",
+      "name": "Salvar na planilha"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "COLE_AQUI_O_SLACK_INCOMING_WEBHOOK_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: \"*Nova inscrição Claude Academy*\\nNome: \" + $json.nome + \"\\nE-mail: \" + $json.email + \"\\nWhatsApp: \" + $json.whatsapp + \"\\nCliente Chat Jurídico: \" + $json.cliente_label + \"\\nPágina: \" + $json.pagina + ($json.utm_source ? \"\\nUTM: \" + $json.utm_source + ($json.utm_campaign ? \" · \" + $json.utm_campaign : \"\") : \"\") }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 0],
+      "id": "d4e5f6a7-0003-4000-8000-000000000003",
+      "name": "Avisar no Slack"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": true } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [880, 0],
+      "id": "e5f6a7b8-0004-4000-8000-000000000004",
+      "name": "Responder OK"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Normalizar", "type": "main", "index": 0 }]]
+    },
+    "Normalizar": {
+      "main": [[{ "node": "Salvar na planilha", "type": "main", "index": 0 }]]
+    },
+    "Salvar na planilha": {
+      "main": [[{ "node": "Avisar no Slack", "type": "main", "index": 0 }]]
+    },
+    "Avisar no Slack": {
+      "main": [[{ "node": "Responder OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "a0b4bbfe96aa037add6f0af65f05098548844ef559ab27b5c3b5ecfb019fabdc"
+  }
+}
