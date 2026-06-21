@@ -154,17 +154,60 @@ export async function upsertLessonOverride(input: {
   return data as LessonOverrideRow;
 }
 
-export async function recordLessonView(input: {
+/** Conjunto de aulas concluídas do usuário ("module_id:lesson_id"). */
+export async function getCompletedLessonKeys(userId: string): Promise<string[]> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("lesson_views")
+    .select("module_id, lesson_id")
+    .eq("user_id", userId);
+  if (error) throw error;
+
+  const keys = new Set<string>();
+  for (const row of (data ?? []) as { module_id: string; lesson_id: string }[]) {
+    keys.add(`${row.module_id}:${row.lesson_id}`);
+  }
+  return Array.from(keys);
+}
+
+/** Marca a aula como concluída (idempotente: não duplica se já existir). */
+export async function recordLessonCompletion(input: {
   moduleId: string;
   lessonId: string;
-  userId: string | null;
+  userId: string;
 }) {
   const admin = createAdminClient();
+  const { data: existing, error: selectError } = await admin
+    .from("lesson_views")
+    .select("id")
+    .eq("user_id", input.userId)
+    .eq("module_id", input.moduleId)
+    .eq("lesson_id", input.lessonId)
+    .limit(1);
+  if (selectError) throw selectError;
+  if (existing && existing.length > 0) return;
+
   const { error } = await admin.from("lesson_views").insert({
     module_id: input.moduleId,
     lesson_id: input.lessonId,
     user_id: input.userId,
   });
+  if (error) throw error;
+}
+
+/** Desfaz a conclusão da aula. */
+export async function removeLessonCompletion(input: {
+  moduleId: string;
+  lessonId: string;
+  userId: string;
+}) {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("lesson_views")
+    .delete()
+    .eq("user_id", input.userId)
+    .eq("module_id", input.moduleId)
+    .eq("lesson_id", input.lessonId);
   if (error) throw error;
 }
 

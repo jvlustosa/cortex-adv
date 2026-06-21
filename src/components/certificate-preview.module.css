@@ -28,7 +28,7 @@
 
 .card {
   position: relative;
-  aspect-ratio: 1.414 / 1;
+  display: grid;
   border-radius: 1rem;
   overflow: hidden;
   border: 1px solid rgba(217, 119, 87, 0.35);
@@ -40,14 +40,23 @@
     0 0 48px rgba(217, 119, 87, 0.12);
 }
 
+/* Proporção 1.414/1 como altura MÍNIMA: o card cresce se o conteúdo for mais
+   alto (texto longo / telas estreitas), em vez de cortar. */
+.card::before {
+  content: "";
+  grid-area: 1 / 1;
+  padding-bottom: 70.72%;
+}
+
 .cardInner {
   position: relative;
   z-index: 2;
+  grid-area: 1 / 1;
   display: flex;
-  height: 100%;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   padding: clamp(1.25rem, 4vw, 2rem);
   text-align: center;
 }
@@ -363,6 +372,24 @@
   font-size: 0.75rem;
   line-height: 1.45;
   color: var(--muted);
+}
+
+/* Em telas estreitas o rodapé de 3 colunas (assinatura · selo · código) estoura
+   na horizontal: empilha em coluna centralizada. */
+@media (max-width: 639px) {
+  .footerRow {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .sigBlock {
+    text-align: center;
+  }
+
+  .sigLine {
+    margin-inline: auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

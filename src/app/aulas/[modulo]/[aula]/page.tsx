@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { AulasShell } from "@/components/aulas/aulas-shell";
 import { CourseArea } from "@/components/members/course-area";
+import { getUserCourseProgress } from "@/lib/course/progress";
 import { requireCourseAccess } from "@/lib/course/require-access";
 import { findMergedLesson, getMergedCourse } from "@/lib/lessons/merge-course";
 
@@ -52,16 +53,19 @@ export default async function AulaPlayerPage({ params }: PageProps) {
     `/aulas/${modulo}/${aula}`,
   );
 
+  const progress = await getUserCourseProgress(user?.id);
+
   return (
     <AulasShell authOn={authOn} userEmail={user?.email} active="player">
       <Suspense fallback={<CourseSkeleton />}>
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6 md:py-8">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 md:py-8">
           <CourseArea
             course={course}
-            userEmail={user?.email}
             demoMode={demoMode}
             moduleId={modulo}
             lessonId={aula}
+            completedKeys={progress.completedKeys}
+            totalLessons={progress.totalLessons}
           />
         </div>
       </Suspense>

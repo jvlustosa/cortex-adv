@@ -57,7 +57,7 @@ const PUBLIC_API_ROUTES = [
   { path: "/api/auth/signup", methods: ["POST"], note: "Cadastro com convite" },
   { path: "/api/certificados/CA-2026-0000", methods: ["GET"], note: "Validação pública" },
   { path: "/api/lessons/feedback", methods: ["POST"], note: "Feedback autenticado" },
-  { path: "/api/lessons/view", methods: ["POST"], note: "View sem auth obrigatória" },
+  { path: "/api/lessons/complete", methods: ["POST", "DELETE"], note: "Conclusão de aula (exige auth)" },
   { path: "/api/quiz", methods: ["POST"], note: "Webhook Slack" },
   { path: "/api/waitlist", methods: ["POST"], note: "Lista de espera" },
 ];
@@ -294,9 +294,9 @@ export function runStaticAudit(root = PROJECT_ROOT) {
       title: "Quiz webhook sem rate limit",
     },
     {
-      file: "src/app/api/lessons/view/route.ts",
-      id: "lesson-view-no-rate-limit",
-      title: "Lesson view sem rate limit",
+      file: "src/app/api/lessons/complete/route.ts",
+      id: "lesson-complete-no-rate-limit",
+      title: "Conclusão de aula sem rate limit",
     },
     {
       file: "src/app/api/certificados/[code]/route.ts",
@@ -321,18 +321,20 @@ export function runStaticAudit(root = PROJECT_ROOT) {
     }
   }
 
-  // ── Lesson view sem auth ──────────────────────────────────────────────────
-  const viewRoute = join(root, "src/app/api/lessons/view/route.ts");
-  if (existsSync(viewRoute)) {
-    const content = readText(viewRoute);
-    if (content.includes("user?.id ?? null")) {
+  // ── Conclusão de aula deve exigir auth ────────────────────────────────────
+  const completeRoute = join(root, "src/app/api/lessons/complete/route.ts");
+  if (existsSync(completeRoute)) {
+    const content = readText(completeRoute);
+    const requiresAuth =
+      content.includes("Não autenticado") || content.includes("status: 401");
+    if (!requiresAuth) {
       findings.push({
-        id: "lesson-view-anonymous",
+        id: "lesson-complete-anonymous",
         severity: "medium",
-        title: "Views de aula aceitas sem login",
-        detail: "POST /api/lessons/view grava views com user_id null para anônimos.",
-        file: "src/app/api/lessons/view/route.ts",
-        remediation: "Exigir auth ou rate limit agressivo para evitar inflação de métricas.",
+        title: "Conclusão de aula aceita sem login",
+        detail: "POST /api/lessons/complete grava progresso sem exigir sessão.",
+        file: "src/app/api/lessons/complete/route.ts",
+        remediation: "Exigir auth (getUser + 401) antes de gravar a conclusão.",
       });
     }
   }
@@ -570,16 +572,16 @@ export async function runLiveProbe(baseUrl) {
     }
   }
 
-  // Lesson view anônimo
-  const view = await probe("POST", "/api/lessons/view", {
+  // Conclusão de aula anônima (deve ser bloqueada)
+  const complete = await probe("POST", "/api/lessons/complete", {
     body: { moduleId: "mod-1", lessonId: "aula-1" },
   });
-  if (!("error" in view) && view.status === 200) {
+  if (!("error" in complete) && complete.status === 200) {
     findings.push({
-      id: "live-lesson-view-anonymous-ok",
-      severity: "info",
-      title: "Lesson view aceita anônimo (confirmado ao vivo)",
-      detail: "POST /api/lessons/view retornou 200 sem cookie de sessão.",
+      id: "live-lesson-complete-anonymous-ok",
+      severity: "high",
+      title: "Conclusão de aula aceita anônimo (confirmado ao vivo)",
+      detail: "POST /api/lessons/complete retornou 200 sem cookie de sessão.",
     });
   }
 

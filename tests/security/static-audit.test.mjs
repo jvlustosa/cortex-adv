@@ -66,10 +66,14 @@ describe("security audit — estático", () => {
     );
   });
 
-  it("detecta lesson view sem autenticação obrigatória", () => {
+  it("conclusão de aula exige autenticação (sem brecha anônima)", () => {
     const findings = runStaticAudit(PROJECT_ROOT);
-    const anon = findings.find((f) => f.id === "lesson-view-anonymous");
-    assert.ok(anon);
+    const anon = findings.find((f) => f.id === "lesson-complete-anonymous");
+    assert.equal(
+      anon,
+      undefined,
+      "POST /api/lessons/complete deve exigir sessão (getUser + 401)",
+    );
   });
 
   it("detecta endpoints sem rate limit", () => {
@@ -77,7 +81,7 @@ describe("security audit — estático", () => {
     const expected = [
       "signup-no-rate-limit",
       "quiz-no-rate-limit",
-      "lesson-view-no-rate-limit",
+      "lesson-complete-no-rate-limit",
       "certificate-no-rate-limit",
     ];
     for (const id of expected) {

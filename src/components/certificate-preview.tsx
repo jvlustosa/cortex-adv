@@ -165,7 +165,7 @@ export function CertificatePreview() {
                     <ClaudeMark className={styles.sealIcon} />
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-center sm:text-right">
                     <Link
                       href={certificateVerifyPath(DEMO_CERTIFICATE_CODE)}
                       className={`${styles.meta} block transition hover:text-[var(--accent)]`}

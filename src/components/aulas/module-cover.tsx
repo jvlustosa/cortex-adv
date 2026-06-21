@@ -39,7 +39,7 @@ export function ModuleCover({
       <div className={styles.overlay} aria-hidden />
       <div className={styles.caption}>
         <span className={styles.eyebrow}>
-          Temporada {seasonNumber.toString().padStart(2, "0")}
+          Módulo {(seasonNumber + 1).toString().padStart(2, "0")}
         </span>
         {isHero ? (
           <h2 className={styles.title}>{title}</h2>

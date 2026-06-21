@@ -8,6 +8,8 @@ export type CourseProgress = {
   viewedLessons: number;
   progressPercent: number;
   isComplete: boolean;
+  /** Chaves "module_id:lesson_id" das aulas concluídas pelo usuário. */
+  completedKeys: string[];
 };
 
 async function countPublishedLessons(): Promise<number> {
@@ -40,6 +42,7 @@ export async function getUserCourseProgress(
       viewedLessons: 0,
       progressPercent: 0,
       isComplete: false,
+      completedKeys: [],
     };
   }
 
@@ -56,6 +59,7 @@ export async function getUserCourseProgress(
       viewedLessons: 0,
       progressPercent: 0,
       isComplete: false,
+      completedKeys: [],
     };
   }
 
@@ -72,5 +76,6 @@ export async function getUserCourseProgress(
     viewedLessons,
     progressPercent,
     isComplete: viewedLessons >= totalLessons,
+    completedKeys: Array.from(uniqueLessons),
   };
 }

@@ -71,7 +71,6 @@ export function LessonFeedbackForm({
 
   return (
     <form className={styles.form} onSubmit={(e) => void submit(e)}>
-      <p className={styles.label}>Como foi esta aula?</p>
       <div className={styles.stars} role="group" aria-label="Nota de 1 a 5">
         {[1, 2, 3, 4, 5].map((n) => (
           <button

@@ -1,9 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Lock, KeyRound, Sparkles } from "lucide-react";
 import {
   TRILHA_NIVEIS_PUBLIC,
   TRILHA_PUBLIC_META,
 } from "@/data/curso-trilha-public";
+import { SEASON_COVER_IMAGES } from "@/lib/course/module-covers";
 import { PRICING } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
@@ -37,40 +39,51 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
             className="absolute left-[1.125rem] top-3 bottom-3 w-px bg-gradient-to-b from-[var(--accent)]/50 via-[var(--border)] to-[var(--border)]"
             aria-hidden
           />
-          {TRILHA_NIVEIS_PUBLIC.map((nivel) => (
+          {TRILHA_NIVEIS_PUBLIC.map((nivel, index) => (
             <li key={nivel.level} className="relative flex gap-4 pb-6 last:pb-0">
               <span className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--accent)]/30 bg-[var(--accent-dim)] text-sm font-extrabold text-[var(--accent)]">
                 {nivel.level}
               </span>
-              <div className="min-w-0 flex-1 rounded-[14px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3.5">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-semibold tracking-tight text-[var(--foreground)]">
-                    {nivel.title}
-                  </h3>
+              <div className="flex min-w-0 flex-1 gap-3.5 rounded-[14px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3.5">
+                <div className="relative aspect-[3/4] w-14 shrink-0 overflow-hidden rounded-lg border border-[var(--border)] sm:w-16">
+                  <Image
+                    src={SEASON_COVER_IMAGES[index] ?? SEASON_COVER_IMAGES[0]}
+                    alt=""
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-semibold tracking-tight text-[var(--foreground)]">
+                      {nivel.title}
+                    </h3>
+                    {nivel.premium ? (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--accent)]/35 bg-[var(--accent-dim)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent)]">
+                        <Lock className="size-3" aria-hidden />
+                        Premium
+                      </span>
+                    ) : null}
+                  </div>
                   {nivel.premium ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--accent)]/35 bg-[var(--accent-dim)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent)]">
-                      <Lock className="size-3" aria-hidden />
-                      Premium
+                    <p
+                      className="mt-1 select-none text-sm leading-relaxed text-[var(--muted)] blur-[5px]"
+                      aria-hidden
+                    >
+                      {nivel.teaser}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
+                      {nivel.teaser}
+                    </p>
+                  )}
+                  {nivel.premium ? (
+                    <span className="sr-only">
+                      Conteúdo premium disponível para alunos matriculados.
                     </span>
                   ) : null}
                 </div>
-                {nivel.premium ? (
-                  <p
-                    className="mt-1 select-none text-sm leading-relaxed text-[var(--muted)] blur-[5px]"
-                    aria-hidden
-                  >
-                    {nivel.teaser}
-                  </p>
-                ) : (
-                  <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
-                    {nivel.teaser}
-                  </p>
-                )}
-                {nivel.premium ? (
-                  <span className="sr-only">
-                    Conteúdo premium disponível para alunos matriculados.
-                  </span>
-                ) : null}
               </div>
             </li>
           ))}

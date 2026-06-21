@@ -1,13 +1,13 @@
 "use client";
 
-import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Download, PlayCircle } from "lucide-react";
-import { ModuleCover } from "@/components/aulas/module-cover";
-import { getModuleCoverImage } from "@/lib/course/module-covers";
+import { ArrowLeft, Clock, Download, PlayCircle } from "lucide-react";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
 import type { LessonMaterial } from "@/lib/lessons/materials";
+import { CourseMenu } from "./course-menu";
+import { CompleteLessonButton } from "./complete-lesson-button";
 import { LessonFeedbackForm } from "./lesson-feedback-form";
 import styles from "./course-area.module.css";
 
@@ -28,10 +28,11 @@ export type MergedCourse = {
 
 type CourseAreaProps = {
   course: MergedCourse;
-  userEmail?: string | null;
   demoMode?: boolean;
   moduleId: string;
   lessonId: string;
+  completedKeys: string[];
+  totalLessons: number;
 };
 
 function pickInitial(
@@ -48,13 +49,13 @@ function pickInitial(
 
 export function CourseArea({
   course,
-  userEmail,
   demoMode,
   moduleId: moduleIdProp,
   lessonId: lessonIdProp,
+  completedKeys = [],
+  totalLessons = 0,
 }: CourseAreaProps) {
   const router = useRouter();
-  const lastViewKey = useRef<string | null>(null);
 
   const [moduleId, setModuleId] = useState(moduleIdProp);
   const [lessonId, setLessonId] = useState(lessonIdProp);
@@ -63,9 +64,9 @@ export function CourseArea({
     items: LessonMaterial[];
   }>({ key: "", items: [] });
 
-  // Ressincroniza o estado local quando a navegação externa muda as props da URL
-  // (ex.: voltar/avançar do navegador). Ajuste durante o render — padrão oficial
-  // do React para derivar estado de props sem useEffect e sem flash de tela.
+  // Ressincroniza estado local quando a navegação externa muda as props da URL
+  // (voltar/avançar do navegador). Ajuste durante o render — padrão oficial do
+  // React para derivar estado de props sem useEffect e sem flash de tela.
   const [syncedFrom, setSyncedFrom] = useState({ moduleIdProp, lessonIdProp });
   if (
     syncedFrom.moduleIdProp !== moduleIdProp ||
@@ -77,25 +78,44 @@ export function CourseArea({
     setLessonId(next.lessonId);
   }
 
+  // Conjunto de concluídas: otimista no client, re-semeado quando o servidor
+  // manda novas chaves (a cada navegação a página recarrega o progresso real).
+  const completedKeysStr = completedKeys.join("|");
+  const [completed, setCompleted] = useState<Set<string>>(
+    () => new Set(completedKeys),
+  );
+  const [seenCompleted, setSeenCompleted] = useState(completedKeysStr);
+  if (seenCompleted !== completedKeysStr) {
+    setSeenCompleted(completedKeysStr);
+    setCompleted(new Set(completedKeys));
+  }
+
   const activeModule = course.modules.find((m) => m.id === moduleId)!;
   const activeLesson =
     activeModule.lessons.find((l) => l.id === lessonId) ??
     activeModule.lessons[0];
 
+  const currentKey = `${activeModule.id}:${activeLesson.id}`;
+  const isCurrentCompleted = completed.has(currentKey);
+
+  const flat = course.modules.flatMap((m) =>
+    m.lessons.map((l) => ({ moduleId: m.id, lessonId: l.id })),
+  );
+  const currentIndex = flat.findIndex(
+    (f) => f.moduleId === activeModule.id && f.lessonId === activeLesson.id,
+  );
+  const nextTarget =
+    currentIndex >= 0 && currentIndex < flat.length - 1
+      ? flat[currentIndex + 1]
+      : null;
+
+  const progressPercent =
+    totalLessons > 0
+      ? Math.min(100, Math.round((completed.size / totalLessons) * 100))
+      : 0;
+
   const lessonMaterials =
-    materials.key === `${moduleId}:${lessonId}` ? materials.items : [];
-
-  useEffect(() => {
-    const key = `${moduleId}:${lessonId}`;
-    if (lastViewKey.current === key) return;
-    lastViewKey.current = key;
-
-    void fetch("/api/lessons/view", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ moduleId, lessonId }),
-    });
-  }, [moduleId, lessonId]);
+    materials.key === currentKey ? materials.items : [];
 
   // Materiais da aula (skills, PDFs). Guardamos com a chave da aula para não
   // exibir material de outra aula enquanto o fetch novo não chega. Vazio em modo
@@ -127,93 +147,74 @@ export function CourseArea({
     [router],
   );
 
-  function selectModule(mod: CourseModule) {
-    const first = mod.lessons[0];
-    if (!first) return;
-    setModuleId(mod.id);
-    setLessonId(first.id);
-    syncUrl(mod.id, first.id);
-  }
+  const topRef = useRef<HTMLDivElement>(null);
 
-  function selectLesson(mod: CourseModule, lesson: CourseLesson) {
-    setModuleId(mod.id);
-    setLessonId(lesson.id);
-    syncUrl(mod.id, lesson.id);
-  }
+  const selectLesson = useCallback(
+    (mod: string, lesson: string) => {
+      setModuleId(mod);
+      setLessonId(lesson);
+      syncUrl(mod, lesson);
+      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    [syncUrl],
+  );
+
+  const persist = useCallback(
+    async (method: "POST" | "DELETE", mod: string, lesson: string) => {
+      if (demoMode) return;
+      try {
+        await fetch("/api/lessons/complete", {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ moduleId: mod, lessonId: lesson }),
+        });
+      } catch {
+        // UI já atualizou otimista; a próxima navegação reconcilia com o servidor.
+      }
+    },
+    [demoMode],
+  );
+
+  const completeAndAdvance = useCallback(async () => {
+    setCompleted((prev) => new Set(prev).add(currentKey));
+    await persist("POST", activeModule.id, activeLesson.id);
+    if (nextTarget) selectLesson(nextTarget.moduleId, nextTarget.lessonId);
+  }, [currentKey, persist, activeModule.id, activeLesson.id, nextTarget, selectLesson]);
+
+  const undoComplete = useCallback(async () => {
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      next.delete(currentKey);
+      return next;
+    });
+    await persist("DELETE", activeModule.id, activeLesson.id);
+  }, [currentKey, persist, activeModule.id, activeLesson.id]);
+
+  const goNext = useCallback(() => {
+    if (nextTarget) selectLesson(nextTarget.moduleId, nextTarget.lessonId);
+  }, [nextTarget, selectLesson]);
 
   return (
-    <div className={styles.layout}>
-      <aside className={styles.sidebar}>
-        <div className={styles.hero}>
-          <p className={styles.heroEyebrow}>{course.subtitle}</p>
-          <h1 className={styles.heroTitle}>{course.title}</h1>
-          {userEmail ? (
-            <p className={styles.heroUser}>{userEmail}</p>
-          ) : demoMode ? (
-            <p className={styles.heroUser}>Modo demo: login em breve</p>
-          ) : null}
-        </div>
-
-        <div className={styles.moduleGrid} aria-label="Módulos do curso">
-          {course.modules.map((mod, i) => {
-            const isActive = mod.id === moduleId;
-            return (
-              <button
-                key={mod.id}
-                type="button"
-                className={`${styles.moduleCard} ${isActive ? styles.moduleCardActive : ""}`}
-                onClick={() => selectModule(mod)}
-                aria-current={isActive ? "true" : undefined}
-              >
-                <div className={styles.thumb}>
-                  <ModuleCover
-                    src={getModuleCoverImage(mod.id, i, mod.coverImage)}
-                    title={mod.title}
-                    seasonNumber={i}
-                    variant="thumb"
-                  />
-                </div>
-                <div className={styles.moduleMeta}>
-                  <span className={styles.moduleTitle}>{mod.title}</span>
-                  <span className={styles.moduleCount}>
-                    {mod.lessons.length} aulas
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className={styles.lessonPanel}>
-          <div className={styles.lessonPanelHead}>
-            Aulas · {activeModule.title}
-          </div>
-          <div className={styles.lessonList} aria-label={`Aulas de ${activeModule.title}`}>
-            {activeModule.lessons.map((lesson, i) => {
-              const isActive = lesson.id === activeLesson.id;
-              return (
-                <button
-                  key={lesson.id}
-                  type="button"
-                  className={`${styles.lessonItem} ${isActive ? styles.lessonItemActive : ""}`}
-                  onClick={() => selectLesson(activeModule, lesson)}
-                  aria-current={isActive ? "true" : undefined}
-                >
-                  <span className={styles.lessonIndex}>
-                    {(i + 1).toString().padStart(2, "0")}
-                  </span>
-                  <span>
-                    <span className={styles.lessonItemTitle}>{lesson.title}</span>
-                    <p className={styles.lessonItemDuration}>{lesson.duration}</p>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </aside>
-
+    <div className={styles.layout} ref={topRef}>
       <section className={styles.main} aria-label="Conteúdo da aula">
+        <div className={styles.topbar}>
+          <Link href="/area-de-membros" className={styles.backLink}>
+            <ArrowLeft className="size-4" aria-hidden />
+            Área de membros
+          </Link>
+          <div className={styles.progress} aria-label="Progresso do curso">
+            <div className={styles.progressTrack}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <span className={styles.progressLabel}>
+              {completed.size}/{totalLessons} · {progressPercent}%
+            </span>
+          </div>
+        </div>
+
         <div className={styles.playerWrap}>
           {activeLesson.youtubeId ? (
             <iframe
@@ -230,28 +231,40 @@ export function CourseArea({
                 <PlayCircle className="size-8" strokeWidth={1.5} aria-hidden />
               </div>
               <p className={styles.playerPlaceholderText}>
-                Vídeo desta aula em produção. Selecione outras aulas ou módulos
-                para explorar a estrutura do curso.
+                Vídeo desta aula em produção. Use o menu ao lado para explorar a
+                estrutura do curso.
               </p>
             </div>
           )}
         </div>
 
         <article className={styles.lessonDetail}>
-          <p className={styles.lessonModuleLabel}>{activeModule.title}</p>
-          <h2 className={styles.lessonTitle}>{activeLesson.title}</h2>
+          <div className={styles.lessonHead}>
+            <div>
+              <p className={styles.lessonModuleLabel}>{activeModule.title}</p>
+              <h1 className={styles.lessonTitle}>{activeLesson.title}</h1>
+            </div>
+            <span className={styles.lessonDuration}>
+              <Clock className="size-3.5" aria-hidden />
+              {activeLesson.duration}
+            </span>
+          </div>
+
           <p className={styles.lessonDescription}>{activeLesson.description}</p>
-          <span className={styles.lessonDuration}>
-            <Clock className="size-3.5" aria-hidden />
-            {activeLesson.duration}
-          </span>
+
+          <CompleteLessonButton
+            isCompleted={isCurrentCompleted}
+            hasNext={!!nextTarget}
+            disabled={demoMode}
+            onCompleteAndAdvance={completeAndAdvance}
+            onGoNext={goNext}
+            onUndo={undoComplete}
+          />
 
           {lessonMaterials.length > 0 ? (
-            <section className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-              <h3 className="text-sm font-medium text-[var(--foreground)]">
-                Materiais da aula
-              </h3>
-              <ul className="mt-3 flex flex-col gap-2">
+            <section className={styles.materials}>
+              <h2 className={styles.materialsTitle}>Materiais da aula</h2>
+              <ul className={styles.materialsList}>
                 {lessonMaterials.map((m) => (
                   <li key={m.id}>
                     <a
@@ -260,15 +273,12 @@ export function CourseArea({
                       rel="noopener noreferrer"
                       download={m.fileName}
                       aria-disabled={m.url ? undefined : true}
-                      className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--background)]/40 px-3 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--accent)]/40 hover:bg-[var(--surface-raised)]"
+                      className={styles.materialItem}
                     >
-                      <Download
-                        className="size-4 shrink-0 text-[var(--accent)]"
-                        aria-hidden
-                      />
-                      <span className="flex-1 truncate">{m.label}</span>
+                      <Download className={styles.materialIcon} aria-hidden />
+                      <span className={styles.materialLabel}>{m.label}</span>
                       {m.sizeBytes ? (
-                        <span className="shrink-0 text-xs text-[var(--muted)]">
+                        <span className={styles.materialSize}>
                           {formatBytes(m.sizeBytes)}
                         </span>
                       ) : null}
@@ -279,13 +289,30 @@ export function CourseArea({
             </section>
           ) : null}
 
-          <LessonFeedbackForm
-            moduleId={moduleId}
-            lessonId={lessonId}
-            disabled={demoMode}
-          />
+          <details className={styles.feedback}>
+            <summary className={styles.feedbackSummary}>
+              Como foi esta aula?
+            </summary>
+            <div className={styles.feedbackBody}>
+              <LessonFeedbackForm
+                moduleId={moduleId}
+                lessonId={lessonId}
+                disabled={demoMode}
+              />
+            </div>
+          </details>
         </article>
       </section>
+
+      <aside className={styles.menuCol}>
+        <CourseMenu
+          course={course}
+          activeModuleId={activeModule.id}
+          activeLessonId={activeLesson.id}
+          completed={completed}
+          onSelectLesson={selectLesson}
+        />
+      </aside>
     </div>
   );
 }
