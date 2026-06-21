@@ -45,12 +45,38 @@ describe("auth — erros de login e recuperação", () => {
     assert.equal(safeRedirectPath("/aulas/cowork/cowork-1"), "/aulas/cowork/cowork-1");
   });
 
-  it("login usa mapSignInError e safeRedirectPath", () => {
+  it("login usa mapSignInError, safeRedirectPath e toasts", () => {
     const login = readSrc("src/components/login-form.tsx");
     assert.ok(login.includes("mapSignInError"));
     assert.ok(login.includes("safeRedirectPath"));
     assert.ok(login.includes("/recuperar-senha"));
-    assert.ok(login.includes('role="alert"'));
+    // Erros de login agora são exibidos via toast (não mais inline).
+    assert.ok(login.includes("useToast"));
+    assert.ok(login.includes("toast.error"));
+    // Falha cedo quando o Supabase não está configurado (placeholder/sem creds).
+    assert.ok(login.includes("isSupabaseConfigured"));
+  });
+
+  it("toast expõe acessibilidade (role=alert + aria-live)", () => {
+    const toast = readSrc("src/components/toast.tsx");
+    assert.ok(toast.includes('role={toast.variant === "error" ? "alert" : "status"}'));
+    assert.ok(toast.includes("aria-live"));
+    assert.ok(toast.includes('aria-label="Fechar aviso"'));
+  });
+
+  it("isSupabaseConfigured rejeita placeholder e exige https", () => {
+    // Espelha a lógica de src/lib/supabase/enabled.ts (teste sem TS).
+    const configured = (url, key) => {
+      if (!url || !key) return false;
+      if (url.includes("placeholder")) return false;
+      if (!/^https:\/\//.test(url)) return false;
+      return true;
+    };
+    assert.equal(configured("https://placeholder.supabase.co", "k"), false);
+    assert.equal(configured("", "k"), false);
+    assert.equal(configured("https://abc.supabase.co", ""), false);
+    assert.equal(configured("http://abc.supabase.co", "k"), false);
+    assert.equal(configured("https://abc.supabase.co", "k"), true);
   });
 
   it("callback e signup usam safeRedirectPath", () => {

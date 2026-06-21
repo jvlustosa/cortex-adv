@@ -1,5 +1,5 @@
 import { COURSE } from "@/data/course-content";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isServiceRoleConfigured, isSupabaseEnabled } from "@/lib/supabase/enabled";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchLessonOverrides } from "@/lib/lessons/merge-course";
 
@@ -29,7 +29,12 @@ export async function getUserCourseProgress(
 ): Promise<CourseProgress> {
   const totalLessons = await countPublishedLessons();
 
-  if (!userId || !isSupabaseEnabled() || totalLessons === 0) {
+  if (
+    !userId ||
+    !isSupabaseEnabled() ||
+    !isServiceRoleConfigured() ||
+    totalLessons === 0
+  ) {
     return {
       totalLessons,
       viewedLessons: 0,

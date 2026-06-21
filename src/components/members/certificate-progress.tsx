@@ -106,6 +106,24 @@ export function CertificateProgress({
         )}
       </div>
 
+      <Link
+        href="/certificado"
+        className={
+          isLocked
+            ? "mt-5 inline-flex items-center gap-1.5 text-sm text-[var(--accent)] underline underline-offset-2 hover:opacity-90"
+            : "mt-5 inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
+        }
+      >
+        {isLocked ? (
+          "Ver prévia do certificado →"
+        ) : (
+          <>
+            <Award className="size-4" aria-hidden />
+            Ver e baixar certificado
+          </>
+        )}
+      </Link>
+
       {!isLocked && (
         <p className="mt-4 text-sm text-[var(--muted)]">
           Valide certificados emitidos em{" "}

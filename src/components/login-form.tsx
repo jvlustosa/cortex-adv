@@ -6,9 +6,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { mapSignInError } from "@/lib/auth/errors";
 import { safeRedirectPath } from "@/lib/auth/safe-redirect";
+import { useToast } from "@/components/toast";
 import {
   isDemoMode,
   isSignupEnabled,
+  isSupabaseConfigured,
   isSupabaseEnabled,
 } from "@/lib/supabase/enabled";
 
@@ -19,19 +21,11 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = safeRedirectPath(searchParams.get("next"));
+  const toast = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [message, setMessage] = useState<string | null>(null);
-
-  // Limpa o erro do formulário assim que o usuário corrige o campo.
-  function clearFormError() {
-    if (status === "error") {
-      setStatus("idle");
-      setMessage(null);
-    }
-  }
+  const [status, setStatus] = useState<"idle" | "loading">("idle");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,19 +33,25 @@ export function LoginForm() {
 
     const normalized = email.trim().toLowerCase();
     if (!normalized) {
-      setStatus("error");
-      setMessage("Informe seu e-mail.");
+      toast.error("Informe seu e-mail.");
       return;
     }
 
     if (!password) {
-      setStatus("error");
-      setMessage("Informe sua senha.");
+      toast.error("Informe sua senha.");
+      return;
+    }
+
+    // Sem credenciais reais o fetch ao Supabase quebra no DNS e parece "erro de
+    // internet". Falha cedo com um aviso honesto em vez de disparar a requisição.
+    if (!isSupabaseConfigured()) {
+      toast.error(
+        "Login indisponível: serviço de autenticação não configurado.",
+      );
       return;
     }
 
     setStatus("loading");
-    setMessage(null);
 
     try {
       const supabase = createClient();
@@ -61,16 +61,16 @@ export function LoginForm() {
       });
 
       if (error) {
-        setStatus("error");
-        setMessage(mapSignInError(error));
+        setStatus("idle");
+        toast.error(mapSignInError(error));
         return;
       }
 
       router.push(next);
       router.refresh();
     } catch {
-      setStatus("error");
-      setMessage("Falha de conexão. Verifique a internet e tente novamente.");
+      setStatus("idle");
+      toast.error("Falha de conexão. Verifique a internet e tente novamente.");
     }
   }
 
@@ -117,13 +117,9 @@ export function LoginForm() {
           required
           autoComplete="email"
           value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            clearFormError();
-          }}
+          onChange={(e) => setEmail(e.target.value)}
           className={inputClass}
           placeholder="voce@escritorio.com.br"
-          aria-invalid={status === "error" && message ? true : undefined}
         />
       </label>
       <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
@@ -141,12 +137,8 @@ export function LoginForm() {
           required
           autoComplete="current-password"
           value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            clearFormError();
-          }}
+          onChange={(e) => setPassword(e.target.value)}
           className={inputClass}
-          aria-invalid={status === "error" && message ? true : undefined}
         />
       </label>
       <button
@@ -156,11 +148,6 @@ export function LoginForm() {
       >
         {status === "loading" ? "Entrando…" : "Entrar"}
       </button>
-      {message ? (
-        <p className="text-sm text-[var(--danger)]" role="alert">
-          {message}
-        </p>
-      ) : null}
       {isSignupEnabled() ? (
         <p className="text-center text-sm text-[var(--muted)]">
           Convite?{" "}

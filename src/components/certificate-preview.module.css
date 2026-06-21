@@ -272,6 +272,15 @@
   text-align: left;
 }
 
+.sigScript {
+  display: block;
+  margin-bottom: -0.2rem;
+  font-family: var(--font-great-vibes), "Segoe Script", cursive;
+  font-size: clamp(1.5rem, 4.5vw, 1.9rem);
+  line-height: 1;
+  color: rgba(240, 168, 138, 0.95);
+}
+
 .sigLine {
   width: 5.5rem;
   border-top: 1px solid rgba(217, 119, 87, 0.45);

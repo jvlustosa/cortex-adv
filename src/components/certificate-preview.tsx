@@ -12,7 +12,9 @@ import {
   CERTIFICATE_DEMO_RECIPIENT,
   CERTIFICATE_LABEL,
   CERTIFICATE_MENTOR_NAME,
+  CERTIFICATE_MENTOR_OAB,
   CERTIFICATE_MENTOR_ROLE,
+  CERTIFICATE_MENTOR_SIGNATURE,
   CERTIFICATE_PREVIEW_BADGE,
   DEMO_CERTIFICATE_CODE,
   certificateCompletionText,
@@ -145,9 +147,18 @@ export function CertificatePreview() {
 
                 <div className={styles.footerRow}>
                   <div className={styles.sigBlock}>
+                    <span
+                      className={styles.sigScript}
+                      aria-label={`Assinatura de ${CERTIFICATE_MENTOR_NAME}`}
+                    >
+                      {CERTIFICATE_MENTOR_SIGNATURE}
+                    </span>
                     <div className={styles.sigLine} aria-hidden />
                     <p className={styles.sigName}>{CERTIFICATE_MENTOR_NAME}</p>
                     <p className={styles.sigRole}>{CERTIFICATE_MENTOR_ROLE}</p>
+                    {CERTIFICATE_MENTOR_OAB ? (
+                      <p className={styles.sigRole}>{CERTIFICATE_MENTOR_OAB}</p>
+                    ) : null}
                   </div>
 
                   <div className={styles.seal} aria-hidden>

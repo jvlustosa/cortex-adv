@@ -17,6 +17,15 @@ export const CERTIFICATE_MENTOR_ROLE = "Mentor do curso · Chat Jurídico";
 
 export const CERTIFICATE_MENTOR_NAME = "Prof. Marcos Vilas Boas";
 
+/** Texto da assinatura manuscrita (fonte script) sobre a linha de assinatura. */
+export const CERTIFICATE_MENTOR_SIGNATURE = "Marcos Vilas Boas";
+
+/**
+ * Inscrição na OAB do mentor (Marcos Vinicius Castelan Vilas Boas).
+ * Vazio = linha não é exibida.
+ */
+export const CERTIFICATE_MENTOR_OAB = "OAB/PR 73.759";
+
 /** Texto central do certificado, após o nome do aluno. */
 export function certificateCompletionText(courseTitle: string) {
   return `concluiu com aproveitamento o curso ${courseTitle}, com foco em Claude Cowork, peças jurídicas e automação do escritório.`;

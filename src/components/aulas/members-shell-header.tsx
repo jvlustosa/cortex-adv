@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { CircleUser, Menu, X } from "lucide-react";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -61,6 +61,15 @@ export function MembersShellHeader({
           >
             Área de membros
           </Link>
+
+          {authOn && userEmail ? (
+            <span className={styles.userEmail} title={userEmail}>
+              <CircleUser className="size-4 shrink-0" aria-hidden />
+              <span className={styles.userEmailText}>{userEmail}</span>
+            </span>
+          ) : null}
+
+          {authOn ? <SignOutButton className={styles.signOutBtn} /> : null}
         </nav>
 
         <button

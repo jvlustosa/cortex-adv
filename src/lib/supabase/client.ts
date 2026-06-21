@@ -10,5 +10,12 @@ export function createClient() {
   if (!url || !key) {
     throw new Error("NEXT_PUBLIC_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_ANON_KEY ausente.");
   }
+  // Placeholder = projeto não conectado. Falha aqui com mensagem clara em vez
+  // de deixar o fetch quebrar no DNS e parecer falha de rede.
+  if (url.includes("placeholder")) {
+    throw new Error(
+      "Supabase não configurado: NEXT_PUBLIC_SUPABASE_URL ainda é placeholder.",
+    );
+  }
   return createBrowserClient(url, key);
 }

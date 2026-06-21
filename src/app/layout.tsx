@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { DM_Sans, Instrument_Serif } from "next/font/google";
+import {
+  Bebas_Neue,
+  DM_Sans,
+  Great_Vibes,
+  Instrument_Serif,
+} from "next/font/google";
 import { SITE_BRAND, SITE_NAME, SITE_URL } from "@/lib/site";
+import { ToastProvider } from "@/components/toast";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -8,8 +14,21 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas-neue",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+// Script type for the mentor's handwritten signature on the certificate.
+const greatVibes = Great_Vibes({
+  variable: "--font-great-vibes",
   subsets: ["latin"],
   weight: "400",
 });
@@ -79,10 +98,10 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${dmSans.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${instrumentSerif.variable} ${greatVibes.variable} ${bebasNeue.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

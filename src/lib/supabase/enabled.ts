@@ -46,6 +46,35 @@ export function isSupabaseEnabled(): boolean {
 }
 
 /**
+ * Credenciais reais do Supabase presentes (não placeholder).
+ * Auth (login/cadastro/recuperação) depende disso — sem isso, o fetch ao
+ * Supabase falha no DNS e parece "erro de internet". Use para falhar cedo
+ * com mensagem honesta em vez de disparar uma requisição fadada a quebrar.
+ */
+export function isSupabaseConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  if (!url || !key) return false;
+  if (url.includes("placeholder")) return false;
+  if (!/^https:\/\//.test(url)) return false;
+  return true;
+}
+
+/**
+ * Service role (server) configurado com chave REAL — necessário para o admin
+ * client (overrides de aula, progresso, signup, painel /admin). Sem isso, as
+ * leituras retornam "Invalid API key"; melhor pular e degradar em silêncio.
+ * Aceita a secret key nova (sb_secret_) ou um service_role JWT legado real
+ * (~210+ chars); o placeholder do repo é um JWT falso curto, então é rejeitado.
+ */
+export function isServiceRoleConfigured(): boolean {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  if (!key || key.includes("placeholder")) return false;
+  if (key.startsWith("sb_secret_")) return true;
+  return key.startsWith("eyJ") && key.length >= 200;
+}
+
+/**
  * Cadastro (/signup) em produção só com NEXT_PUBLIC_SIGNUP_ENABLED=true.
  * Em dev, segue o mesmo gating do Supabase local.
  */

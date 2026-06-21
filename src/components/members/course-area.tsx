@@ -3,11 +3,20 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, PlayCircle } from "lucide-react";
-import { CLAUDE_ACADEMY_LOGO } from "@/components/claude-academy-brand";
+import { Clock, Download, PlayCircle } from "lucide-react";
+import { ModuleCover } from "@/components/aulas/module-cover";
+import { getModuleCoverImage } from "@/lib/course/module-covers";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
+import type { LessonMaterial } from "@/lib/lessons/materials";
 import { LessonFeedbackForm } from "./lesson-feedback-form";
 import styles from "./course-area.module.css";
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${Math.round(kb)} KB`;
+  return `${(kb / 1024).toFixed(1)} MB`;
+}
 
 export type MergedCourse = {
   title: string;
@@ -49,6 +58,10 @@ export function CourseArea({
 
   const [moduleId, setModuleId] = useState(moduleIdProp);
   const [lessonId, setLessonId] = useState(lessonIdProp);
+  const [materials, setMaterials] = useState<{
+    key: string;
+    items: LessonMaterial[];
+  }>({ key: "", items: [] });
 
   // Ressincroniza o estado local quando a navegação externa muda as props da URL
   // (ex.: voltar/avançar do navegador). Ajuste durante o render — padrão oficial
@@ -69,6 +82,9 @@ export function CourseArea({
     activeModule.lessons.find((l) => l.id === lessonId) ??
     activeModule.lessons[0];
 
+  const lessonMaterials =
+    materials.key === `${moduleId}:${lessonId}` ? materials.items : [];
+
   useEffect(() => {
     const key = `${moduleId}:${lessonId}`;
     if (lastViewKey.current === key) return;
@@ -80,6 +96,29 @@ export function CourseArea({
       body: JSON.stringify({ moduleId, lessonId }),
     });
   }, [moduleId, lessonId]);
+
+  // Materiais da aula (skills, PDFs). Guardamos com a chave da aula para não
+  // exibir material de outra aula enquanto o fetch novo não chega. Vazio em modo
+  // demo ou sem service role (a API devolve []).
+  useEffect(() => {
+    if (demoMode) return;
+    const key = `${moduleId}:${lessonId}`;
+    let active = true;
+    void fetch(
+      `/api/lessons/materials?moduleId=${encodeURIComponent(moduleId)}&lessonId=${encodeURIComponent(lessonId)}`,
+    )
+      .then((r) => (r.ok ? r.json() : { materials: [] }))
+      .then((d) => {
+        if (active)
+          setMaterials({ key, items: (d.materials ?? []) as LessonMaterial[] });
+      })
+      .catch(() => {
+        if (active) setMaterials({ key, items: [] });
+      });
+    return () => {
+      active = false;
+    };
+  }, [moduleId, lessonId, demoMode]);
 
   const syncUrl = useCallback(
     (mod: string, lesson: string) => {
@@ -126,21 +165,13 @@ export function CourseArea({
                 onClick={() => selectModule(mod)}
                 aria-current={isActive ? "true" : undefined}
               >
-                <div
-                  className={styles.thumb}
-                  style={{ background: mod.thumbnailGradient }}
-                >
-                  <Image
-                    src={CLAUDE_ACADEMY_LOGO}
-                    alt=""
-                    width={28}
-                    height={28}
-                    className={styles.thumbLogo}
-                    aria-hidden
+                <div className={styles.thumb}>
+                  <ModuleCover
+                    src={getModuleCoverImage(mod.id, i, mod.coverImage)}
+                    title={mod.title}
+                    seasonNumber={i}
+                    variant="thumb"
                   />
-                  <span className={styles.thumbIndex}>
-                    M{(i + 1).toString().padStart(2, "0")}
-                  </span>
                 </div>
                 <div className={styles.moduleMeta}>
                   <span className={styles.moduleTitle}>{mod.title}</span>
@@ -214,6 +245,39 @@ export function CourseArea({
             <Clock className="size-3.5" aria-hidden />
             {activeLesson.duration}
           </span>
+
+          {lessonMaterials.length > 0 ? (
+            <section className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+              <h3 className="text-sm font-medium text-[var(--foreground)]">
+                Materiais da aula
+              </h3>
+              <ul className="mt-3 flex flex-col gap-2">
+                {lessonMaterials.map((m) => (
+                  <li key={m.id}>
+                    <a
+                      href={m.url ?? "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={m.fileName}
+                      aria-disabled={m.url ? undefined : true}
+                      className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--background)]/40 px-3 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--accent)]/40 hover:bg-[var(--surface-raised)]"
+                    >
+                      <Download
+                        className="size-4 shrink-0 text-[var(--accent)]"
+                        aria-hidden
+                      />
+                      <span className="flex-1 truncate">{m.label}</span>
+                      {m.sizeBytes ? (
+                        <span className="shrink-0 text-xs text-[var(--muted)]">
+                          {formatBytes(m.sizeBytes)}
+                        </span>
+                      ) : null}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <LessonFeedbackForm
             moduleId={moduleId}

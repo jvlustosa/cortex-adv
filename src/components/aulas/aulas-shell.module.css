@@ -123,6 +123,22 @@
   white-space: nowrap;
 }
 
+.userEmail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 15rem;
+  padding-left: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.userEmailText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .navLink {
   display: flex;
   align-items: center;

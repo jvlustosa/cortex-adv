@@ -1,0 +1,17 @@
+/* Âncora para o import do módulo (mantém as regras @media print no bundle). */
+.printArea {
+  display: none;
+}
+
+/* Impressão: só o certificado, fundo branco, paisagem A4. */
+@media print {
+  :global(html),
+  :global(body) {
+    background: #ffffff !important;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+}

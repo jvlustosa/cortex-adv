@@ -11,8 +11,10 @@ export type CourseModule = {
   id: string;
   title: string;
   description: string;
-  /** Gradiente CSS para thumbnail até ter arte dedicada */
+  /** Gradiente CSS fallback quando não há capa */
   thumbnailGradient: string;
+  /** Capa 3:4 da temporada (opcional; senão usa índice do módulo) */
+  coverImage?: string;
   lessons: CourseLesson[];
 };
 

@@ -37,6 +37,7 @@
   --color-claude: var(--claude);
   --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-signature: var(--font-great-vibes), "Segoe Script", cursive;
 }
 
 html {
@@ -60,6 +61,10 @@ body {
 
 .font-serif {
   font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+}
+
+.font-signature {
+  font-family: var(--font-great-vibes), "Segoe Script", cursive;
 }
 
 ::selection {

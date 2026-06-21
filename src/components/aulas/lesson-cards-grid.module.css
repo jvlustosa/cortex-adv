@@ -54,6 +54,25 @@
   margin-bottom: 0;
 }
 
+.moduleHero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.25rem 1.75rem;
+  margin-bottom: 1.35rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.moduleIntro {
+  flex: 1;
+  min-width: min(100%, 16rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 0.25rem;
+}
+
 .moduleHeader {
   display: flex;
   flex-wrap: wrap;
@@ -89,29 +108,49 @@
   color: var(--claude);
 }
 
-.grid {
-  display: grid;
+/* Carrossel horizontal de aulas (estilo Netflix): cards horizontais que
+   rolam no eixo X, sem quebrar linha. O padding-top dá folga para o lift no
+   hover e para a sombra não ser cortada pelo overflow do scroll. */
+.carousel {
+  display: flex;
   gap: 1rem;
-  grid-template-columns: 1fr;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding: 0.75rem 0.25rem 1.25rem;
+  margin: 0 -0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
-@media (min-width: 480px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.1rem;
-  }
+.carousel::-webkit-scrollbar {
+  height: 6px;
+}
+
+.carousel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.carousel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.carousel:focus-visible {
+  outline: 2px solid var(--claude);
+  outline-offset: 4px;
+  border-radius: 0.5rem;
+}
+
+.carousel > * {
+  flex: 0 0 clamp(16rem, 82%, 20rem);
+  scroll-snap-align: start;
 }
 
 @media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1.15rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .carousel > * {
+    flex-basis: 20rem;
   }
 }
 
@@ -126,6 +165,19 @@
 
   .moduleSection {
     margin-bottom: 2rem;
+  }
+
+  .moduleHero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .moduleIntro {
+    min-width: 0;
+    gap: 0.5rem;
   }
 
   .moduleHeader {
@@ -146,5 +198,13 @@
 
   .moduleCount {
     font-size: 0.65rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .moduleIntro .moduleDescription {
+    margin-top: 0;
+    font-size: 0.9rem;
+    max-width: 36rem;
   }
 }

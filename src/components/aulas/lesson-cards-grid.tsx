@@ -1,5 +1,7 @@
 import { BookOpen, Layers } from "lucide-react";
 import type { MergedCourse } from "@/components/members/course-area";
+import { ModuleCover } from "@/components/aulas/module-cover";
+import { getModuleCoverImage } from "@/lib/course/module-covers";
 import { LessonCard } from "./lesson-card";
 import styles from "./lesson-cards-grid.module.css";
 
@@ -33,25 +35,35 @@ export function LessonCardsGrid({ course }: LessonCardsGridProps) {
         </div>
       </header>
 
-      {course.modules.map((mod) => (
+      {course.modules.map((mod, modIndex) => (
         <section key={mod.id} className={styles.moduleSection}>
-          <div className={styles.moduleHeader}>
-            <div>
-              <h2 className={styles.moduleTitle}>{mod.title}</h2>
+          <div className={styles.moduleHero}>
+            <ModuleCover
+              src={getModuleCoverImage(mod.id, modIndex, mod.coverImage)}
+              title={mod.title}
+              seasonNumber={modIndex}
+            />
+            <div className={styles.moduleIntro}>
               <p className={styles.moduleDescription}>{mod.description}</p>
+              <span className={styles.moduleCount}>
+                {mod.lessons.length} aulas
+              </span>
             </div>
-            <span className={styles.moduleCount}>
-              {mod.lessons.length} aulas
-            </span>
           </div>
 
-          <div className={styles.grid}>
+          <div
+            className={styles.carousel}
+            role="region"
+            aria-label={`Aulas de ${mod.title}`}
+            tabIndex={0}
+          >
             {mod.lessons.map((lesson, i) => (
               <LessonCard
                 key={lesson.id}
                 module={mod}
                 lesson={lesson}
                 index={i}
+                moduleIndex={modIndex}
               />
             ))}
           </div>

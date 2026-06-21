@@ -3,7 +3,7 @@ import {
   type CourseLesson,
   type CourseModule,
 } from "@/data/course-content";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isServiceRoleConfigured, isSupabaseEnabled } from "@/lib/supabase/enabled";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { LessonOverrideRow } from "./types";
 
@@ -26,7 +26,9 @@ function applyOverride(
 }
 
 export async function fetchLessonOverrides(): Promise<LessonOverrideRow[]> {
-  if (!isSupabaseEnabled()) return [];
+  // Sem service role real não dá pra ler lesson_overrides (RLS). Degrada para o
+  // catálogo estático em silêncio, sem spam de "Invalid API key" a cada render.
+  if (!isSupabaseEnabled() || !isServiceRoleConfigured()) return [];
 
   try {
     const admin = createAdminClient();
