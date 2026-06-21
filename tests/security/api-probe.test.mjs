@@ -80,6 +80,31 @@ describe("security audit — probe HTTP", { skip: process.env.SKIP_LIVE_PROBE ==
     assert.ok([400, 403, 503].includes(res.status));
   });
 
+  it("POST /api/access/grant exige secret", async (t) => {
+    if (!serverUp) t.skip("servidor offline");
+
+    // Sem secret: nunca pode conceder acesso (401 sem env / 503 sem config).
+    const noSecret = await fetch(`${BASE_URL}/api/access/grant`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: "probe@example.com" }),
+    });
+    assert.notEqual(noSecret.status, 200);
+    assert.ok([401, 503].includes(noSecret.status), `status: ${noSecret.status}`);
+
+    // Secret errado: 401 (ou 503 se a env nem está configurada no ambiente).
+    const wrongSecret = await fetch(`${BASE_URL}/api/access/grant`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer secret-invalido",
+      },
+      body: JSON.stringify({ email: "probe@example.com" }),
+    });
+    assert.notEqual(wrongSecret.status, 200);
+    assert.ok([401, 503].includes(wrongSecret.status), `status: ${wrongSecret.status}`);
+  });
+
   it("inventário admin coberto pelo probe", async (t) => {
     if (!serverUp) t.skip("servidor offline");
 
