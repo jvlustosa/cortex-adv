@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { mapPasswordResetRequestError } from "@/lib/auth/errors";
 import { passwordResetRedirectUrl } from "@/lib/auth/password-reset";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isSupabaseConfigured, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)]/50 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--ring)]";
@@ -23,6 +23,16 @@ export function ForgotPasswordForm() {
     if (!normalized) {
       setStatus("error");
       setMessage("Informe o e-mail cadastrado no convite.");
+      return;
+    }
+
+    // Sem credenciais reais o fetch ao Supabase quebra no DNS/placeholder e cai
+    // no catch como "Falha de conexão". Falha cedo com aviso honesto.
+    if (!isSupabaseConfigured()) {
+      setStatus("error");
+      setMessage(
+        "Recuperação indisponível: serviço de autenticação não configurado.",
+      );
       return;
     }
 

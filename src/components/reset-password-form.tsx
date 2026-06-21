@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { mapPasswordUpdateError } from "@/lib/auth/errors";
 import { validateNewPassword } from "@/lib/auth/password-reset";
 import { safeRedirectPath } from "@/lib/auth/safe-redirect";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isSupabaseConfigured, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--ring)]";
@@ -39,6 +39,16 @@ export function ResetPasswordForm({ nextPath }: ResetPasswordFormProps) {
     if (password !== confirm) {
       setStatus("error");
       setMessage("As senhas não coincidem.");
+      return;
+    }
+
+    // Sem credenciais reais o fetch ao Supabase quebra e cai no catch como
+    // "Falha de conexão". Falha cedo com aviso honesto.
+    if (!isSupabaseConfigured()) {
+      setStatus("error");
+      setMessage(
+        "Atualização de senha indisponível: serviço de autenticação não configurado.",
+      );
       return;
     }
 

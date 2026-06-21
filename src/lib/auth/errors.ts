@@ -83,6 +83,38 @@ export function mapPasswordResetRequestError(error: AuthErrorLike): string {
   return "Não foi possível enviar o link agora. Tente de novo em instantes.";
 }
 
+/**
+ * Erro ao pedir magic link de login. Retorna `null` quando o e-mail não tem
+ * conta ou o OTP está desabilitado — nesses casos a UI mostra a mesma mensagem
+ * neutra do sucesso, pra não revelar quais e-mails existem (anti-enumeração).
+ */
+export function mapMagicLinkRequestError(error: AuthErrorLike): string | null {
+  const { message, code } = normalize(error);
+
+  if (message.includes("invalid email") || code === "validation_failed") {
+    return "Informe um e-mail válido.";
+  }
+
+  if (
+    message.includes("too many requests") ||
+    message.includes("rate limit") ||
+    error.status === 429
+  ) {
+    return "Muitas solicitações. Aguarde alguns minutos antes de pedir outro link.";
+  }
+
+  if (
+    message.includes("network") ||
+    message.includes("fetch") ||
+    message.includes("failed to fetch")
+  ) {
+    return "Falha de conexão. Verifique a internet e tente novamente.";
+  }
+
+  // Conta inexistente / signups desativados: não revela se o e-mail existe.
+  return null;
+}
+
 export function mapPasswordUpdateError(error: AuthErrorLike): string {
   const { message, code } = normalize(error);
 
@@ -129,11 +161,11 @@ export function mapPasswordUpdateError(error: AuthErrorLike): string {
 export function mapAuthCallbackQueryError(code: string | null | undefined): string | null {
   switch (code) {
     case "auth":
-      return "Link de acesso inválido ou expirado. Entre com e-mail e senha ou solicite recuperação.";
+      return "Link de acesso inválido ou expirado. Peça um novo link na tela de login.";
     case "session":
       return "Sessão expirada. Entre novamente.";
     case "link":
-      return "Link de recuperação inválido ou expirado. Solicite um novo e-mail.";
+      return "Link inválido ou expirado. Peça um novo link na tela de login.";
     default:
       return null;
   }

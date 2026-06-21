@@ -4,18 +4,24 @@
 --
 -- COMO USAR
 -- 1. Crie um projeto em https://supabase.com (região sa-east-1 recomendada)
--- 2. Authentication → Providers → Email: habilitado
+-- 2. Authentication → Providers → Email: habilitado (necessário p/ magic link)
 -- 3. Authentication → Settings:
---      • Enable email signups: DESLIGADO (cadastro só via API + convite)
+--      • Enable email signups: DESLIGADO (cadastro só via API + convite;
+--        login por magic link usa shouldCreateUser:false, só contas já criadas)
 --      • Confirm email: opcional (API usa email_confirm: true no admin.createUser)
 -- 4. Authentication → URL Configuration:
 --      Site URL:     https://claudeacademy.chatjuridico.com.br
---      Redirect URLs (login OAuth + recuperação de senha):
+--      Redirect URLs (magic link, recuperação e OAuth):
+--        https://claudeacademy.chatjuridico.com.br/auth/confirm
 --        https://claudeacademy.chatjuridico.com.br/auth/callback
---        https://claudeacademy.chatjuridico.com.br/auth/atualizar-senha
+--        http://localhost:3000/auth/confirm
 --        http://localhost:3000/auth/callback
---        http://localhost:3000/auth/atualizar-senha
--- 4b. Authentication → Email Templates → Reset password: manter padrão Supabase
+-- 4b. Authentication → Email Templates — usar {{ .TokenHash }} (NÃO ConfirmationURL),
+--     senão o link cai como #access_token na raiz e o SSR não enxerga a sessão:
+--      • Magic Link:
+--          {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/area-de-membros
+--      • Reset Password:
+--          {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/auth/atualizar-senha
 -- 5. Cole e execute ESTE arquivo no SQL Editor (Run)
 -- 6. Settings → API: copie URL, anon key e service_role para a Vercel / .env.local
 --
@@ -332,7 +338,10 @@ end;
 $$;
 
 revoke all on function public.consume_invite_token(text) from public;
--- Apenas service role (postgres/supabase_admin) executa via admin client.
+revoke execute on function public.consume_invite_token(text) from anon, authenticated;
+-- Só a service role executa, via backend Next (/api/auth/signup com admin client).
+-- O revoke de public NÃO basta: o Supabase concede execute a anon/authenticated por
+-- default privileges na criação da função; por isso o revoke explícito desses roles.
 
 comment on function public.consume_invite_token(text) is
   'Incrementa used_count de forma atômica. Chamada pela API /api/auth/signup com service role.';

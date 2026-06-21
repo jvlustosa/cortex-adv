@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { mapSignInError } from "@/lib/auth/errors";
-import { safeRedirectPath } from "@/lib/auth/safe-redirect";
+import { mapMagicLinkRequestError } from "@/lib/auth/errors";
+import { SITE_URL } from "@/lib/site";
 import { useToast } from "@/components/toast";
 import {
   isDemoMode,
@@ -18,14 +17,10 @@ const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] placeholder:text-[var(--muted)]/50 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--ring)]";
 
 export function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const next = safeRedirectPath(searchParams.get("next"));
   const toast = useToast();
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "sent">("idle");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,11 +29,6 @@ export function LoginForm() {
     const normalized = email.trim().toLowerCase();
     if (!normalized) {
       toast.error("Informe seu e-mail.");
-      return;
-    }
-
-    if (!password) {
-      toast.error("Informe sua senha.");
       return;
     }
 
@@ -55,19 +45,27 @@ export function LoginForm() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithOtp({
         email: normalized,
-        password,
+        options: {
+          // Só contas já criadas (convite/admin) recebem link — sem auto-cadastro.
+          shouldCreateUser: false,
+          emailRedirectTo: `${SITE_URL}/auth/confirm`,
+        },
       });
 
       if (error) {
-        setStatus("idle");
-        toast.error(mapSignInError(error));
-        return;
+        const mapped = mapMagicLinkRequestError(error);
+        if (mapped) {
+          setStatus("idle");
+          toast.error(mapped);
+          return;
+        }
+        // Conta inexistente / signups off: cai no estado neutro de "enviado"
+        // pra não revelar quais e-mails têm conta (anti-enumeração).
       }
 
-      router.push(next);
-      router.refresh();
+      setStatus("sent");
     } catch {
       setStatus("idle");
       toast.error("Falha de conexão. Verifique a internet e tente novamente.");
@@ -108,6 +106,30 @@ export function LoginForm() {
     );
   }
 
+  if (status === "sent") {
+    return (
+      <div className="flex w-full max-w-sm flex-col gap-4 text-sm">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-5">
+          <p className="font-serif text-xl tracking-tight text-[var(--foreground)]">
+            Confira seu e-mail
+          </p>
+          <p className="mt-3 leading-relaxed text-[var(--muted)]">
+            Se <span className="text-[var(--foreground)]">{email}</span> tiver
+            conta, enviamos um link de acesso. Abra no mesmo dispositivo e confira
+            também o spam.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setStatus("idle")}
+          className="text-center text-sm text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
+        >
+          Usar outro e-mail
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
       <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
@@ -122,32 +144,16 @@ export function LoginForm() {
           placeholder="voce@escritorio.com.br"
         />
       </label>
-      <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
-        <span className="flex items-center justify-between gap-2">
-          Senha
-          <Link
-            href="/recuperar-senha"
-            className="text-xs text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
-          >
-            Esqueceu a senha?
-          </Link>
-        </span>
-        <input
-          type="password"
-          required
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
-        />
-      </label>
       <button
         type="submit"
         disabled={status === "loading"}
         className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
       >
-        {status === "loading" ? "Entrando…" : "Entrar"}
+        {status === "loading" ? "Enviando…" : "Receber link de acesso"}
       </button>
+      <p className="text-center text-xs leading-relaxed text-[var(--muted)]">
+        Entre só com o e-mail — enviamos um link de acesso, sem senha.
+      </p>
       {isSignupEnabled() ? (
         <p className="text-center text-sm text-[var(--muted)]">
           Convite?{" "}

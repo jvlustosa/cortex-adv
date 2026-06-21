@@ -47,7 +47,10 @@ end;
 $$;
 
 revoke all on function public.consume_invite_token(text) from public;
--- Apenas service role (postgres/supabase_admin) executa via admin client.
+revoke execute on function public.consume_invite_token(text) from anon, authenticated;
+-- Só a service role executa, via backend Next (/api/auth/signup com admin client).
+-- O revoke de public NÃO basta: o Supabase concede execute a anon/authenticated por
+-- default privileges na criação da função; por isso o revoke explícito desses roles.
 
 comment on function public.consume_invite_token(text) is
   'Incrementa used_count de forma atômica. Chamada pela API /api/auth/signup com service role.';

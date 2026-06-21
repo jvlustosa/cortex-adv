@@ -45,16 +45,26 @@ describe("auth — erros de login e recuperação", () => {
     assert.equal(safeRedirectPath("/aulas/cowork/cowork-1"), "/aulas/cowork/cowork-1");
   });
 
-  it("login usa mapSignInError, safeRedirectPath e toasts", () => {
+  it("login usa magic link (signInWithOtp, sem auto-cadastro) e toasts", () => {
     const login = readSrc("src/components/login-form.tsx");
-    assert.ok(login.includes("mapSignInError"));
-    assert.ok(login.includes("safeRedirectPath"));
-    assert.ok(login.includes("/recuperar-senha"));
-    // Erros de login agora são exibidos via toast (não mais inline).
+    // Login passwordless: link de acesso via signInWithOtp.
+    assert.ok(login.includes("signInWithOtp"));
+    // Só contas já criadas recebem link — sem auto-cadastro.
+    assert.ok(login.includes("shouldCreateUser: false"));
+    // Erro de envio mapeado de forma anti-enumeração.
+    assert.ok(login.includes("mapMagicLinkRequestError"));
+    // Erros são exibidos via toast.
     assert.ok(login.includes("useToast"));
     assert.ok(login.includes("toast.error"));
     // Falha cedo quando o Supabase não está configurado (placeholder/sem creds).
     assert.ok(login.includes("isSupabaseConfigured"));
+  });
+
+  it("rota /auth/confirm troca token por sessão em cookie (verifyOtp)", () => {
+    const confirm = readSrc("src/app/auth/confirm/route.ts");
+    assert.ok(confirm.includes("verifyOtp"));
+    assert.ok(confirm.includes("token_hash"));
+    assert.ok(confirm.includes("safeRedirectPath"));
   });
 
   it("toast expõe acessibilidade (role=alert + aria-live)", () => {

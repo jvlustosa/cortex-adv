@@ -9,7 +9,7 @@ import { OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
 export const metadata = {
   title: "Entrar | Área de membros | Claude para advogados",
   description:
-    "Acesse a área de membros do curso de Claude e IA generativa para advogados. Login seguro com e-mail e senha.",
+    "Acesse a área de membros do curso de Claude e IA generativa para advogados. Login por link de acesso enviado por e-mail, sem senha.",
   keywords: [
     "login Claude advogados",
     "área de membros IA jurídica",
@@ -29,7 +29,7 @@ export default function LoginPage() {
           Área de membros
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Entre com o e-mail e a senha cadastrados no convite.
+          Informe o e-mail do seu convite — enviamos um link de acesso, sem senha.
         </p>
         <div className="mt-8">
           <Suspense fallback={null}>
