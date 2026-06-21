@@ -284,8 +284,8 @@
 .sigScript {
   display: block;
   margin-bottom: -0.2rem;
-  font-family: var(--font-great-vibes), "Segoe Script", cursive;
-  font-size: clamp(1.5rem, 4.5vw, 1.9rem);
+  font-family: var(--font-signature-script), "Segoe Script", cursive;
+  font-size: clamp(1.15rem, 3.2vw, 1.45rem);
   line-height: 1;
   color: rgba(240, 168, 138, 0.95);
 }

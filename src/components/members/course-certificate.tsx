@@ -143,7 +143,7 @@ export function CourseCertificate({
           <footer className="flex w-full items-end justify-between gap-4">
             <div className="flex min-w-0 flex-col items-center">
               <span
-                className="font-signature -mb-1 text-2xl leading-none text-[#2b211b] sm:text-[1.85rem]"
+                className="font-signature -mb-1 text-xl leading-none text-[#2b211b] sm:text-[1.45rem]"
                 aria-label={`Assinatura de ${CERTIFICATE_MENTOR_NAME}`}
               >
                 {CERTIFICATE_MENTOR_SIGNATURE}

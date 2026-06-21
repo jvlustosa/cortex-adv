@@ -50,5 +50,5 @@ grant execute on function public.verify_certificate(text) to anon, authenticated
 
 -- Certificado de demonstração (prévia do site)
 insert into public.certificates (code, recipient_name, issued_at)
-values ('CA-2026-0042', 'Dra. Maria Silva', '2026-06-01')
+values ('CA-2026-48271', 'Dra. Maria Silva', '2026-06-01')
 on conflict (code) do nothing;

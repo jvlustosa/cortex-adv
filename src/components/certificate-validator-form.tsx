@@ -44,7 +44,7 @@ export function CertificateValidatorForm({
           name="codigo"
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="CA-2026-0042"
+          placeholder="CA-2026-48271"
           autoComplete="off"
           spellCheck={false}
           className={styles.input}

@@ -425,8 +425,8 @@ on conflict (token) do nothing;
 
 insert into public.certificates (code, recipient_name, issued_at)
 values
-  ('CA-2026-0042', 'Dra. Maria Silva', '2026-06-01'),
-  ('CA-2026-0001', 'Dr. João Souza', current_date)
+  ('CA-2026-48271', 'Dra. Maria Silva', '2026-06-01'),
+  ('CA-2026-93516', 'Dr. João Souza', current_date)
 on conflict (code) do nothing;
 
 -- ─── Operações úteis (referência, não executar em bloco) ───────────────────
@@ -452,7 +452,7 @@ on conflict (code) do nothing;
 --   select u.id, u.email, u.full_name, u.last_sign_in_at from public.users u;
 --
 -- Testar verificação:
---   select * from public.verify_certificate('CA-2026-0042');
+--   select * from public.verify_certificate('CA-2026-48271');
 --
 -- Listar certificados ativos (SQL Editor / service role):
 --   select code, recipient_name, issued_at from public.certificates where revoked_at is null;

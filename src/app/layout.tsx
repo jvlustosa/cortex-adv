@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import {
   Bebas_Neue,
   DM_Sans,
-  Great_Vibes,
+  Dancing_Script,
   Instrument_Serif,
 } from "next/font/google";
 import { SITE_BRAND, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -27,10 +27,10 @@ const instrumentSerif = Instrument_Serif({
 });
 
 // Script type for the mentor's handwritten signature on the certificate.
-const greatVibes = Great_Vibes({
-  variable: "--font-great-vibes",
+const signatureScript = Dancing_Script({
+  variable: "--font-signature-script",
   subsets: ["latin"],
-  weight: "400",
+  weight: "600",
 });
 
 export const metadata: Metadata = {
@@ -98,7 +98,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${dmSans.variable} ${instrumentSerif.variable} ${greatVibes.variable} ${bebasNeue.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${instrumentSerif.variable} ${signatureScript.variable} ${bebasNeue.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
         <ToastProvider>{children}</ToastProvider>
