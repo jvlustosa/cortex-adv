@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ClaudePixelLogo } from "@/components/claude-pixel-logo";
 import { COURSE } from "@/data/course-content";
+import { CURSO_NIVEIS, totalAulas } from "@/data/curso-roteiro";
 import { COURSE_MENTOR } from "@/lib/site";
 import styles from "./course-hero.module.css";
 
@@ -23,10 +24,12 @@ const LOGO_CAPTIONS = [
 ] as const;
 
 export function CourseHero() {
-  const lessonCount = COURSE.modules.reduce(
-    (sum, mod) => sum + mod.lessons.length,
-    0,
-  );
+  // Contagem do badge vem do roteiro completo (curso-roteiro.ts), mesma fonte
+  // da página /curso. COURSE (course-content.ts) é só o conteúdo operacional do
+  // player e cobre parte da trilha, então subnotifica o tamanho real do curso.
+  // Bônus conta como aula, mas não como módulo.
+  const moduleCount = CURSO_NIVEIS.filter((n) => n.level !== "bonus").length;
+  const lessonCount = totalAulas();
 
   return (
     <section className={styles.section} aria-labelledby="course-hero-heading">
@@ -51,7 +54,7 @@ export function CourseHero() {
 
             <div className={styles.stats}>
               <span className={styles.stat}>
-                <strong>{COURSE.modules.length}</strong> módulos
+                <strong>{moduleCount}</strong> módulos
               </span>
               <span className={styles.stat}>
                 <strong>{lessonCount}</strong> aulas
