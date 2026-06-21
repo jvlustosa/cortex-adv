@@ -72,7 +72,7 @@ const faqItems: FaqItem[] = [
   {
     question: "Quem pode participar?",
     answer:
-      "Advogados, advogadas, estagiários, estudantes de direito e gestores de escritório. Se você lida com peça, prazo ou cliente todo dia, o conteúdo foi feito pra você.",
+      "Quem advoga, estagia, estuda direito ou toca a gestão de um escritório. Se você lida com peça, prazo ou cliente todo dia, o conteúdo foi feito pra você.",
   },
   {
     question: "Meus dados ficam seguros?",
