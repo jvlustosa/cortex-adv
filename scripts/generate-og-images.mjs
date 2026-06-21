@@ -52,6 +52,20 @@ async function loadGoogleFont(family, weight) {
   return Buffer.from(buf);
 }
 
+// Capa 3:4 da temporada (1024×1365) recortada para o quadro landscape do OG,
+// embarcada como data URI pra ser desenhada como <img> no satori.
+async function coverDataUri(file) {
+  const src = resolve(root, "public/assets/images/temporadas", file);
+  const buf = await sharp(readFileSync(src))
+    .resize(W, H, { fit: "cover", position: "centre" })
+    .png()
+    .toBuffer();
+  return `data:image/png;base64,${buf.toString("base64")}`;
+}
+
+// Preenchido em main() antes da renderização (build() roda depois).
+const COVERS = {};
+
 // ─── Shared components (satori virtual DOM) ──────────────────────
 
 function glow(top = -120, right = -80, size = 500, alpha = 0.15) {
@@ -293,39 +307,94 @@ function minimalContainer(children) {
   };
 }
 
+// ─── Card com capa de temporada ao fundo ─────────────────────────
+
+// Capa full-bleed + gradiente de legibilidade; texto ancorado embaixo,
+// onde o gradiente é mais escuro. Mantém o ponto focal coral visível no meio.
+function coverCard(coverUri, children) {
+  return {
+    type: "div",
+    props: {
+      style: {
+        width: `${W}px`,
+        height: `${H}px`,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        padding: "0 80px 64px",
+        position: "relative",
+        overflow: "hidden",
+        background: T.bg,
+        fontFamily: "DM Sans, system-ui, sans-serif",
+        textAlign: "center",
+      },
+      children: [
+        {
+          type: "img",
+          props: {
+            src: coverUri,
+            width: W,
+            height: H,
+            style: {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: `${W}px`,
+              height: `${H}px`,
+              objectFit: "cover",
+            },
+          },
+        },
+        {
+          type: "div",
+          props: {
+            style: {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: `${W}px`,
+              height: `${H}px`,
+              background:
+                "linear-gradient(180deg, rgba(10,10,15,0.45) 0%, rgba(10,10,15,0.05) 32%, rgba(10,10,15,0.78) 100%)",
+            },
+          },
+        },
+        ...children.filter(Boolean),
+      ],
+    },
+  };
+}
+
 // ─── Page definitions ────────────────────────────────────────────
 
 const pages = [
   {
     name: "default",
     build: () =>
-      minimalContainer([
-        glow(-160, -120, 580, 0.16),
-        markTile(),
+      coverCard(COVERS.default, [
         centeredText("Claude Academy", {
-          marginTop: "44px",
           fontFamily: "Instrument Serif, Georgia, serif",
           fontSize: "96px",
           color: T.text,
           lineHeight: 1,
         }),
         centeredText("by Chat Jurídico", {
-          marginTop: "14px",
+          marginTop: "12px",
           fontSize: "30px",
           color: T.muted,
           letterSpacing: "0.01em",
         }),
         centeredText("Claude para advogados — do primeiro prompt à peça pronta", {
-          marginTop: "34px",
+          marginTop: "26px",
           fontSize: "26px",
           color: T.accent,
           fontWeight: 500,
         }),
         centeredText("claudeacademy.chatjuridico.com.br", {
-          position: "absolute",
-          bottom: "46px",
+          marginTop: "22px",
           fontSize: "22px",
-          color: "rgba(161, 161, 170, 0.7)",
+          color: "rgba(228, 228, 231, 0.75)",
         }),
       ]),
   },
@@ -422,6 +491,9 @@ async function main() {
     { name: "DM Sans", data: dmSansBold, weight: 700, style: "normal" },
     { name: "Instrument Serif", data: instrumentSerif, weight: 400, style: "normal" },
   ];
+
+  console.log("Loading season cover…");
+  COVERS.default = await coverDataUri("temporada-1-fundacao-pratica.png");
 
   console.log(`Generating ${pages.length} OG images…\n`);
 

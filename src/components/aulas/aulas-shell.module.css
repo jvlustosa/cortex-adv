@@ -123,20 +123,119 @@
   white-space: nowrap;
 }
 
-.userEmail {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  max-width: 15rem;
-  padding-left: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--muted);
+.userMenu {
+  position: relative;
 }
 
-.userEmailText {
+.userMenuTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 15rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.85rem;
+  color: var(--muted);
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.userMenuTrigger:hover {
+  border-color: color-mix(in srgb, var(--foreground) 18%, var(--border));
+  color: var(--foreground);
+}
+
+.userMenuEmail {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.userMenuChevron {
+  opacity: 0.7;
+  transition: transform 0.18s ease;
+}
+
+.userMenuChevronOpen {
+  transform: rotate(180deg);
+}
+
+.userMenuPanel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: min(17rem, 82vw);
+  padding: 0.5rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  transform: translateY(-0.35rem) scale(0.98);
+  transform-origin: top right;
+  pointer-events: none;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+
+.userMenuPanelOpen {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.userMenuLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.35rem;
+  padding: 0.5rem 0.6rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.userMenuLabelCaption {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.userMenuLabelEmail {
+  overflow: hidden;
+  font-size: 0.85rem;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-align: left;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.userMenuItem:hover {
+  background: var(--surface);
+  color: var(--foreground);
 }
 
 .navLink {

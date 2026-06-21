@@ -108,6 +108,35 @@
   padding: 1.25rem 1.5rem;
 }
 
+.moduleHead {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.cover {
+  position: relative;
+  flex-shrink: 0;
+  width: 6.5rem;
+  aspect-ratio: 3 / 4;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #050505;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+.coverImage {
+  object-fit: cover;
+  object-position: center center;
+}
+
+.moduleHeadText {
+  min-width: 0;
+}
+
 .moduleTitle {
   font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
   font-size: 1.25rem;
@@ -178,6 +207,14 @@
 
   .moduleCard {
     padding: 1rem 1.1rem;
+  }
+
+  .moduleHead {
+    gap: 0.85rem;
+  }
+
+  .cover {
+    width: 5rem;
   }
 
   .moduleTitle {

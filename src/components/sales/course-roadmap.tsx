@@ -1,5 +1,7 @@
+import Image from "next/image";
 import { BookOpen, Clock, Layers } from "lucide-react";
 import { COURSE } from "@/data/course-content";
+import { getModuleCoverImage } from "@/lib/course/module-covers";
 import styles from "./course-roadmap.module.css";
 
 function totalDurationMinutes() {
@@ -60,8 +62,24 @@ export function CourseRoadmap() {
                 {index + 1}
               </span>
               <article className={styles.moduleCard}>
-                <h3 className={styles.moduleTitle}>{mod.title}</h3>
-                <p className={styles.moduleDescription}>{mod.description}</p>
+                <div className={styles.moduleHead}>
+                  <div className={styles.cover}>
+                    <Image
+                      src={getModuleCoverImage(mod.id, index, mod.coverImage)}
+                      alt=""
+                      fill
+                      quality={90}
+                      sizes="(max-width: 639px) 5rem, 6.5rem"
+                      className={styles.coverImage}
+                    />
+                  </div>
+                  <div className={styles.moduleHeadText}>
+                    <h3 className={styles.moduleTitle}>{mod.title}</h3>
+                    <p className={styles.moduleDescription}>
+                      {mod.description}
+                    </p>
+                  </div>
+                </div>
                 <ul className={styles.lessonList}>
                   {mod.lessons.map((lesson) => (
                     <li key={lesson.id} className={styles.lesson}>
