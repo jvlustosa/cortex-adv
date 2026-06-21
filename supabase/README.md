@@ -48,6 +48,12 @@ Não rode `002_users.sql` nem `008` se já executou `setup-completo.sql` (users 
 
 3. **Authentication → Providers → Email** → habilitado.
 
+   - **URL Configuration:** Site URL = `https://claudeacademy.chatjuridico.com.br`;
+     Redirect URLs com `https://claudeacademy.chatjuridico.com.br/**` e `http://localhost:3000/**`.
+   - **Email Templates:** aplique os templates de [`templates/`](templates/README.md). O Magic Link
+     **precisa** apontar para `/auth/confirm?token_hash=…&type=magiclink` — senão o login falha
+     com `error=link`.
+
 4. Copie credenciais para `.env.local`:
 
 ```env

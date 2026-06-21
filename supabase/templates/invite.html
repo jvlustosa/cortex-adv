@@ -1,0 +1,35 @@
+<!-- Supabase Auth → Email Templates → "Invite user" -->
+<!-- Link: /auth/confirm?token_hash=...&type=invite -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0a0a0a;margin:0;padding:0;">
+  <tr><td align="center" style="padding:32px 16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#111111;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;">
+      <tr><td style="height:4px;background:#d97757;font-size:0;line-height:0;">&nbsp;</td></tr>
+      <tr><td style="padding:28px 32px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td valign="middle" style="padding-right:12px;">
+            <img src="{{ .SiteURL }}/assets/images/claude-para-advogados-academy.png" width="44" height="44" alt="Claude Academy" style="display:block;border-radius:8px;" />
+          </td>
+          <td valign="middle">
+            <div style="font-family:Georgia,'Times New Roman',serif;font-size:18px;color:#e4e4e7;line-height:1.1;">Claude Academy</div>
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#a1a1aa;margin-top:3px;">by Chat Jurídico</div>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:24px 32px 8px;font-family:Arial,Helvetica,sans-serif;">
+        <h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:normal;color:#e4e4e7;">Você foi convidado</h1>
+        <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#a1a1aa;">Recebeu um convite para a área de membros do Claude Academy. Crie seu acesso abaixo.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td align="center" bgcolor="#d97757" style="border-radius:10px;">
+            <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite" target="_blank" style="display:inline-block;padding:13px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#0a0a0a;text-decoration:none;border-radius:10px;">Aceitar convite</a>
+          </td>
+        </tr></table>
+        <p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#71717a;">Se o botão não abrir, copie e cole este link:<br><span style="color:#d97757;word-break:break-all;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite</span></p>
+      </td></tr>
+      <tr><td align="center" style="padding:28px 32px;border-top:1px solid rgba(255,255,255,0.08);">
+        <img src="{{ .SiteURL }}/assets/images/claude-para-advogados-academy.png" width="32" height="32" alt="Claude Academy" style="display:block;border-radius:7px;margin:0 auto 10px;" />
+        <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#e4e4e7;">Claude Academy <span style="font-family:Arial,Helvetica,sans-serif;color:#71717a;">· by Chat Jurídico</span></p>
+        <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.6;color:#71717a;">Não esperava este convite? Pode ignorar este e-mail.</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
