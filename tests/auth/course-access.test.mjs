@@ -10,6 +10,7 @@ import {
 
 const LESSON_PATH = "/aulas/cowork/cowork-1";
 const MEMBERS_PATH = "/area-de-membros";
+const MEMBERS_PACKS_PATH = "/area-de-membros/packs";
 const ADMIN_PATH = "/admin";
 
 /** @type {import("./helpers.mjs").AuthMode} */
@@ -44,7 +45,7 @@ describe("auth — acesso ao curso", { skip: process.env.SKIP_AUTH_TESTS === "tr
     if (!serverUp) return t.skip("servidor offline");
     if (authMode !== "demo") return t.skip("Supabase ativo — modo auth");
 
-    for (const path of [MEMBERS_PATH, LESSON_PATH]) {
+    for (const path of [MEMBERS_PATH, MEMBERS_PACKS_PATH, LESSON_PATH]) {
       const res = await fetchApp(path);
       assert.equal(res.status, 200, `${path} deve retornar 200 em demo`);
     }
@@ -58,7 +59,7 @@ describe("auth — acesso ao curso", { skip: process.env.SKIP_AUTH_TESTS === "tr
     if (!serverUp) return t.skip("servidor offline");
     if (authMode !== "auth") return t.skip("Supabase desligado — modo demo");
 
-    for (const path of [MEMBERS_PATH, LESSON_PATH]) {
+    for (const path of [MEMBERS_PATH, MEMBERS_PACKS_PATH, LESSON_PATH]) {
       const res = await fetchApp(path);
       assert.ok(
         [307, 308, 302, 303].includes(res.status),

@@ -13,7 +13,7 @@ type MembersShellHeaderProps = {
   supportUrl: string;
   authOn: boolean;
   userEmail?: string | null;
-  active?: "catalog" | "player";
+  active?: "catalog" | "player" | "packs";
 };
 
 export function MembersShellHeader({
@@ -49,6 +49,11 @@ export function MembersShellHeader({
       ? `${styles.navLink} ${styles.navLinkActive}`
       : styles.navLink;
 
+  const packsLinkClass =
+    active === "packs"
+      ? `${styles.navLink} ${styles.navLinkActive}`
+      : styles.navLink;
+
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
@@ -61,6 +66,14 @@ export function MembersShellHeader({
             aria-current={active === "catalog" ? "page" : undefined}
           >
             Área de membros
+          </Link>
+
+          <Link
+            href="/area-de-membros/packs"
+            className={packsLinkClass}
+            aria-current={active === "packs" ? "page" : undefined}
+          >
+            Packs
           </Link>
 
           {authOn ? (
@@ -112,6 +125,15 @@ export function MembersShellHeader({
           onClick={closeMenu}
         >
           Área de membros
+        </Link>
+
+        <Link
+          href="/area-de-membros/packs"
+          className={packsLinkClass}
+          aria-current={active === "packs" ? "page" : undefined}
+          onClick={closeMenu}
+        >
+          Packs
         </Link>
 
         <a

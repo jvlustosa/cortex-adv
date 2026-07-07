@@ -1,0 +1,34 @@
+import { AulasShell } from "@/components/aulas/aulas-shell";
+import { PacksArea } from "@/components/members/packs-area";
+import { PACKS } from "@/data/packs";
+import { computePackAccess, type PackAccess } from "@/lib/course/packs-access";
+import { requireCourseAccess } from "@/lib/course/require-access";
+
+export const metadata = {
+  title: "Packs | Claude Cowork para advogados",
+  description:
+    "Skills e conectores prontos do curso — incluindo o Conector de Publicações do DJEN — para instalar direto no seu Claude.",
+  openGraph: {
+    images: [{ url: "/og/membros.png", width: 1200, height: 630 }],
+  },
+};
+
+export default async function PacksPage() {
+  const { authOn, user, demoMode } = await requireCourseAccess(
+    "/area-de-membros/packs",
+  );
+
+  // Em modo demo (localhost, sem auth) liberamos para prévia. Com auth, a trava
+  // por data vale — sem created_at confiável, fica bloqueado.
+  const access: PackAccess = demoMode
+    ? { isUnlocked: true, unlockAt: null }
+    : computePackAccess(user?.created_at);
+
+  return (
+    <AulasShell authOn={authOn} userEmail={user?.email} active="packs">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
+        <PacksArea packs={PACKS} access={access} />
+      </main>
+    </AulasShell>
+  );
+}

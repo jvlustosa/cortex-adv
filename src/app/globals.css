@@ -13,6 +13,7 @@
   --muted: #a1a1aa;
   --accent: var(--claude);
   --accent-hover: var(--claude-hover);
+  --accent-dim: var(--claude-dim);
   --surface: #111111;
   --border: rgba(255, 255, 255, 0.08);
   --ring: rgba(217, 119, 87, 0.28);

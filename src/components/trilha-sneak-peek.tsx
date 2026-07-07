@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Lock, KeyRound, Sparkles } from "lucide-react";
+import { ArrowRight, Lock, KeyRound, Plug, Sparkles } from "lucide-react";
 import {
   TRILHA_NIVEIS_PUBLIC,
   TRILHA_PUBLIC_META,
@@ -102,6 +102,23 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
               Claude — triagem, minuta e análise de contrato no seu formato.
               Liberado para quem assina, após os {PRICING.guaranteeDays} dias de
               garantia.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-start gap-4 rounded-[var(--radius)] border border-[var(--accent)]/30 bg-[var(--accent-dim)] px-5 py-5">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--accent)]/40 bg-[var(--background)] text-[var(--accent)]">
+            <Plug className="size-5" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold uppercase tracking-wider text-[var(--accent)]">
+              Pack de Conectores incluso
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-[var(--foreground)]/90">
+              Conectores que ligam o Claude aos sistemas do dia a dia — inclui o
+              Conector de Publicações do DJEN, para puxar intimações direto na
+              conversa. Liberado junto com as skills, após os{" "}
+              {PRICING.guaranteeDays} dias de garantia.
             </p>
           </div>
         </div>

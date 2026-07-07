@@ -7,8 +7,8 @@ type AulasShellProps = {
   authOn: boolean;
   children: React.ReactNode;
   userEmail?: string | null;
-  /** Destaque no nav: catálogo ou player */
-  active?: "catalog" | "player";
+  /** Destaque no nav: catálogo, player ou packs */
+  active?: "catalog" | "player" | "packs";
 };
 
 export function AulasShell({
