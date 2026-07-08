@@ -9,7 +9,7 @@ import styles from "./course-hero.module.css";
 const HIGHLIGHTS = [
   "Trilha completa: do primeiro prompt à automação do escritório",
   "Grupo aberto grátis no WhatsApp: conheça antes de comprar",
-  "Comunidade VIP de alunos: suporte às aulas na matrícula",
+  "Comunidade VIP exclusiva de alunos: suporte às aulas na matrícula",
 ] as const;
 
 // Legendas que rodam embaixo do logo: identidade + benefícios com gatilhos
@@ -44,7 +44,8 @@ export function CourseHero() {
             <p className={styles.lead}>
               {COURSE.subtitle}. O curso completo do Chat Jurídico para dominar
               o Claude Cowork na bancada — peças, automação e uso ético, sem
-              programar. Inclui Comunidade VIP e mentoria com{" "}
+              programar. Inclui Comunidade VIP exclusiva de alunos e mentoria
+              com{" "}
               <strong className="text-[var(--foreground)]">
                 {COURSE_MENTOR.name}
               </strong>
@@ -63,7 +64,7 @@ export function CourseHero() {
                 <strong>Grupo</strong> aberto
               </span>
               <span className={styles.stat}>
-                <strong>VIP</strong> alunos
+                <strong>Grupo</strong> exclusivo
               </span>
             </div>
 
