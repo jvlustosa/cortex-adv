@@ -1,6 +1,6 @@
 export const PRICING = {
-  installments: { count: 12, amount: 69 },
-  upfront: 497,
+  installments: { count: 12, amount: 138 },
+  upfront: 994,
   guaranteeDays: 8,
 } as const;
 
