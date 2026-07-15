@@ -14,6 +14,7 @@ type MembersShellHeaderProps = {
   authOn: boolean;
   userEmail?: string | null;
   active?: "catalog" | "player" | "packs";
+  isAdmin?: boolean;
 };
 
 export function MembersShellHeader({
@@ -21,6 +22,7 @@ export function MembersShellHeader({
   authOn,
   userEmail,
   active,
+  isAdmin,
 }: MembersShellHeaderProps) {
   const menuId = useId();
   const [open, setOpen] = useState(false);
@@ -75,6 +77,18 @@ export function MembersShellHeader({
           >
             Packs
           </Link>
+
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              className={`${styles.navLink} ${styles.adminLink}`}
+            >
+              Admin
+              <span className={styles.adminCaption}>
+                Apenas para a equipe Chat Jurídico
+              </span>
+            </Link>
+          ) : null}
 
           {authOn ? (
             userEmail ? (
@@ -135,6 +149,19 @@ export function MembersShellHeader({
         >
           Packs
         </Link>
+
+        {isAdmin ? (
+          <Link
+            href="/admin"
+            className={`${styles.navLink} ${styles.adminLink}`}
+            onClick={closeMenu}
+          >
+            Admin
+            <span className={styles.adminCaption}>
+              Apenas para a equipe Chat Jurídico
+            </span>
+          </Link>
+        ) : null}
 
         <a
           href={supportUrl}

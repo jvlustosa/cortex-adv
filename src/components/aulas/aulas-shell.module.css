@@ -262,6 +262,20 @@
   font-weight: 500;
 }
 
+/* Tab Admin: label + legenda "só equipe" empilhados */
+.adminLink {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05rem;
+  line-height: 1.2;
+}
+
+.adminCaption {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
 .mobileSupportLink {
   display: inline-flex;
   align-items: center;

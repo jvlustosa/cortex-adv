@@ -238,7 +238,12 @@ function container(children) {
         flexDirection: "column",
         justifyContent: "center",
         padding: "60px 80px",
-        background: `linear-gradient(135deg, ${T.bg} 0%, ${T.surface} 100%)`,
+        // Sólido, não linear-gradient: satori 0.26 tem um bug de render em que
+        // um background gradient no container "vaza" glifos fantasmas por cima
+        // do texto (satori/satori#527-like) — reproduzido isolado, some com bg
+        // sólido, sobrevive à troca do rasterizador (sharp -> resvg). O glow()
+        // radial decorativo não aciona o bug, então continua normal.
+        background: T.bg,
         fontFamily: "DM Sans, system-ui, sans-serif",
         position: "relative",
         overflow: "hidden",
@@ -438,7 +443,7 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
-        tag("Cortex.adv.br"),
+        tag("Claude Academy"),
         title("Área de membros"),
         subtitle(
           "Acesse o mini curso de Claude e IA generativa para advogados. Login seguro com e-mail e senha."
@@ -451,7 +456,7 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
-        tag("Cortex.adv.br · Cadastro com convite"),
+        tag("Claude Academy · Cadastro com convite"),
         title("Curso gratuito de Claude para advogados"),
         subtitle(
           "Crie sua conta e acesse o material completo: prompts, automações e fluxos para o escritório."
@@ -497,16 +502,18 @@ async function main() {
 
   console.log(`Generating ${pages.length} OG images…\n`);
 
-  await Promise.all(
-    pages.map(async ({ name, build }) => {
-      const svg = await satori(build(), { width: W, height: H, fonts });
-      const png = await sharp(Buffer.from(svg)).png({ quality: 90 }).toBuffer();
-      const out = resolve(outDir, `${name}.png`);
-      writeFileSync(out, png);
-      const kb = (png.length / 1024).toFixed(0);
-      console.log(`  ✓ ${name}.png (${kb} KB)`);
-    })
-  );
+  // Sequencial, não Promise.all: o layout engine (yoga-wasm) do satori usa
+  // memória WASM compartilhada e não é seguro chamar satori() concorrentemente
+  // — gerar em paralelo corrompia o layout e "vazava" texto de uma página
+  // para outra (glifos fantasmas sobrepostos no meio de linhas com wrap).
+  for (const { name, build } of pages) {
+    const svg = await satori(build(), { width: W, height: H, fonts });
+    const png = await sharp(Buffer.from(svg)).png().toBuffer();
+    const out = resolve(outDir, `${name}.png`);
+    writeFileSync(out, png);
+    const kb = (png.length / 1024).toFixed(0);
+    console.log(`  ✓ ${name}.png (${kb} KB)`);
+  }
 
   console.log(`\nDone! Files in public/og/`);
 }

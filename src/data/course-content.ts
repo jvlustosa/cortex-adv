@@ -4,6 +4,8 @@ export type CourseLesson = {
   duration: string;
   /** ID do vídeo YouTube (embed). Omitir = placeholder */
   youtubeId?: string;
+  /** Slug público do vídeo no Tella (último trecho de tella.tv/video/<slug>). Tem prioridade sobre youtubeId. */
+  tella?: string;
   description: string;
 };
 

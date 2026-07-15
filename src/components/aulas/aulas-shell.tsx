@@ -9,6 +9,8 @@ type AulasShellProps = {
   userEmail?: string | null;
   /** Destaque no nav: catálogo, player ou packs */
   active?: "catalog" | "player" | "packs";
+  /** Libera a tab Admin no nav — só para a equipe Chat Jurídico */
+  isAdmin?: boolean;
 };
 
 export function AulasShell({
@@ -16,6 +18,7 @@ export function AulasShell({
   children,
   userEmail,
   active,
+  isAdmin,
 }: AulasShellProps) {
   const supportUrl = buildCourseSupportWhatsAppUrl(userEmail);
 
@@ -26,6 +29,7 @@ export function AulasShell({
         authOn={authOn}
         userEmail={userEmail}
         active={active}
+        isAdmin={isAdmin}
       />
 
       <div className={styles.main}>{children}</div>

@@ -216,7 +216,16 @@ export function CourseArea({
         </div>
 
         <div className={styles.playerWrap}>
-          {activeLesson.youtubeId ? (
+          {activeLesson.tella ? (
+            <iframe
+              key={activeLesson.id}
+              className={styles.playerIframe}
+              src={`https://www.tella.tv/video/${activeLesson.tella}/embed?b=0&title=0&a=0`}
+              title={activeLesson.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+          ) : activeLesson.youtubeId ? (
             <iframe
               key={activeLesson.id}
               className={styles.playerIframe}
