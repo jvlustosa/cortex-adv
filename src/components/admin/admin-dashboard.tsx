@@ -395,6 +395,16 @@ export function AdminDashboard() {
     tella: "",
     published: true,
   });
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    moduleId: "",
+    title: "",
+    duration: "",
+    description: "",
+    youtubeId: "",
+    tella: "",
+    published: false,
+  });
 
   const [members, setMembers] = useState<MemberAdminRow[]>([]);
   const [memberTotals, setMemberTotals] = useState<MemberTotals | null>(null);
@@ -532,6 +542,57 @@ export function AdminDashboard() {
       await loadLessons();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const moduleOptions = groupByModule(lessons).map((g) => ({
+    id: g.moduleId,
+    title: g.moduleTitle,
+  }));
+
+  function openCreate() {
+    setCreateForm({
+      moduleId: moduleOptions[0]?.id ?? "",
+      title: "",
+      duration: "",
+      description: "",
+      youtubeId: "",
+      tella: "",
+      published: false,
+    });
+    setCreating(true);
+  }
+
+  async function saveNewLesson() {
+    if (!createForm.moduleId || !createForm.title.trim()) {
+      setError("Módulo e título são obrigatórios.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/lessons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId: createForm.moduleId,
+          title: createForm.title.trim(),
+          duration: createForm.duration.trim() || null,
+          description: createForm.description.trim() || null,
+          youtubeId: createForm.youtubeId.trim() || null,
+          tella: createForm.tella.trim() || null,
+          published: createForm.published,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Erro ao criar aula."));
+      }
+      setCreating(false);
+      await loadLessons();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao criar aula.");
     } finally {
       setSaving(false);
     }
@@ -689,7 +750,16 @@ export function AdminDashboard() {
           ) : null}
 
           <section className={styles.section}>
-            <div className={styles.sectionHead}>Aulas do curso</div>
+            <div className={styles.sectionHead}>
+              <span>Aulas do curso</span>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={openCreate}
+              >
+                Adicionar aula
+              </button>
+            </div>
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
@@ -1132,6 +1202,135 @@ export function AdminDashboard() {
           loading={feedbackLoading}
           onClose={() => setFeedbackLesson(null)}
         />
+      ) : null}
+
+      {creating ? (
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          onClick={() => setCreating(false)}
+        >
+          <div
+            className={styles.modal}
+            role="dialog"
+            aria-labelledby="create-lesson-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="create-lesson-title" className={styles.modalTitle}>
+              Adicionar aula
+            </h2>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Módulo</span>
+              <select
+                className={styles.input}
+                value={createForm.moduleId}
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, moduleId: e.target.value }))
+                }
+              >
+                {moduleOptions.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Título</span>
+              <input
+                className={styles.input}
+                value={createForm.title}
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, title: e.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Duração</span>
+              <input
+                className={styles.input}
+                value={createForm.duration}
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, duration: e.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Tella (slug) — tem prioridade</span>
+              <input
+                className={styles.input}
+                value={createForm.tella}
+                placeholder="01-ca-1-o-que-e-o-claude-f528"
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, tella: e.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>YouTube ID</span>
+              <input
+                className={styles.input}
+                value={createForm.youtubeId}
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, youtubeId: e.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Descrição</span>
+              <textarea
+                className={styles.textarea}
+                value={createForm.description}
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, description: e.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={createForm.published}
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, published: e.target.checked }))
+                }
+              />
+              Publicar já (senão fica como rascunho)
+            </label>
+
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.btnGhost}
+                onClick={() => setCreating(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                disabled={saving}
+                aria-busy={saving}
+                onClick={() => void saveNewLesson()}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden />{" "}
+                    Criando…
+                  </>
+                ) : (
+                  "Criar aula"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );
