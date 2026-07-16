@@ -5,6 +5,13 @@
 # Campos por aula: id, title, duration (obrigatórios); description; e a fonte do
 # vídeo — `tella` (slug de tella.tv/video/<slug>) tem prioridade sobre `youtubeId`.
 # Sem tella nem youtubeId, a aula mostra o placeholder "vídeo em produção".
+#
+# VELOCIDADE PADRÃO (1.2x): não dá pra setar pelo código. O embed do Tella é
+# cross-origin e não tem parâmetro de URL de velocidade. A velocidade padrão é um
+# setting POR VÍDEO no painel do Tella e vale também no embed. Ao publicar uma aula
+# nova, abra o vídeo no Tella → Share → Viewer Settings → Default speed → 1.2x
+# (opções nativas: 1.0 / 1.2 / 1.5 / 1.7 / 2.0). Confirme na área de membros que
+# o player já sobe em 1.2x.
 
 title: "Curso Claude Cowork para Advogados"
 subtitle: "Automatize 100% do seu escritório"
