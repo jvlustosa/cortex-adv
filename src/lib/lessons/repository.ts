@@ -1,5 +1,6 @@
 import { COURSE } from "@/data/course-content";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isDbCourseSource } from "@/lib/supabase/enabled";
 import type {
   AdminTotals,
   LessonAdminRow,
@@ -7,9 +8,19 @@ import type {
   LessonFeedbackRow,
   LessonOverrideRow,
 } from "./types";
-import { fetchLessonOverrides } from "./merge-course";
+import { fetchLessonOverrides, getMergedCourse } from "./merge-course";
 import { compareLessons, nextOrderIndex, type Orderable } from "./ordering";
 import { slugifyLessonTitle, uniqueLessonId } from "./slug";
+import {
+  adminContentFromDb,
+  createLessonDb,
+  deleteLessonDb,
+  reorderModuleDb,
+  setPublishedBatchDb,
+  updateLessonDb,
+  type AdminContentLesson,
+  type AdminContentModule,
+} from "./repository-db";
 
 export class CatalogLessonError extends Error {}
 
@@ -61,59 +72,41 @@ async function aggregateFeedback(): Promise<Map<string, FeedbackAgg>> {
   return result;
 }
 
-export async function listLessonsForAdmin(): Promise<{
-  lessons: LessonAdminRow[];
-  totals: AdminTotals;
-}> {
-  const overrides = await fetchLessonOverrides();
+/** Conteúdo p/ o painel a partir do catálogo estático + overlay (modo legado). */
+function adminContentFromCatalog(
+  overrides: LessonOverrideRow[],
+): AdminContentModule[] {
   const overrideMap = new Map(
     overrides.map((o) => [`${o.module_id}:${o.lesson_id}`, o]),
   );
 
-  const [viewMap, feedbackMap] = await Promise.all([
-    aggregateViews(),
-    aggregateFeedback(),
-  ]);
-
-  const lessons: LessonAdminRow[] = [];
-
-  for (const mod of COURSE.modules) {
-    const rows: { row: LessonAdminRow; order: Orderable }[] = [];
+  return COURSE.modules.map((mod) => {
+    const rows: { lesson: AdminContentLesson; order: Orderable }[] = [];
 
     mod.lessons.forEach((lesson, catalogIndex) => {
-      const key = `${mod.id}:${lesson.id}`;
-      const override = overrideMap.get(key);
-      const feedback = feedbackMap.get(key);
+      const o = overrideMap.get(`${mod.id}:${lesson.id}`);
       rows.push({
-        row: {
-          moduleId: mod.id,
-          moduleTitle: mod.title,
+        lesson: {
           lessonId: lesson.id,
-          title: override?.title ?? lesson.title,
-          duration: override?.duration ?? lesson.duration,
-          description: override?.description ?? lesson.description,
-          youtubeId: override?.youtube_id ?? lesson.youtubeId ?? null,
-          tella: override?.tella ?? lesson.tella ?? null,
-          published: override?.published ?? true,
-          viewCount: viewMap.get(key) ?? 0,
-          feedbackCount: feedback?.count ?? 0,
-          avgRating: feedback ? Math.round(feedback.avg * 10) / 10 : null,
-          orderIndex: override?.order_index ?? null,
+          title: o?.title ?? lesson.title,
+          duration: o?.duration ?? lesson.duration,
+          description: o?.description ?? lesson.description,
+          youtubeId: o?.youtube_id ?? lesson.youtubeId ?? null,
+          tella: o?.tella ?? lesson.tella ?? null,
+          published: o?.published ?? true,
+          orderIndex: o?.order_index ?? null,
           origin: "catalog",
+          catalogIndex,
         },
-        order: { orderIndex: override?.order_index ?? null, catalogIndex, title: lesson.title },
+        order: { orderIndex: o?.order_index ?? null, catalogIndex, title: lesson.title },
       });
     });
 
     for (const o of overrides) {
       if (o.module_id !== mod.id) continue;
       if (mod.lessons.some((l) => l.id === o.lesson_id)) continue;
-      const key = `${mod.id}:${o.lesson_id}`;
-      const feedback = feedbackMap.get(key);
       rows.push({
-        row: {
-          moduleId: mod.id,
-          moduleTitle: mod.title,
+        lesson: {
           lessonId: o.lesson_id,
           title: o.title ?? o.lesson_id,
           duration: o.duration ?? "",
@@ -121,25 +114,57 @@ export async function listLessonsForAdmin(): Promise<{
           youtubeId: o.youtube_id ?? null,
           tella: o.tella ?? null,
           published: o.published,
-          viewCount: viewMap.get(key) ?? 0,
-          feedbackCount: feedback?.count ?? 0,
-          avgRating: feedback ? Math.round(feedback.avg * 10) / 10 : null,
           orderIndex: o.order_index,
           origin: "custom",
+          catalogIndex: null,
         },
         order: { orderIndex: o.order_index, catalogIndex: null, title: o.title ?? o.lesson_id },
       });
     }
 
     rows.sort((a, b) => compareLessons(a.order, b.order));
-    for (const r of rows) lessons.push(r.row);
+    return {
+      moduleId: mod.id,
+      moduleTitle: mod.title,
+      lessons: rows.map((r) => r.lesson),
+    };
+  });
+}
+
+/** Junta o conteúdo (já ordenado) com views/feedback e calcula os totais. */
+function assembleAdminRows(
+  content: AdminContentModule[],
+  viewMap: Map<string, number>,
+  feedbackMap: Map<string, FeedbackAgg>,
+): { lessons: LessonAdminRow[]; totals: AdminTotals } {
+  const lessons: LessonAdminRow[] = [];
+  for (const mod of content) {
+    for (const l of mod.lessons) {
+      const key = `${mod.moduleId}:${l.lessonId}`;
+      const feedback = feedbackMap.get(key);
+      lessons.push({
+        moduleId: mod.moduleId,
+        moduleTitle: mod.moduleTitle,
+        lessonId: l.lessonId,
+        title: l.title,
+        duration: l.duration,
+        description: l.description,
+        youtubeId: l.youtubeId,
+        tella: l.tella,
+        published: l.published,
+        viewCount: viewMap.get(key) ?? 0,
+        feedbackCount: feedback?.count ?? 0,
+        avgRating: feedback ? Math.round(feedback.avg * 10) / 10 : null,
+        orderIndex: l.orderIndex,
+        origin: l.origin,
+      });
+    }
   }
 
   let totalViews = 0;
   let totalFeedbacks = 0;
   let ratingSum = 0;
   let ratingCount = 0;
-
   for (const l of lessons) {
     totalViews += l.viewCount;
     totalFeedbacks += l.feedbackCount;
@@ -159,6 +184,23 @@ export async function listLessonsForAdmin(): Promise<{
   };
 }
 
+export async function listLessonsForAdmin(): Promise<{
+  lessons: LessonAdminRow[];
+  totals: AdminTotals;
+}> {
+  const contentPromise = isDbCourseSource()
+    ? adminContentFromDb()
+    : fetchLessonOverrides().then(adminContentFromCatalog);
+
+  const [content, viewMap, feedbackMap] = await Promise.all([
+    contentPromise,
+    aggregateViews(),
+    aggregateFeedback(),
+  ]);
+
+  return assembleAdminRows(content, viewMap, feedbackMap);
+}
+
 export async function upsertLessonOverride(input: {
   moduleId: string;
   lessonId: string;
@@ -170,6 +212,8 @@ export async function upsertLessonOverride(input: {
   published?: boolean;
   orderIndex?: number | null;
 }): Promise<LessonOverrideRow> {
+  if (isDbCourseSource()) return updateLessonDb(input);
+
   const admin = createAdminClient();
   const payload: Partial<LessonOverrideRow> & {
     module_id: string;
@@ -304,8 +348,9 @@ export async function listRecentFeedback(limit = 50): Promise<
     emails.set(row.user_id, userData.user?.email ?? null);
   }
 
+  const course = await getMergedCourse({ includeUnpublished: true });
   return rows.map((row) => {
-    const mod = COURSE.modules.find((m) => m.id === row.module_id);
+    const mod = course.modules.find((m) => m.id === row.module_id);
     const lesson = mod?.lessons.find((l) => l.id === row.lesson_id);
     return {
       ...row,
@@ -325,6 +370,8 @@ export async function createLesson(input: {
   description?: string | null;
   published: boolean;
 }): Promise<LessonAdminRow> {
+  if (isDbCourseSource()) return createLessonDb(input);
+
   const mod = COURSE.modules.find((m) => m.id === input.moduleId);
   if (!mod) throw new Error(`Módulo inexistente: ${input.moduleId}`);
 
@@ -382,6 +429,8 @@ export async function createLesson(input: {
 }
 
 export async function reorderModule(moduleId: string, lessonIds: string[]): Promise<void> {
+  if (isDbCourseSource()) return reorderModuleDb(moduleId, lessonIds);
+
   const admin = createAdminClient();
   const now = new Date().toISOString();
   const rows = lessonIds.map((lesson_id, i) => ({
@@ -401,6 +450,8 @@ export async function setPublishedBatch(
   keys: { moduleId: string; lessonId: string }[],
   published: boolean,
 ): Promise<void> {
+  if (isDbCourseSource()) return setPublishedBatchDb(keys, published);
+
   const admin = createAdminClient();
   const now = new Date().toISOString();
   const rows = keys.map((k) => ({
@@ -416,6 +467,8 @@ export async function setPublishedBatch(
 }
 
 export async function deleteCustomLesson(moduleId: string, lessonId: string): Promise<void> {
+  if (isDbCourseSource()) return deleteLessonDb(moduleId, lessonId);
+
   const mod = COURSE.modules.find((m) => m.id === moduleId);
   if (mod?.lessons.some((l) => l.id === lessonId)) {
     throw new CatalogLessonError("Aula de catálogo não pode ser removida pelo painel.");

@@ -10,6 +10,18 @@ import styles from "./admin-dashboard.module.css";
 
 type Tab = "aulas" | "membros" | "convites";
 
+type SectionAdminRow = {
+  moduleId: string;
+  title: string;
+  description: string;
+  thumbnailGradient: string;
+  coverImage: string | null;
+  unlockAfterDays: number;
+  sortOrder: number;
+  published: boolean;
+  lessonCount: number;
+};
+
 type FeedbackItem = {
   id: string;
   module_id: string;
@@ -475,7 +487,7 @@ function FeedbackModal({
   );
 }
 
-export function AdminDashboard() {
+export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   const [tab, setTab] = useState<Tab>("aulas");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -494,6 +506,19 @@ export function AdminDashboard() {
     useState<LessonFeedbackDetail | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Seções (módulos) — geridas só no modo DB (COURSE_SOURCE=db).
+  const [sections, setSections] = useState<SectionAdminRow[]>([]);
+  const [creatingSection, setCreatingSection] = useState(false);
+  const [savingSection, setSavingSection] = useState(false);
+  const [sectionForm, setSectionForm] = useState({
+    title: "",
+    description: "",
+    thumbnailGradient: "",
+    coverImage: "",
+    unlockAfterDays: 0,
+    published: true,
+  });
   const [form, setForm] = useState({
     title: "",
     duration: "",
@@ -553,7 +578,15 @@ export function AdminDashboard() {
     setLessonTotals(lessonsData.totals);
     setFeedback(feedbackData.feedback);
     setSelected(new Set());
-  }, []);
+
+    if (dbMode) {
+      const modulesRes = await fetch("/api/admin/modules");
+      if (modulesRes.ok) {
+        const data = (await modulesRes.json()) as { modules: SectionAdminRow[] };
+        setSections(data.modules);
+      }
+    }
+  }, [dbMode]);
 
   const loadMembers = useCallback(async () => {
     const res = await fetch("/api/admin/members");
@@ -658,10 +691,17 @@ export function AdminDashboard() {
     }
   }
 
-  const moduleOptions = groupByModule(lessons).map((g) => ({
-    id: g.moduleId,
-    title: g.moduleTitle,
-  }));
+  const moduleOptions = (() => {
+    const opts = new Map<string, { id: string; title: string }>();
+    for (const g of groupByModule(lessons)) {
+      opts.set(g.moduleId, { id: g.moduleId, title: g.moduleTitle });
+    }
+    // Seções do DB (inclui as vazias/novas) entram no dropdown de criar aula.
+    for (const s of sections) {
+      if (!opts.has(s.moduleId)) opts.set(s.moduleId, { id: s.moduleId, title: s.title });
+    }
+    return Array.from(opts.values());
+  })();
 
   function openCreate() {
     setCreateForm({
@@ -674,6 +714,74 @@ export function AdminDashboard() {
       published: false,
     });
     setCreating(true);
+  }
+
+  function openCreateSection() {
+    setSectionForm({
+      title: "",
+      description: "",
+      thumbnailGradient: "",
+      coverImage: "",
+      unlockAfterDays: 0,
+      published: true,
+    });
+    setCreatingSection(true);
+  }
+
+  async function saveNewSection() {
+    if (!sectionForm.title.trim()) {
+      setError("Título da seção é obrigatório.");
+      return;
+    }
+    setSavingSection(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/modules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: sectionForm.title.trim(),
+          description: sectionForm.description.trim() || null,
+          thumbnailGradient: sectionForm.thumbnailGradient.trim() || null,
+          coverImage: sectionForm.coverImage.trim() || null,
+          unlockAfterDays: sectionForm.unlockAfterDays || 0,
+          published: sectionForm.published,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Erro ao criar seção."));
+      }
+      setCreatingSection(false);
+      await loadLessons();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao criar seção.");
+    } finally {
+      setSavingSection(false);
+    }
+  }
+
+  async function deleteSection(section: SectionAdminRow) {
+    if (
+      !window.confirm(
+        `Excluir a seção "${section.title}"? Isso remove a seção e suas ${section.lessonCount} aula(s), com views e avaliações. Ação irreversível.`,
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/modules", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ moduleId: section.moduleId }),
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Erro ao excluir seção."));
+      }
+      await loadLessons();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao excluir seção.");
+    }
   }
 
   async function saveNewLesson() {
@@ -974,6 +1082,59 @@ export function AdminDashboard() {
                 <div className={styles.statLabel}>Nota média</div>
               </div>
             </div>
+          ) : null}
+
+          {dbMode ? (
+            <section className={styles.section}>
+              <div className={styles.sectionHead}>
+                <span>Seções</span>
+                <div className={styles.headActions}>
+                  <button
+                    type="button"
+                    className={styles.btnPrimary}
+                    onClick={openCreateSection}
+                  >
+                    Criar seção
+                  </button>
+                </div>
+              </div>
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Seção</th>
+                      <th>Aulas</th>
+                      <th>Status</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sections.length === 0 ? (
+                      <tr>
+                        <td colSpan={4}>Nenhuma seção ainda.</td>
+                      </tr>
+                    ) : (
+                      sections.map((s) => (
+                        <tr key={s.moduleId}>
+                          <td>{s.title}</td>
+                          <td>{s.lessonCount}</td>
+                          <td>{s.published ? "Publicada" : "Rascunho"}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className={styles.editBtn}
+                              onClick={() => void deleteSection(s)}
+                            >
+                              Excluir
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           ) : null}
 
           <section className={styles.section}>
@@ -1622,6 +1783,127 @@ export function AdminDashboard() {
                   </>
                 ) : (
                   "Criar aula"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {creatingSection ? (
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          onClick={() => setCreatingSection(false)}
+        >
+          <div
+            className={styles.modal}
+            role="dialog"
+            aria-labelledby="create-section-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="create-section-title" className={styles.modalTitle}>
+              Criar seção
+            </h2>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Título</span>
+              <input
+                className={styles.input}
+                value={sectionForm.title}
+                onChange={(e) =>
+                  setSectionForm((f) => ({ ...f, title: e.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Descrição</span>
+              <textarea
+                className={styles.textarea}
+                value={sectionForm.description}
+                onChange={(e) =>
+                  setSectionForm((f) => ({ ...f, description: e.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Gradiente (CSS) — capa fallback</span>
+              <input
+                className={styles.input}
+                value={sectionForm.thumbnailGradient}
+                placeholder="linear-gradient(135deg, #…, #…)"
+                onChange={(e) =>
+                  setSectionForm((f) => ({
+                    ...f,
+                    thumbnailGradient: e.target.value,
+                  }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>Capa (URL da imagem) — opcional</span>
+              <input
+                className={styles.input}
+                value={sectionForm.coverImage}
+                onChange={(e) =>
+                  setSectionForm((f) => ({ ...f, coverImage: e.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.label}>
+                Liberar após (dias da matrícula)
+              </span>
+              <input
+                className={styles.input}
+                type="number"
+                min={0}
+                value={sectionForm.unlockAfterDays}
+                onChange={(e) =>
+                  setSectionForm((f) => ({
+                    ...f,
+                    unlockAfterDays: Math.max(0, Number(e.target.value) || 0),
+                  }))
+                }
+              />
+            </label>
+
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={sectionForm.published}
+                onChange={(e) =>
+                  setSectionForm((f) => ({ ...f, published: e.target.checked }))
+                }
+              />
+              Publicar já (senão fica como rascunho)
+            </label>
+
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.btnGhost}
+                onClick={() => setCreatingSection(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                disabled={savingSection}
+                aria-busy={savingSection}
+                onClick={() => void saveNewSection()}
+              >
+                {savingSection ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden /> Criando…
+                  </>
+                ) : (
+                  "Criar seção"
                 )}
               </button>
             </div>

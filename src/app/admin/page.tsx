@@ -3,7 +3,7 @@ import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { SignOutButton } from "@/components/sign-out-button";
 import { requireAdmin } from "@/lib/admin/require-admin";
-import { isSupabaseEnabled } from "@/lib/supabase/enabled";
+import { isSupabaseEnabled, isDbCourseSource } from "@/lib/supabase/enabled";
 
 export const metadata = {
   title: "Admin | Painel",
@@ -31,7 +31,7 @@ export default async function AdminPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8 md:py-10">
-        <AdminDashboard />
+        <AdminDashboard dbMode={isDbCourseSource()} />
       </main>
     </div>
   );
