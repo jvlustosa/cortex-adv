@@ -1,17 +1,18 @@
 /** Conteúdo público da trilha — sem roteiro detalhado (aulas ficam internas). */
 
+/** Escopo total planejado do curso — fonte ÚNICA das contagens no copy da oferta. */
+export const COURSE_SCOPE = { modules: 6, lessons: 34 } as const;
+
 export const TRILHA_PUBLIC_META = {
   kicker: "Sneak peek da trilha",
   title: "O que você vai percorrer",
   subtitle:
     "Organizado por tarefa do escritório, do básico ao avançado. O roteiro completo fica na área de membros.",
-  duration: "8 módulos · 32 aulas",
+  // Derivado de COURSE_SCOPE para nunca dessincronizar do resto do copy.
+  duration: `${COURSE_SCOPE.modules} módulos · ${COURSE_SCOPE.lessons} aulas`,
   format: "Screencast · direto ao ponto",
   release: "Liberadas aos poucos",
 } as const;
-
-/** Escopo total planejado do curso — usado no copy da oferta. */
-export const COURSE_SCOPE = { modules: 8, lessons: 32 } as const;
 
 export type TrilhaNivelPublic = {
   /** Rótulo curto exibido no marcador da timeline */
