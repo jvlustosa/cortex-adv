@@ -15,7 +15,7 @@ const features: Feature[] = [
   {
     text: `${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas em vídeo — do primeiro prompt à automação, liberadas aos poucos`,
   },
-  { text: "Certificado digital ao concluir" },
+  { text: "Certificado de conclusão verificável online" },
   { text: "Novas aulas e atualizações incluídas, sem pagar de novo" },
   {
     text: "Comunidade exclusiva no WhatsApp — só alunos, networking de alto nível",

@@ -3,6 +3,7 @@ import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { LandingMobileMenu } from "@/components/landing-mobile-menu";
 import { HeaderAuthCta } from "@/components/header-auth-cta";
 import { HeaderBuyCta } from "@/components/header-buy-cta";
+import { HeaderMarketingNav } from "@/components/header-marketing-nav";
 import { CourseEnrollment } from "@/components/course-enrollment";
 import { CourseHero } from "@/components/course-hero";
 import { PricingSection } from "@/components/sales/pricing-section";
