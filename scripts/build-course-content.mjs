@@ -36,6 +36,11 @@ for (const mod of raw.modules) {
       fail(`Módulo "${mod?.id ?? "?"}" sem campo obrigatório \`${field}\`.`);
     }
   }
+  if (mod.unlockAfterDays !== undefined) {
+    if (!Number.isInteger(mod.unlockAfterDays) || mod.unlockAfterDays < 0) {
+      fail(`Módulo "${mod.id}": \`unlockAfterDays\` deve ser inteiro ≥ 0.`);
+    }
+  }
   if (!Array.isArray(mod.lessons) || mod.lessons.length === 0) {
     fail(`Módulo "${mod.id}" precisa de ao menos uma aula.`);
   }
@@ -79,6 +84,9 @@ function emitModule(mod, indent) {
     `${p2}thumbnailGradient: ${q(mod.thumbnailGradient)},`,
   ];
   if (mod.coverImage) lines.push(`${p2}coverImage: ${q(mod.coverImage)},`);
+  if (mod.unlockAfterDays !== undefined) {
+    lines.push(`${p2}unlockAfterDays: ${mod.unlockAfterDays},`);
+  }
   const lessons = mod.lessons.map((l) => emitLesson(l, indent + 2)).join("\n");
   lines.push(`${p2}lessons: [\n${lessons}\n${p2}],`);
   return `${p}{\n${lines.join("\n")}\n${p}},`;
@@ -108,6 +116,8 @@ export type CourseModule = {
   thumbnailGradient: string;
   /** Capa 3:4 da temporada (opcional; senão usa índice do módulo) */
   coverImage?: string;
+  /** Dias após a matrícula (created_at) para liberar o módulo. Ausente/0 = liberado na hora. */
+  unlockAfterDays?: number;
   lessons: CourseLesson[];
 };
 

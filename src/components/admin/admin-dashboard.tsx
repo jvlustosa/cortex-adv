@@ -209,6 +209,7 @@ function VideoCell({
 
 function LessonRow({
   lesson,
+  selectMode,
   selected,
   onToggle,
   onCopy,
@@ -222,6 +223,7 @@ function LessonRow({
   onKeyMove,
 }: {
   lesson: LessonAdminRow;
+  selectMode: boolean;
   selected: Set<string>;
   onToggle: (key: string) => void;
   onCopy: (text: string) => void;
@@ -249,12 +251,14 @@ function LessonRow({
       onDrop={() => onDrop(lesson.moduleId, key)}
     >
       <td>
-        <input
-          type="checkbox"
-          checked={selected.has(key)}
-          onChange={() => onToggle(key)}
-          aria-label={`Selecionar ${lesson.title}`}
-        />
+        {selectMode ? (
+          <input
+            type="checkbox"
+            checked={selected.has(key)}
+            onChange={() => onToggle(key)}
+            aria-label={`Selecionar ${lesson.title}`}
+          />
+        ) : null}
       </td>
       <td>
         <div className={styles.aulaCell}>
@@ -509,6 +513,7 @@ export function AdminDashboard() {
     published: false,
   });
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
   const [dragKey, setDragKey] = useState<string | null>(null);
 
   const [members, setMembers] = useState<MemberAdminRow[]>([]);
@@ -974,15 +979,30 @@ export function AdminDashboard() {
           <section className={styles.section}>
             <div className={styles.sectionHead}>
               <span>Aulas do curso</span>
-              <button
-                type="button"
-                className={styles.btnPrimary}
-                onClick={openCreate}
-              >
-                Adicionar aula
-              </button>
+              <div className={styles.headActions}>
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  aria-pressed={selectMode}
+                  onClick={() => {
+                    setSelectMode((on) => {
+                      if (on) setSelected(new Set());
+                      return !on;
+                    });
+                  }}
+                >
+                  {selectMode ? "Sair da seleção" : "Selecionar"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={openCreate}
+                >
+                  Adicionar aula
+                </button>
+              </div>
             </div>
-            {selected.size > 0 ? (
+            {selectMode && selected.size > 0 ? (
               <div className={styles.bulkBar}>
                 <span>{selected.size} selecionada(s)</span>
                 <button
@@ -1026,21 +1046,23 @@ export function AdminDashboard() {
                     <Fragment key={group.moduleId}>
                       <tr className={styles.moduleRow}>
                         <td>
-                          <input
-                            type="checkbox"
-                            aria-label={`Selecionar todas de ${group.moduleTitle}`}
-                            checked={group.lessons.every((l) =>
-                              selected.has(`${l.moduleId}:${l.lessonId}`),
-                            )}
-                            onChange={(e) =>
-                              toggleModuleSelected(
-                                group.lessons.map(
-                                  (l) => `${l.moduleId}:${l.lessonId}`,
-                                ),
-                                e.target.checked,
-                              )
-                            }
-                          />
+                          {selectMode ? (
+                            <input
+                              type="checkbox"
+                              aria-label={`Selecionar todas de ${group.moduleTitle}`}
+                              checked={group.lessons.every((l) =>
+                                selected.has(`${l.moduleId}:${l.lessonId}`),
+                              )}
+                              onChange={(e) =>
+                                toggleModuleSelected(
+                                  group.lessons.map(
+                                    (l) => `${l.moduleId}:${l.lessonId}`,
+                                  ),
+                                  e.target.checked,
+                                )
+                              }
+                            />
+                          ) : null}
                         </td>
                         <td colSpan={6}>{group.moduleTitle}</td>
                       </tr>
@@ -1048,6 +1070,7 @@ export function AdminDashboard() {
                         <LessonRow
                           key={`${lesson.moduleId}:${lesson.lessonId}`}
                           lesson={lesson}
+                          selectMode={selectMode}
                           selected={selected}
                           onToggle={toggleSelected}
                           onCopy={copyText}

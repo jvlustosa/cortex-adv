@@ -20,6 +20,8 @@ export type CourseModule = {
   thumbnailGradient: string;
   /** Capa 3:4 da temporada (opcional; senão usa índice do módulo) */
   coverImage?: string;
+  /** Dias após a matrícula (created_at) para liberar o módulo. Ausente/0 = liberado na hora. */
+  unlockAfterDays?: number;
   lessons: CourseLesson[];
 };
 

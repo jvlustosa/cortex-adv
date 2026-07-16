@@ -22,12 +22,16 @@ export const metadata = {
 };
 
 export default async function AreaDeMembrosPage() {
-  const { authOn, user } = await requireCourseAccess("/area-de-membros");
+  const { authOn, user, demoMode } = await requireCourseAccess("/area-de-membros");
   const [course, progress, isAdmin] = await Promise.all([
     getMergedCourse(),
     getUserCourseProgress(user?.id),
     isAdminUser(user),
   ]);
+
+  // Admin e modo demo (localhost) veem tudo liberado — o resto respeita a trava
+  // por tempo de cada módulo, contada de created_at.
+  const bypassLock = demoMode || isAdmin;
 
   return (
     <AulasShell
@@ -38,7 +42,11 @@ export default async function AreaDeMembrosPage() {
     >
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
         <VipGroupStep />
-        <LessonCardsGrid course={course} />
+        <LessonCardsGrid
+          course={course}
+          enrolledAt={user?.created_at ?? null}
+          bypassLock={bypassLock}
+        />
         <CertificateProgress
           progress={progress}
           userName={user?.email?.split("@")[0] ?? null}

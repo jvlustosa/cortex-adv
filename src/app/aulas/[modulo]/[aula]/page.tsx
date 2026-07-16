@@ -1,8 +1,9 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AulasShell } from "@/components/aulas/aulas-shell";
 import { CourseArea } from "@/components/members/course-area";
 import { isAdminUser } from "@/lib/admin/require-admin";
+import { computeModuleAccess } from "@/lib/course/module-access";
 import { getUserCourseProgress } from "@/lib/course/progress";
 import { requireCourseAccess } from "@/lib/course/require-access";
 import { findMergedLesson, getMergedCourse } from "@/lib/lessons/merge-course";
@@ -58,6 +59,16 @@ export default async function AulaPlayerPage({ params }: PageProps) {
     getUserCourseProgress(user?.id),
     isAdminUser(user),
   ]);
+
+  // Trava por tempo: bloqueia deep-link direto a aula de módulo ainda não
+  // liberado. Admin e modo demo passam direto.
+  const bypassLock = demoMode || isAdmin;
+  if (!bypassLock) {
+    const access = computeModuleAccess(user?.created_at, module.unlockAfterDays);
+    if (!access.isUnlocked) {
+      redirect("/area-de-membros");
+    }
+  }
 
   return (
     <AulasShell
