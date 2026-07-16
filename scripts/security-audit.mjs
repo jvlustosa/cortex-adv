@@ -116,7 +116,7 @@ function buildMarkdownReport(findings, summary, probeUrl) {
   lines.push("## Checklist manual");
   lines.push("");
   lines.push("- [ ] `SUPABASE_SERVICE_ROLE_KEY` só na Vercel (nunca `NEXT_PUBLIC_*`)");
-  lines.push("- [ ] Signup desligado em prod (`NEXT_PUBLIC_SIGNUP_ENABLED` não setado)");
+  lines.push("- [ ] Acesso só por convite: `/signup` sem token não cria conta");
   lines.push("- [ ] `admin_users` populado só com e-mails @chatjuridico.com.br");
   lines.push("- [ ] Redirect URLs do Supabase Auth restritas ao domínio");
   lines.push("");

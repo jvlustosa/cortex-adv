@@ -262,7 +262,7 @@ export function InviteWizard({ onCreated }: Props) {
           <label className={styles.field}>
             <span className={styles.label}>Título (opcional)</span>
             <select
-              className={styles.input}
+              className={`${styles.input} ${styles.select}`}
               value={form.recipientTitle}
               onChange={(e) => update("recipientTitle", e.target.value)}
             >
@@ -308,11 +308,21 @@ export function InviteWizard({ onCreated }: Props) {
           <div className={styles.field}>
             <span className={styles.label}>Expira em (opcional)</span>
             <input
-              className={styles.input}
+              className={`${styles.input} ${styles.dateInput}`}
               type="date"
               aria-label="Data de expiração do convite"
               value={form.expiresAt}
               onChange={(e) => update("expiresAt", e.target.value)}
+              onClick={(e) => {
+                const el = e.currentTarget as HTMLInputElement & {
+                  showPicker?: () => void;
+                };
+                try {
+                  el.showPicker?.();
+                } catch {
+                  /* showPicker throws outside a user gesture — ignore */
+                }
+              }}
             />
             <div className={styles.chipRow}>
               {EXPIRY_PRESETS.map((preset) => {

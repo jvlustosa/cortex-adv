@@ -9,8 +9,15 @@ export type GrantAccessResult = {
   magicLink: string;
 };
 
-/** Para onde o magic link leva após autenticar. */
-const NEXT_PATH = "/area-de-membros";
+export type GrantAccessOptions = {
+  /** Vira display name (full_name) da conta nova — só aplicado na criação. */
+  fullName?: string;
+  /** Destino após autenticar (path interno já validado). Default: membros. */
+  next?: string;
+};
+
+/** Para onde o magic link leva após autenticar, quando não informado. */
+const DEFAULT_NEXT_PATH = "/area-de-membros";
 
 function isAlreadyRegistered(error: { message?: string; code?: string }): boolean {
   const msg = (error.message ?? "").toLowerCase();
@@ -31,13 +38,20 @@ function isAlreadyRegistered(error: { message?: string; code?: string }): boolea
  * Login do curso é passwordless, então a conta é criada sem senha, com e-mail já
  * confirmado, para poder receber/usar o magic link imediatamente.
  */
-export async function grantMemberAccess(email: string): Promise<GrantAccessResult> {
+export async function grantMemberAccess(
+  email: string,
+  options: GrantAccessOptions = {},
+): Promise<GrantAccessResult> {
   const admin = createAdminClient();
+  const fullName = options.fullName?.trim() || undefined;
+  const nextPath = options.next?.trim() || DEFAULT_NEXT_PATH;
 
   // 1. Cria a conta (sem senha). Se já existe, segue idempotente.
   const { error: createErr } = await admin.auth.admin.createUser({
     email,
     email_confirm: true,
+    // full_name espelha em public.users via trigger sync_user_from_auth.
+    ...(fullName ? { user_metadata: { full_name: fullName } } : {}),
   });
 
   let created = true;
@@ -64,7 +78,7 @@ export async function grantMemberAccess(email: string): Promise<GrantAccessResul
   const url = new URL("/auth/confirm", SITE_URL);
   url.searchParams.set("token_hash", hashedToken);
   url.searchParams.set("type", "magiclink");
-  url.searchParams.set("next", NEXT_PATH);
+  url.searchParams.set("next", nextPath);
 
   return { email, created, magicLink: url.toString() };
 }

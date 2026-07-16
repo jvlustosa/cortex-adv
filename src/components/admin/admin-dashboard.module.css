@@ -346,6 +346,45 @@
   resize: vertical;
 }
 
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  border-color: rgba(217, 119, 87, 0.55);
+  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.16);
+}
+
+/* Native <select>: drop the OS arrow, add a Lucide-style chevron. */
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 1rem 1rem;
+}
+
+.select:hover {
+  border-color: rgba(217, 119, 87, 0.4);
+}
+
+/* Native date input: whole field opens the picker, brighter calendar icon. */
+.dateInput {
+  cursor: pointer;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.15s ease;
+}
+
+.dateInput:hover::-webkit-calendar-picker-indicator,
+.dateInput:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
 .checkboxRow {
   display: flex;
   align-items: center;

@@ -1,42 +1,37 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, PartyPopper } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { mapSignInError } from "@/lib/auth/errors";
 import { safeRedirectPath } from "@/lib/auth/safe-redirect";
 import { fireCelebrationConfetti } from "@/lib/confetti";
-import {
-  isDemoMode,
-  isSignupEnabled,
-  isSupabaseEnabled,
-} from "@/lib/supabase/enabled";
+import { isDemoMode, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 const inputClass =
   "rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20";
 
 type SignupFormProps = {
   initialToken: string;
-  initialEmail?: string;
+  /** E-mail do convite nominal — quando existe, a pessoa não digita nada. */
+  knownEmail?: string;
 };
 
-export function SignupForm({ initialToken, initialEmail = "" }: SignupFormProps) {
-  const router = useRouter();
+export function SignupForm({ initialToken, knownEmail = "" }: SignupFormProps) {
   const searchParams = useSearchParams();
   const next = safeRedirectPath(searchParams.get("next"));
 
-  const [token, setToken] = useState(initialToken);
-  const [email, setEmail] = useState(initialEmail);
-  // Link de convite já traz o token: esconde o campo (a pessoa só define a senha).
-  // Sem token na URL, o campo aparece como fallback pra colar o código.
-  const hasInviteToken = initialToken.trim().length > 0;
-  const [password, setPassword] = useState("");
+  const token = initialToken.trim();
+  const hasInviteToken = token.length > 0;
+  const hasKnownEmail = knownEmail.trim().length > 0;
+
+  const [email, setEmail] = useState(knownEmail);
   const [status, setStatus] = useState<
     "idle" | "loading" | "error" | "success"
   >("idle");
   const [message, setMessage] = useState<string | null>(null);
+  // Link de acesso (/auth/confirm) devolvido pela API; pra onde levamos a pessoa.
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
 
   // Timer do redirect pós-parabéns; limpo no unmount pra não navegar depois.
   const redirectTimer = useRef<number | undefined>(undefined);
@@ -48,48 +43,41 @@ export function SignupForm({ initialToken, initialEmail = "" }: SignupFormProps)
 
   const goToApp = useCallback(() => {
     if (redirectTimer.current) window.clearTimeout(redirectTimer.current);
-    router.push(next);
-    router.refresh();
-  }, [next, router]);
+    // Navegação completa: /auth/confirm grava a sessão em cookie e redireciona.
+    if (redirectTo) window.location.href = redirectTo;
+  }, [redirectTo]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isSupabaseEnabled() || !isSignupEnabled()) return;
+    if (!isSupabaseEnabled()) return;
     setStatus("loading");
     setMessage(null);
 
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), password, token: token.trim() }),
+      body: JSON.stringify({ token, email: email.trim(), next }),
     });
 
-    const data = (await res.json()) as { ok?: boolean; error?: string };
+    const data = (await res.json()) as {
+      ok?: boolean;
+      error?: string;
+      redirectTo?: string;
+    };
 
-    if (!res.ok || !data.ok) {
+    if (!res.ok || !data.ok || !data.redirectTo) {
       setStatus("error");
-      setMessage(data.error ?? "Não foi possível concluir o cadastro.");
+      setMessage(data.error ?? "Não foi possível ativar seu acesso.");
       return;
     }
 
-    const supabase = createClient();
-    const { error: signErr } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
-
-    if (signErr) {
-      setStatus("error");
-      setMessage(
-        `Conta criada, mas o login automático falhou: ${mapSignInError(signErr)}`,
-      );
-      return;
-    }
-
-    // Conta criada: celebra (confete laranja + preto) e segue pra área de membros.
+    // Acesso ativado: celebra (confete laranja + preto) e segue pra área de membros.
+    setRedirectTo(data.redirectTo);
     setStatus("success");
     fireCelebrationConfetti();
-    redirectTimer.current = window.setTimeout(goToApp, 2800);
+    redirectTimer.current = window.setTimeout(() => {
+      window.location.href = data.redirectTo as string;
+    }, 2800);
   }
 
   if (status === "success") {
@@ -106,7 +94,7 @@ export function SignupForm({ initialToken, initialEmail = "" }: SignupFormProps)
 
           <div className="ca-rise" style={{ animationDelay: "0.14s" }}>
             <h2 className="font-serif text-3xl tracking-tight text-[var(--foreground)]">
-              Parabéns! Sua conta está pronta
+              Parabéns! Seu acesso está pronto
             </h2>
             <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-[var(--muted)]">
               Bem-vindo à Claude Academy. Estamos te levando para a área de
@@ -136,7 +124,7 @@ export function SignupForm({ initialToken, initialEmail = "" }: SignupFormProps)
             Em breve
           </p>
           <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-            Cadastro com convite em breve. Em localhost, o conteúdo já está em{" "}
+            Acesso com convite em breve. Em localhost, o conteúdo já está em{" "}
             <Link
               href="/area-de-membros"
               className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
@@ -152,20 +140,24 @@ export function SignupForm({ initialToken, initialEmail = "" }: SignupFormProps)
     return (
       <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-5 text-center">
         <p className="font-serif text-xl tracking-tight text-[var(--foreground)]">
-          Cadastro indisponível
+          Acesso indisponível
         </p>
         <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-          O cadastro exige Supabase configurado. Modo demo só existe em localhost.
+          O acesso exige Supabase configurado. Modo demo só existe em localhost.
         </p>
       </div>
     );
   }
 
-  if (!isSignupEnabled()) {
+  // Acesso é só por convite: sem token na URL, não há conta a criar.
+  if (!hasInviteToken) {
     return (
       <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/50 px-4 py-5 text-center">
-        <p className="text-sm text-[var(--muted)]">
-          Cadastro fechado.{" "}
+        <p className="font-serif text-xl tracking-tight text-[var(--foreground)]">
+          Você precisa de um convite
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+          Abra o link do convite que você recebeu por e-mail. Já tem acesso?{" "}
           <Link
             href="/login"
             className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
@@ -179,52 +171,32 @@ export function SignupForm({ initialToken, initialEmail = "" }: SignupFormProps)
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-      {hasInviteToken ? (
-        <input type="hidden" value={token} readOnly />
+      {hasKnownEmail ? (
+        <p className="text-sm leading-relaxed text-[var(--muted)]">
+          Seu acesso será liberado para{" "}
+          <span className="text-[var(--foreground)]">{knownEmail}</span>. É só um
+          clique — sem senha.
+        </p>
       ) : (
         <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
-          Token de convite
+          E-mail
           <input
-            type="text"
+            type="email"
             required
-            autoComplete="off"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className={inputClass}
-            placeholder="Cole o código recebido"
+            placeholder="voce@escritorio.com.br"
           />
         </label>
       )}
-      <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
-        E-mail
-        <input
-          type="email"
-          required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={inputClass}
-          placeholder="voce@escritorio.com.br"
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
-        Senha (mín. 8 caracteres)
-        <input
-          type="password"
-          required
-          autoComplete="new-password"
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
-        />
-      </label>
       <button
         type="submit"
         disabled={status === "loading"}
         className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[#0a0a0a] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
       >
-        {status === "loading" ? "Cadastrando…" : "Cadastrar"}
+        {status === "loading" ? "Ativando…" : "Ativar meu acesso"}
       </button>
       {message && (
         <p
@@ -238,7 +210,7 @@ export function SignupForm({ initialToken, initialEmail = "" }: SignupFormProps)
         </p>
       )}
       <p className="text-center text-sm text-[var(--muted)]">
-        Já tem conta?{" "}
+        Já tem acesso?{" "}
         <Link
           href="/login"
           className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"

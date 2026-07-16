@@ -66,7 +66,7 @@ describe("convite — saudação personalizada", () => {
     const page = readSrc("src/app/signup/page.tsx");
     assert.ok(page.includes("getInviteRecipientByToken"));
     assert.ok(page.includes("buildInviteGreeting"));
-    assert.ok(page.includes("initialEmail"));
+    assert.ok(page.includes("knownEmail"));
     // Só consulta com Supabase ativo (não quebra o modo demo).
     assert.ok(page.includes("isSupabaseEnabled"));
   });

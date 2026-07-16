@@ -7,7 +7,6 @@ import { HeaderMarketingNav } from "@/components/header-marketing-nav";
 import { CourseEnrollment } from "@/components/course-enrollment";
 import { CourseHero } from "@/components/course-hero";
 import { PricingSection } from "@/components/sales/pricing-section";
-import { isSignupEnabled } from "@/lib/supabase/enabled";
 import {
   CHAT_JURIDICO_SOCIAL,
   CHAT_JURIDICO_URL,
@@ -216,14 +215,6 @@ export default function Home() {
         >
           <span>© {new Date().getFullYear()} {SITE_BRAND}</span>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
-            {isSignupEnabled() && (
-              <Link
-                href="/signup"
-                className="underline underline-offset-4 hover:text-[var(--foreground)]"
-              >
-                Cadastro
-              </Link>
-            )}
             <Link
               href="/area-de-membros"
               className="underline underline-offset-4 hover:text-[var(--foreground)]"

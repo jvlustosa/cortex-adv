@@ -31,7 +31,6 @@
 --   SUPABASE_SERVICE_ROLE_KEY=
 --   NEXT_PUBLIC_SITE_URL=https://claudeacademy.chatjuridico.com.br
 --   NEXT_PUBLIC_SUPABASE_ENABLED=true          (dev local)
---   NEXT_PUBLIC_SIGNUP_ENABLED=true            (opcional, abre /signup em prod)
 -- =============================================================================
 
 -- ─── Extensões ───────────────────────────────────────────────────────────────

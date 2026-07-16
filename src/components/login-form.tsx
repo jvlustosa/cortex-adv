@@ -9,7 +9,6 @@ import { SITE_URL } from "@/lib/site";
 import { useToast } from "@/components/toast";
 import {
   isDemoMode,
-  isSignupEnabled,
   isSupabaseConfigured,
   isSupabaseEnabled,
 } from "@/lib/supabase/enabled";
@@ -163,17 +162,6 @@ export function LoginForm() {
       <p className="text-center text-xs leading-relaxed text-[var(--muted)]">
         Entre só com o e-mail — enviamos um link de acesso, sem senha.
       </p>
-      {isSignupEnabled() ? (
-        <p className="text-center text-sm text-[var(--muted)]">
-          Convite?{" "}
-          <Link
-            href="/signup"
-            className="text-[var(--accent)] underline underline-offset-4 hover:opacity-90"
-          >
-            Cadastrar
-          </Link>
-        </p>
-      ) : null}
     </form>
   );
 }
