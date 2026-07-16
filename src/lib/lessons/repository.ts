@@ -3,11 +3,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type {
   AdminTotals,
   LessonAdminRow,
+  LessonFeedbackItem,
   LessonFeedbackRow,
   LessonOverrideRow,
 } from "./types";
 import { fetchLessonOverrides } from "./merge-course";
-import { compareLessons, type Orderable } from "./ordering";
+import { compareLessons, nextOrderIndex, type Orderable } from "./ordering";
+import { slugifyLessonTitle, uniqueLessonId } from "./slug";
+
+export class CatalogLessonError extends Error {}
 
 type ViewAgg = { module_id: string; lesson_id: string; count: number };
 type FeedbackAgg = {
@@ -164,6 +168,7 @@ export async function upsertLessonOverride(input: {
   title?: string | null;
   description?: string | null;
   published?: boolean;
+  orderIndex?: number | null;
 }): Promise<LessonOverrideRow> {
   const admin = createAdminClient();
   const payload: Partial<LessonOverrideRow> & {
@@ -182,6 +187,7 @@ export async function upsertLessonOverride(input: {
   if (input.title !== undefined) payload.title = input.title;
   if (input.description !== undefined) payload.description = input.description;
   if (input.published !== undefined) payload.published = input.published;
+  if (input.orderIndex !== undefined) payload.order_index = input.orderIndex;
 
   const { data, error } = await admin
     .from("lesson_overrides")
@@ -308,4 +314,149 @@ export async function listRecentFeedback(limit = 50): Promise<
       moduleTitle: mod?.title ?? row.module_id,
     };
   });
+}
+
+export async function createLesson(input: {
+  moduleId: string;
+  title: string;
+  tella?: string | null;
+  youtubeId?: string | null;
+  duration?: string | null;
+  description?: string | null;
+  published: boolean;
+}): Promise<LessonAdminRow> {
+  const mod = COURSE.modules.find((m) => m.id === input.moduleId);
+  if (!mod) throw new Error(`Módulo inexistente: ${input.moduleId}`);
+
+  const overrides = await fetchLessonOverrides();
+
+  const used = new Set<string>(mod.lessons.map((l) => l.id));
+  for (const o of overrides) if (o.module_id === mod.id) used.add(o.lesson_id);
+  const lessonId = uniqueLessonId(slugifyLessonTitle(input.title), used);
+
+  const moduleItems: Orderable[] = [
+    ...mod.lessons.map((l, catalogIndex) => ({
+      orderIndex:
+        overrides.find((o) => o.module_id === mod.id && o.lesson_id === l.id)
+          ?.order_index ?? null,
+      catalogIndex,
+      title: l.title,
+    })),
+    ...overrides
+      .filter((o) => o.module_id === mod.id && !mod.lessons.some((l) => l.id === o.lesson_id))
+      .map((o) => ({ orderIndex: o.order_index, catalogIndex: null, title: o.title ?? o.lesson_id })),
+  ];
+  const orderIndex = nextOrderIndex(moduleItems);
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("lesson_overrides").insert({
+    module_id: input.moduleId,
+    lesson_id: lessonId,
+    title: input.title,
+    tella: input.tella ?? null,
+    youtube_id: input.youtubeId ?? null,
+    duration: input.duration ?? null,
+    description: input.description ?? null,
+    published: input.published,
+    order_index: orderIndex,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error; // corrida de slug estoura no PK (module_id, lesson_id)
+
+  return {
+    moduleId: input.moduleId,
+    moduleTitle: mod.title,
+    lessonId,
+    title: input.title,
+    duration: input.duration ?? "",
+    description: input.description ?? "",
+    youtubeId: input.youtubeId ?? null,
+    tella: input.tella ?? null,
+    published: input.published,
+    viewCount: 0,
+    feedbackCount: 0,
+    avgRating: null,
+    orderIndex,
+    origin: "custom",
+  };
+}
+
+export async function reorderModule(moduleId: string, lessonIds: string[]): Promise<void> {
+  const admin = createAdminClient();
+  const rows = lessonIds.map((lesson_id, i) => ({
+    module_id: moduleId,
+    lesson_id,
+    order_index: i,
+  }));
+  // ON CONFLICT DO UPDATE SET order_index — published/title/tella intactos.
+  const { error } = await admin
+    .from("lesson_overrides")
+    .upsert(rows, { onConflict: "module_id,lesson_id" });
+  if (error) throw error;
+}
+
+export async function setPublishedBatch(
+  keys: { moduleId: string; lessonId: string }[],
+  published: boolean,
+): Promise<void> {
+  const admin = createAdminClient();
+  const rows = keys.map((k) => ({
+    module_id: k.moduleId,
+    lesson_id: k.lessonId,
+    published,
+  }));
+  const { error } = await admin
+    .from("lesson_overrides")
+    .upsert(rows, { onConflict: "module_id,lesson_id" });
+  if (error) throw error;
+}
+
+export async function deleteCustomLesson(moduleId: string, lessonId: string): Promise<void> {
+  const mod = COURSE.modules.find((m) => m.id === moduleId);
+  if (mod?.lessons.some((l) => l.id === lessonId)) {
+    throw new CatalogLessonError("Aula de catálogo não pode ser removida pelo painel.");
+  }
+  const admin = createAdminClient();
+  const match = { module_id: moduleId, lesson_id: lessonId };
+  await admin.from("lesson_views").delete().match(match);
+  await admin.from("lesson_feedback").delete().match(match);
+  const { error } = await admin.from("lesson_overrides").delete().match(match);
+  if (error) throw error;
+}
+
+export async function listFeedbackForLesson(
+  moduleId: string,
+  lessonId: string,
+  limit = 200,
+): Promise<{ avg: number | null; count: number; items: LessonFeedbackItem[] }> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("lesson_feedback")
+    .select("*")
+    .eq("module_id", moduleId)
+    .eq("lesson_id", lessonId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+
+  const rows = (data ?? []) as LessonFeedbackRow[];
+  const emails = new Map<string, string | null>();
+  for (const row of rows) {
+    if (!row.user_id || emails.has(row.user_id)) continue;
+    const { data: userData } = await admin.auth.admin.getUserById(row.user_id);
+    emails.set(row.user_id, userData.user?.email ?? null);
+  }
+
+  const count = rows.length;
+  const avg =
+    count > 0
+      ? Math.round((rows.reduce((s, r) => s + r.rating, 0) / count) * 10) / 10
+      : null;
+  const items: LessonFeedbackItem[] = rows.map((r) => ({
+    rating: r.rating,
+    comment: r.comment,
+    userEmail: r.user_id ? emails.get(r.user_id) ?? null : null,
+    createdAt: r.created_at,
+  }));
+  return { avg, count, items };
 }
