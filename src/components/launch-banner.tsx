@@ -10,15 +10,13 @@ import {
   LAUNCH_CLOSES_LABEL,
   LAUNCH_OPENS_LABEL,
   formatRemaining,
-  getLaunchPhase,
 } from "@/lib/launch-window";
-import { useNow } from "@/lib/use-launch-phase";
+import { useLaunchState } from "@/lib/use-launch-phase";
 import { cn } from "@/lib/utils";
 import styles from "./launch-banner.module.css";
 
 export function LaunchBanner() {
-  const now = useNow();
-  const phase = now ? getLaunchPhase(now) : null;
+  const { now, phase, isPreview } = useLaunchState();
   const remaining =
     now && phase === "live" ? formatRemaining(now, LAUNCH_CLOSES_AT) : "";
 
@@ -71,6 +69,7 @@ export function LaunchBanner() {
     <div className={styles.banner} role="status" aria-live="polite">
       <div className={cn(pageShellClass, styles.inner)}>
         <p className={styles.text}>
+          {isPreview && <span className={styles.preview}>Prévia</span>}
           <span className={styles.cohort}>{badge}</span>
           <span className={styles.message}>{message}</span>
         </p>

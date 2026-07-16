@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getInviteById } from "@/lib/admin/invites-repository";
-import { sendInviteEmail } from "@/lib/invites/invite-email";
+import { sendInviteEmail } from "@/lib/email/invite-email";
 import { assertAdminApi } from "@/lib/admin/require-admin";
 
 type ResendBody = { id?: string };

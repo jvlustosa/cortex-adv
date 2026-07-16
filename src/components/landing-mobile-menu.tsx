@@ -11,7 +11,8 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Menu, X } from "lucide-react";
-import { useIsAuthed } from "@/lib/auth/use-session";
+import { SignOutButton } from "@/components/sign-out-button";
+import { useSessionUser } from "@/lib/auth/use-session";
 import { cn } from "@/lib/utils";
 
 const linkClass =
@@ -36,7 +37,7 @@ export function LandingMobileMenu() {
   const menuId = useId();
   const [open, setOpen] = useState(false);
   const mounted = useIsClient();
-  const isAuthed = useIsAuthed();
+  const user = useSessionUser();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -124,14 +125,32 @@ export function LandingMobileMenu() {
                 <a href="#comunidade" onClick={close} className={linkClass}>
                   Comunidade
                 </a>
-                {isAuthed ? (
-                  <Link
-                    href="/area-de-membros"
-                    onClick={close}
-                    className={linkClass}
-                  >
-                    Área de membros
-                  </Link>
+                {user ? (
+                  <>
+                    <span className="flex flex-col gap-0.5 px-3 pb-1 pt-2">
+                      <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--muted)]">
+                        Conectado como
+                      </span>
+                      <span
+                        className="truncate text-sm text-[var(--foreground)]"
+                        title={user.email ?? undefined}
+                      >
+                        {user.email ?? "Minha conta"}
+                      </span>
+                    </span>
+                    <Link
+                      href="/area-de-membros"
+                      onClick={close}
+                      className={linkClass}
+                    >
+                      Área de membros
+                    </Link>
+                    <SignOutButton
+                      className={cn(linkClass, "gap-2")}
+                      onSignedOut={close}
+                      showIcon
+                    />
+                  </>
                 ) : (
                   <Link href="/login" onClick={close} className={linkClass}>
                     Entrar

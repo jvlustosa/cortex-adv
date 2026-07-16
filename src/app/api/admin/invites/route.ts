@@ -4,7 +4,7 @@ import {
   listInvitesForAdmin,
   setInviteActive,
 } from "@/lib/admin/invites-repository";
-import { sendInviteEmail } from "@/lib/invites/invite-email";
+import { sendInviteEmail } from "@/lib/email/invite-email";
 import { assertAdminApi } from "@/lib/admin/require-admin";
 
 export async function GET() {

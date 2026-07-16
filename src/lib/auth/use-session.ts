@@ -4,16 +4,19 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 
+export type SessionUser = { email: string | null };
+
 /**
- * Sessão do browser para dicas de UI na navegação pública (header/menu).
- * Lê o cookie via getSession (sem chamada de rede) e escuta mudanças de auth.
- * NÃO é fronteira de segurança — o gate real do curso é server-side em
- * requireCourseAccess. Fica em null enquanto resolve (e nos casos de Supabase
- * desligado/placeholder), o que o consumidor renderiza como estado neutro
- * ("Entrar") sem flash.
+ * Usuário da sessão do browser para dicas de UI na navegação pública
+ * (header/menu). Lê o cookie via getSession (sem chamada de rede) e escuta
+ * mudanças de auth. NÃO é fronteira de segurança — o gate real do curso é
+ * server-side em requireCourseAccess.
+ *
+ * Retorna null enquanto resolve E quando deslogado (ou Supabase off/placeholder),
+ * o que o consumidor renderiza como estado neutro ("Entrar") sem flash.
  */
-export function useIsAuthed(): boolean | null {
-  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+export function useSessionUser(): SessionUser | null {
+  const [user, setUser] = useState<SessionUser | null>(null);
 
   useEffect(() => {
     if (!isSupabaseEnabled()) return;
@@ -28,13 +31,17 @@ export function useIsAuthed(): boolean | null {
     }
 
     supabase.auth.getSession().then(({ data }) => {
-      if (active) setIsAuthed(Boolean(data.session));
+      if (active) {
+        setUser(data.session ? { email: data.session.user.email ?? null } : null);
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (active) setIsAuthed(Boolean(session));
+      if (active) {
+        setUser(session ? { email: session.user.email ?? null } : null);
+      }
     });
 
     return () => {
@@ -43,5 +50,5 @@ export function useIsAuthed(): boolean | null {
     };
   }, []);
 
-  return isAuthed;
+  return user;
 }
