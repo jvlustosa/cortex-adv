@@ -7,6 +7,7 @@ import type {
   LessonOverrideRow,
 } from "./types";
 import { fetchLessonOverrides } from "./merge-course";
+import { compareLessons, type Orderable } from "./ordering";
 
 type ViewAgg = { module_id: string; lesson_id: string; count: number };
 type FeedbackAgg = {
@@ -73,28 +74,61 @@ export async function listLessonsForAdmin(): Promise<{
   const lessons: LessonAdminRow[] = [];
 
   for (const mod of COURSE.modules) {
-    for (const lesson of mod.lessons) {
+    const rows: { row: LessonAdminRow; order: Orderable }[] = [];
+
+    mod.lessons.forEach((lesson, catalogIndex) => {
       const key = `${mod.id}:${lesson.id}`;
       const override = overrideMap.get(key);
       const feedback = feedbackMap.get(key);
+      rows.push({
+        row: {
+          moduleId: mod.id,
+          moduleTitle: mod.title,
+          lessonId: lesson.id,
+          title: override?.title ?? lesson.title,
+          duration: override?.duration ?? lesson.duration,
+          description: override?.description ?? lesson.description,
+          youtubeId: override?.youtube_id ?? lesson.youtubeId ?? null,
+          tella: override?.tella ?? lesson.tella ?? null,
+          published: override?.published ?? true,
+          viewCount: viewMap.get(key) ?? 0,
+          feedbackCount: feedback?.count ?? 0,
+          avgRating: feedback ? Math.round(feedback.avg * 10) / 10 : null,
+          orderIndex: override?.order_index ?? null,
+          origin: "catalog",
+        },
+        order: { orderIndex: override?.order_index ?? null, catalogIndex, title: lesson.title },
+      });
+    });
 
-      lessons.push({
-        moduleId: mod.id,
-        moduleTitle: mod.title,
-        lessonId: lesson.id,
-        title: override?.title ?? lesson.title,
-        duration: override?.duration ?? lesson.duration,
-        description: override?.description ?? lesson.description,
-        youtubeId: override?.youtube_id ?? lesson.youtubeId ?? null,
-        tella: override?.tella ?? lesson.tella ?? null,
-        published: override?.published ?? true,
-        viewCount: viewMap.get(key) ?? 0,
-        feedbackCount: feedback?.count ?? 0,
-        avgRating: feedback ? Math.round(feedback.avg * 10) / 10 : null,
-        orderIndex: override?.order_index ?? null,
-        origin: "catalog",
+    for (const o of overrides) {
+      if (o.module_id !== mod.id) continue;
+      if (mod.lessons.some((l) => l.id === o.lesson_id)) continue;
+      const key = `${mod.id}:${o.lesson_id}`;
+      const feedback = feedbackMap.get(key);
+      rows.push({
+        row: {
+          moduleId: mod.id,
+          moduleTitle: mod.title,
+          lessonId: o.lesson_id,
+          title: o.title ?? o.lesson_id,
+          duration: o.duration ?? "",
+          description: o.description ?? "",
+          youtubeId: o.youtube_id ?? null,
+          tella: o.tella ?? null,
+          published: o.published,
+          viewCount: viewMap.get(key) ?? 0,
+          feedbackCount: feedback?.count ?? 0,
+          avgRating: feedback ? Math.round(feedback.avg * 10) / 10 : null,
+          orderIndex: o.order_index,
+          origin: "custom",
+        },
+        order: { orderIndex: o.order_index, catalogIndex: null, title: o.title ?? o.lesson_id },
       });
     }
+
+    rows.sort((a, b) => compareLessons(a.order, b.order));
+    for (const r of rows) lessons.push(r.row);
   }
 
   let totalViews = 0;
