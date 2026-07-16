@@ -112,6 +112,27 @@
   padding-top: 1rem;
 }
 
+.notaCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hoverIcon {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--muted, #9ca3af);
+  padding: 0.15rem;
+}
+
+.lessonRow:hover .hoverIcon,
+.hoverIcon:focus-visible {
+  opacity: 1;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

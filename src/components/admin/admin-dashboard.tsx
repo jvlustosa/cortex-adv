@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
@@ -38,6 +38,17 @@ type InviteItem = {
 };
 
 type EditState = LessonAdminRow | null;
+
+type LessonFeedbackDetail = {
+  avg: number | null;
+  count: number;
+  items: {
+    rating: number;
+    comment: string | null;
+    userEmail: string | null;
+    createdAt: string;
+  }[];
+};
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "aulas", label: "Gestão de aulas" },
@@ -168,14 +179,16 @@ function LessonRow({
   onCopy,
   onEdit,
   onPreview,
+  onFeedback,
 }: {
   lesson: LessonAdminRow;
   onCopy: (text: string) => void;
   onEdit: (l: LessonAdminRow) => void;
   onPreview: (l: LessonAdminRow) => void;
+  onFeedback: (l: LessonAdminRow) => void;
 }) {
   return (
-    <tr>
+    <tr className={styles.lessonRow}>
       <td>
         <strong>{lesson.title}</strong>
         <br />
@@ -185,16 +198,28 @@ function LessonRow({
       </td>
       <td>{lesson.viewCount}</td>
       <td>
-        {lesson.avgRating !== null ? (
-          <>
-            <Stars rating={Math.round(lesson.avgRating)} />{" "}
-            <span className={styles.feedbackMeta}>
-              {lesson.avgRating} ({lesson.feedbackCount})
-            </span>
-          </>
-        ) : (
-          <span className={styles.feedbackMeta}>-</span>
-        )}
+        <div className={styles.notaCell}>
+          <span>
+            {lesson.avgRating !== null ? (
+              <>
+                <Stars rating={Math.round(lesson.avgRating)} />{" "}
+                <span className={styles.feedbackMeta}>
+                  {lesson.avgRating} ({lesson.feedbackCount})
+                </span>
+              </>
+            ) : (
+              <span className={styles.feedbackMeta}>-</span>
+            )}
+          </span>
+          <button
+            type="button"
+            className={styles.hoverIcon}
+            onClick={() => onFeedback(lesson)}
+            aria-label={`Ver avaliações de ${lesson.title}`}
+          >
+            <MessageSquare className="size-4" aria-hidden />
+          </button>
+        </div>
       </td>
       <td>
         <span
@@ -270,6 +295,79 @@ function PreviewModal({
   );
 }
 
+function FeedbackModal({
+  lesson,
+  detail,
+  loading,
+  onClose,
+}: {
+  lesson: LessonAdminRow;
+  detail: LessonFeedbackDetail | null;
+  loading: boolean;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-label={`Avaliações: ${lesson.title}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={styles.modalHead}>
+          <h2 className={styles.modalTitle}>Avaliações · {lesson.title}</h2>
+          <button
+            type="button"
+            className={styles.editBtn}
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            Fechar
+          </button>
+        </div>
+
+        {loading ? (
+          <p className={styles.loading}>
+            <Loader2 className="size-4 animate-spin" aria-hidden /> Carregando…
+          </p>
+        ) : !detail || detail.count === 0 ? (
+          <p className={styles.empty}>Sem avaliações ainda.</p>
+        ) : (
+          <>
+            <p className={styles.modalMeta}>
+              Média {detail.avg ?? "-"} · {detail.count}{" "}
+              {detail.count === 1 ? "avaliação" : "avaliações"}
+            </p>
+            <div className={styles.feedbackList}>
+              {detail.items.map((it, i) => (
+                <article key={i} className={styles.feedbackItem}>
+                  <div className={styles.feedbackTop}>
+                    <span className={styles.feedbackMeta}>
+                      {it.userEmail ?? "anônimo"} · {formatDate(it.createdAt)}
+                    </span>
+                    <Stars rating={it.rating} />
+                  </div>
+                  {it.comment ? (
+                    <p className={styles.feedbackComment}>{it.comment}</p>
+                  ) : (
+                    <p className={styles.feedbackMeta}>(sem comentário)</p>
+                  )}
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("aulas");
   const [loading, setLoading] = useState(true);
@@ -282,6 +380,12 @@ export function AdminDashboard() {
   const [previewLesson, setPreviewLesson] = useState<LessonAdminRow | null>(
     null,
   );
+  const [feedbackLesson, setFeedbackLesson] = useState<LessonAdminRow | null>(
+    null,
+  );
+  const [feedbackDetail, setFeedbackDetail] =
+    useState<LessonFeedbackDetail | null>(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -380,6 +484,24 @@ export function AdminDashboard() {
       published: lesson.published,
     });
   }
+
+  const openFeedback = useCallback(async (lesson: LessonAdminRow) => {
+    setFeedbackLesson(lesson);
+    setFeedbackDetail(null);
+    setFeedbackLoading(true);
+    try {
+      const res = await fetch(
+        `/api/admin/lessons/feedback?moduleId=${encodeURIComponent(lesson.moduleId)}&lessonId=${encodeURIComponent(lesson.lessonId)}`,
+      );
+      if (!res.ok) throw new Error("Falha ao carregar avaliações.");
+      setFeedbackDetail((await res.json()) as LessonFeedbackDetail);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao carregar avaliações.");
+      setFeedbackLesson(null);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  }, []);
 
   async function saveLesson() {
     if (!editing) return;
@@ -593,6 +715,7 @@ export function AdminDashboard() {
                           onCopy={copyText}
                           onEdit={openEdit}
                           onPreview={setPreviewLesson}
+                          onFeedback={openFeedback}
                         />
                       ))}
                     </Fragment>
@@ -999,6 +1122,15 @@ export function AdminDashboard() {
         <PreviewModal
           lesson={previewLesson}
           onClose={() => setPreviewLesson(null)}
+        />
+      ) : null}
+
+      {feedbackLesson ? (
+        <FeedbackModal
+          lesson={feedbackLesson}
+          detail={feedbackDetail}
+          loading={feedbackLoading}
+          onClose={() => setFeedbackLesson(null)}
         />
       ) : null}
     </div>
