@@ -55,7 +55,7 @@ Não crio tabela nem coluna a mais.
 - **Aula criada no painel (só-Supabase):** linha em `lesson_overrides` cujo `(module_id, lesson_id)` **não** está em `COURSE`. Origem derivada por presença no catálogo — **sem coluna `origin`**. Como o overlay é null-coalescing e essa aula não tem catálogo de fallback, a linha precisa trazer `title`/`tella`/`duration`/`description` preenchidos na criação.
 - **Módulos** continuam vindo do YAML. Aula nova é sempre anexada a um módulo existente.
 
-> ⚠️ **Deploy:** a migration `013` precisa ser rodada **à mão no SQL editor do Supabase** — este projeto não tem runner automático (mesmo caso das migrations 011/012). Sem ela: `order_index` não existe → adicionar/reordenar falham e o resto degrada pro comportamento atual.
+> ⚠️ **Deploy:** a migration `013` precisa ser rodada **à mão no SQL editor do Supabase** — este projeto não tem runner automático (mesmo caso das migrations 011/012). Sem ela: leitura degrada limpo (`order_index` `undefined` → cai no `catalogIndex`), mas **adicionar/reordenar/batch dão 500** (`column order_index does not exist`) — a UI deve mostrar erro amigável, não é degradação silenciosa.
 
 ## Ordenação
 
@@ -69,9 +69,9 @@ effectiveOrder = order_index ?? catalogIndex
 - Aula só-Supabase sempre tem `order_index` (setado na criação), então sempre tem valor.
 - **Enquanto ninguém reordena um módulo, a ordem é idêntica à de hoje** (retrocompatível).
 - No **primeiro reorder** de um módulo, grava `order_index` explícito (0..n) em **todas** as aulas daquele módulo, pra eliminar ambiguidade.
-- Desempate estável: `effectiveOrder`, depois `catalogIndex`, depois `title`.
+- Desempate estável: `effectiveOrder`, depois `catalogIndex` (aula custom não tem `catalogIndex` → ordena **depois** dos empates de catálogo), depois `title`.
 
-Ao criar aula nova: `order_index = (max order do módulo) + 1` (vai pro fim).
+Ao criar aula nova: `order_index = max(effectiveOrder do módulo) + 1` — `max` sobre `effectiveOrder = order_index ?? catalogIndex` de **todas** as aulas do módulo (não o `max` da coluna crua, que é `null` num módulo nunca reordenado). Vai pro fim.
 
 ## API — `/api/admin/lessons`
 
@@ -80,8 +80,10 @@ Todas as rotas atrás de `assertAdminApi()`.
 ### `POST /api/admin/lessons` — criar aula
 Body: `{ moduleId, title, tella?, youtubeId?, duration?, description?, published }`.
 - Valida `moduleId` contra os módulos do catálogo.
-- Gera `lesson_id` via `slugify(title)` (lowercase, sem acento, não-alfanumérico → hífen). Garante unicidade dentro do módulo contra catálogo **e** overrides existentes; colisão → sufixo `-2`, `-3`…
-- Insere linha em `lesson_overrides` com `order_index = max+1` e os campos preenchidos.
+- Gera `lesson_id` via `slugify(title)` (lowercase, sem acento, não-alfanumérico → hífen). Título vazio/só-símbolos → slug degenera pra `""` → **fallback `aula`**. Não existe helper `slugify` no repo — criar um.
+- Unicidade **dentro do módulo** contra catálogo **e** overrides (scan de `fetchLessonOverrides()` filtrado por módulo); colisão → sufixo `-2`, `-3`…
+- **`.insert()` (não `.upsert()`)** — assim uma corrida de dois creates com o mesmo título estoura no PK `(module_id, lesson_id)` em vez de sobrescrever silenciosamente.
+- Campos preenchidos + `order_index = max(effectiveOrder)+1`.
 - Retorna o `LessonAdminRow` novo.
 
 ### `PATCH /api/admin/lessons` — editar (já existe)
@@ -89,42 +91,52 @@ Mantém. Estendido para aceitar `order_index` opcional (não obrigatório aqui �
 
 ### `POST /api/admin/lessons/reorder` — reordenar módulo
 Body: `{ moduleId, lessonIds: string[] }` (ordem final das aulas do módulo).
-- Para cada `lessonId` na posição `i`: upsert `{ module_id, lesson_id, order_index: i }` com `onConflict: "module_id,lesson_id"`.
-- **Linha existente:** `ON CONFLICT DO UPDATE` toca **só** `order_index` (published/title/tella intactos).
-- **Linha nova** (aula de catálogo sem override): insert seta `order_index` + `published: true` explícito (bate com o default do catálogo e com o `default true` da coluna); demais campos ficam null → overlay cai no catálogo. Sem efeito colateral.
+- Upsert com **payload uniforme** `{ module_id, lesson_id, order_index }` (`onConflict: "module_id,lesson_id"`). ⚠️ O supabase-js aplica o **mesmo conjunto de colunas** como `ON CONFLICT DO UPDATE SET` para todas as linhas do batch — então o payload **só pode conter `order_index`** (nada de `published`).
+- **Linha existente:** `DO UPDATE SET order_index` — published/title/tella **intactos**.
+- **Linha nova** (aula de catálogo sem override): `published` cai no `default true` da coluna (= default do catálogo); title/tella/etc. ficam null → overlay cai no catálogo. Sem efeito colateral.
+- ❌ **Nunca** pôr `published` no payload de reorder: reescreveria `published = true` em rascunhos que o admin despublicou (regressão do Risco #1).
 
 ### `POST /api/admin/lessons/batch` — publicar/despublicar em lote
 Body: `{ keys: Array<{ moduleId, lessonId }>, published: boolean }`.
-- Upsert de `published` por chave (`onConflict` toca só `published`). Idem: linha nova de catálogo não apaga outros campos.
+- Upsert com payload uniforme `{ module_id, lesson_id, published }` (`onConflict` toca **só** `published`). Linha nova de catálogo: title/tella/order_index ficam null → overlay/ordem caem no catálogo, sem apagar nada.
 
 ### `DELETE /api/admin/lessons` — excluir aula só-Supabase
 Body: `{ moduleId, lessonId }`.
-- **Guard server-side:** se `(moduleId, lessonId)` existe no catálogo → `400` ("aula de catálogo não pode ser removida pelo painel"). Só remove a linha de `lesson_overrides` de aula criada no painel.
+- **Guard server-side:** se `(moduleId, lessonId)` existe no catálogo → `400` ("aula de catálogo não pode ser removida pelo painel"). Só remove aula criada no painel.
+- **Cascata:** apaga também `lesson_views` e `lesson_feedback` da chave — senão `getCompletedLessonKeys` retorna a chave órfã e o progresso/contagem do membro fica inflado ("X/total" acima do total).
 
 ### `GET /api/admin/lessons/feedback?moduleId=&lessonId=` — avaliações da aula
-- Retorna `{ avg, count, items: Array<{ rating, comment, userEmail, createdAt }> }`, ordenado por `created_at desc`.
-- Reaproveita o padrão de resolução de e-mail de `listRecentFeedback()`.
+- Retorna `{ avg, count, items: Array<{ rating, comment, userEmail, createdAt }> }`, ordenado por `created_at desc`, com **`limit` (ex.: 200)**.
+- Resolução de e-mail no padrão de `listRecentFeedback()` (`auth.admin.getUserById` por usuário **distinto** — N por usuários únicos, não por linha; ok pro volume atual).
 
-## Repositório — `src/lib/lessons/repository.ts`
+## Repositório — `src/lib/lessons/repository.ts` + tipos
 
-- `listLessonsForAdmin()`: além de iterar `COURSE`, incluir linhas de `lesson_overrides` **sem** correspondente no catálogo (aulas só-Supabase) no módulo delas; ordenar cada módulo por `effectiveOrder`. Emitir `origin: "catalog" | "custom"` e `orderIndex` no `LessonAdminRow`.
-- Novas funções: `createLesson()`, `reorderModule()`, `setPublishedBatch()`, `deleteCustomLesson()`, `listFeedbackForLesson()`.
-- `LessonAdminRow` (em `types.ts`) ganha `orderIndex: number | null` e `origin: "catalog" | "custom"`.
+- `LessonOverrideRow` (`types.ts`) ganha `order_index: number | null` (a coluna nova). `LessonAdminRow` ganha `orderIndex: number | null` e `origin: "catalog" | "custom"`.
+- `upsertLessonOverride()` passa a aceitar `orderIndex?` (o `PATCH` estendido usa esse caminho).
+- `listLessonsForAdmin()`: além de iterar `COURSE`, incluir linhas de `lesson_overrides` **sem** correspondente no catálogo (só-Supabase) no módulo delas; ordenar cada módulo por `effectiveOrder`. Emitir `origin` e `orderIndex`.
+- Novas funções: `createLesson()` (`.insert`), `reorderModule()`, `setPublishedBatch()`, `deleteCustomLesson()` (+ cascata analytics), `listFeedbackForLesson()`.
 
-## Lado dos membros — `src/lib/lessons/merge-course.ts` (o risco real)
+## Lado dos membros (o risco real)
 
-`getMergedCourse()` passa a:
-1. **Incluir** aulas só-Supabase **`published = true`** no módulo correspondente.
-2. **Ordenar** as aulas de cada módulo por `effectiveOrder`.
-3. Aula só-Supabase com `module_id` inexistente no catálogo → ignorada (não deveria acontecer; a UI restringe a módulos existentes).
-4. Não-publicadas (catálogo ou custom) nunca aparecem — comportamento atual preservado.
-5. Supabase não configurado → degrada pro catálogo puro (aulas custom somem, ordem volta à do YAML) — degradação que já existe hoje.
+### `src/lib/lessons/merge-course.ts` — `getMergedCourse()`
+1. **Incluir** aulas só-Supabase no módulo correspondente. Como a linha de override é a única fonte da aula custom, montar o `CourseLesson` sintético mapeando campos (`youtube_id`→`youtubeId`, `tella`, `title`, `duration`, `description`) com **null-guards** (defaults seguros; as colunas são nullable mesmo que `createLesson` preencha).
+2. Respeitar o branch `includeUnpublished`: custom não-publicada só aparece quando `includeUnpublished` (ex.: preview admin), igual às de catálogo.
+3. **Ordenar** cada módulo por `effectiveOrder`. Tie-break: catálogo antes de custom nos empates, depois `title`.
+4. Custom com `module_id` fora do catálogo → ignorada (a UI restringe a módulos existentes).
+5. **Módulo que ficou sem aulas publicadas → dropar do resultado** (ver crash abaixo).
+6. Supabase não configurado → degrada pro catálogo puro (custom somem, ordem volta ao YAML) — degradação já existente.
+
+### Módulo vazio quebra o player — `course-area.tsx:46-96`
+`pickInitial` e `activeLesson.tella` dão deref em `undefined` quando um módulo tem 0 aulas publicadas. Com o multiselect isso vira **um clique** (despublicar todas de um módulo). Blindar: `getMergedCourse` dropa módulos vazios **e** `course-area` trata "sem aulas" sem estourar.
+
+### Denominador de progresso / certificado — `src/lib/course/progress.ts:15-27`, `src/lib/admin/members.ts:33-34`
+`countPublishedLessons` e `countCourseLessons` contam **só o catálogo**. Se aula custom conta como concluída (`lesson_views`) mas fica fora do total → `concluídas > total` → certificado emitido cedo, "7 de 5 aulas", progresso >100%. **Atualizar os dois contadores** pra incluir custom publicadas, com o mesmo merge. Sem isso, adicionar aula quebra o progresso.
 
 ## UI — `admin-dashboard.tsx` + `.module.css`
 
 - **Agrupar a tabela por módulo** (subcabeçalho por módulo); reorder só faz sentido dentro do módulo.
 - **"Adicionar aula"**: botão perto do cabeçalho → modal (mesma cara do modal de editar) com `<select>` de módulo + campos + toggle publicado. `POST`.
-- **Reordenar**: alça de arrastar (`<button aria-label="Reordenar aula">`, `draggable`) por linha; drag nativo dentro do módulo; on drop calcula nova ordem, atualiza otimista e chama `/reorder`. Fallback de teclado leve (foco na alça + `ArrowUp`/`ArrowDown` move a aula).
+- **Reordenar**: alça de arrastar (`<button aria-label="Reordenar aula">`, `draggable`) por linha; drag nativo dentro do módulo; on drop calcula nova ordem, atualiza otimista e chama `/reorder`. **Se `/reorder` falhar, reverte a ordem local** (guarda snapshot anterior). Fallback de teclado leve (foco na alça + `ArrowUp`/`ArrowDown` move a aula).
 - **Multiselect**: coluna de checkbox + "selecionar todos" (por módulo); barra de ação que surge com seleção → **Publicar / Despublicar**. `POST /batch`.
 - **Preview (modal)**: troca o link externo por abrir modal com iframe `https://www.tella.tv/video/${tella}/embed?b=0&title=0&a=0` (mesmo padrão de `course-area.tsx:219`); fallback YouTube `youtube-nocookie.com/embed/...`; sem vídeo → placeholder. Mantém "Copiar link" e um "abrir no Tella" externo.
 - **Ver avaliações**: ícone (ex.: balão/estrela) **revelado no hover da linha** (`<button aria-label="Ver avaliações">`); clique abre modal com **média + total + lista de comentários** (rating, e-mail, data). Vazio → "Sem avaliações ainda". `GET /feedback`.

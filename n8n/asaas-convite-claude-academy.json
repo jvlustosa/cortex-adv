@@ -1,0 +1,169 @@
+{
+  "name": "Asaas · Convite Claude Academy (pós-assinatura)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "asaas/assinatura-claude-academy",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Webhook Asaas",
+      "webhookId": "asaas-assinatura-claude-academy"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": true } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [220, 0],
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Responder OK"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-token",
+              "leftValue": "={{ $('Webhook Asaas').item.json.headers['asaas-access-token'] }}",
+              "rightValue": "={{ $env.ASAAS_WEBHOOK_TOKEN }}",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "id": "cond-event",
+              "leftValue": "={{ $('Webhook Asaas').item.json.body.event }}",
+              "rightValue": "PAYMENT_CONFIRMED",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "id": "cond-produto",
+              "leftValue": "={{ $('Webhook Asaas').item.json.body.payment.description || '' }}",
+              "rightValue": "Claude",
+              "operator": { "type": "string", "operation": "contains" }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [440, 0],
+      "id": "a1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Assinatura Claude confirmada?"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.asaas.com/v3/customers/{{ $('Webhook Asaas').item.json.body.payment.customer }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "access_token", "value": "={{ $env.ASAAS_API_KEY }}" }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, -40],
+      "id": "a1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Buscar cliente Asaas"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://claudeacademy.chatjuridico.com.br/api/invites/issue",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.INVITE_ISSUE_SECRET }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $json.email, name: $json.name }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, -40],
+      "id": "a1b2c3d4-0005-4000-8000-000000000005",
+      "name": "Emitir convite"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inv = $input.first().json;\nconst cust = $('Buscar cliente Asaas').first().json;\nconst nome = cust.name || '(sem nome)';\nconst email = cust.email || '(sem e-mail)';\nconst ok = inv.statusCode === 200;\nconst painel = 'https://claudeacademy.chatjuridico.com.br/admin';\nlet text;\nif (ok) {\n  text = '✅ *Convite Claude Academy enviado* (assinatura Asaas)\\nNome: ' + nome + '\\nE-mail: ' + email;\n} else {\n  const body = inv.body || {};\n  const erro = body.error || ('HTTP ' + inv.statusCode);\n  text = '⚠️ *Convite NÃO saiu automático — gere na mão* (assinatura Asaas)\\nNome: ' + nome + '\\nE-mail: ' + email + '\\nErro: ' + erro + '\\nPainel de convites: ' + painel;\n}\nreturn [{ json: { slackText: text, ok: ok, nome: nome, email: email } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, -40],
+      "id": "a1b2c3d4-0006-4000-8000-000000000006",
+      "name": "Montar aviso Slack"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "COLE_AQUI_O_SLACK_INCOMING_WEBHOOK_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.slackText }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, -40],
+      "id": "a1b2c3d4-0007-4000-8000-000000000007",
+      "name": "Avisar no Slack"
+    }
+  ],
+  "connections": {
+    "Webhook Asaas": {
+      "main": [[{ "node": "Responder OK", "type": "main", "index": 0 }]]
+    },
+    "Responder OK": {
+      "main": [[{ "node": "Assinatura Claude confirmada?", "type": "main", "index": 0 }]]
+    },
+    "Assinatura Claude confirmada?": {
+      "main": [
+        [{ "node": "Buscar cliente Asaas", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Buscar cliente Asaas": {
+      "main": [[{ "node": "Emitir convite", "type": "main", "index": 0 }]]
+    },
+    "Emitir convite": {
+      "main": [[{ "node": "Montar aviso Slack", "type": "main", "index": 0 }]]
+    },
+    "Montar aviso Slack": {
+      "main": [[{ "node": "Avisar no Slack", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "a0b4bbfe96aa037add6f0af65f05098548844ef559ab27b5c3b5ecfb019fabdc"
+  }
+}

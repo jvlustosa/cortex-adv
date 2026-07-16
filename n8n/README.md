@@ -61,3 +61,71 @@ curl -X POST https://flowhook.chatjuridico.com/webhook/formulario/waitlist-claud
 ```
 
 Espera-se `{"ok": true}`, uma nova linha na planilha e a mensagem no Slack.
+
+---
+
+# n8n — Convite Claude Academy pós-assinatura Asaas
+
+Quando alguém **assina no Asaas**, este fluxo cria o convite e manda por e-mail
+(SendGrid). Se o envio automático falhar, joga os dados da pessoa no Slack para
+alguém **gerar o convite na mão**. Arquivo: `asaas-convite-claude-academy.json`.
+
+## Fluxo de dados
+
+```
+Asaas (webhook PAYMENT_CONFIRMED)
+  → Webhook n8n → Responder OK (200 imediato pro Asaas)
+  → IF (token do webhook confere? evento = PAYMENT_CONFIRMED? descrição contém "Claude"?)
+      → Buscar cliente na API Asaas (pega e-mail + nome)
+      → Emitir convite: POST /api/invites/issue (cria token + envia e-mail)
+      → Avisar no Slack:  ✅ enviado  |  ⚠️ falhou → gere na mão (dados + link /admin)
+```
+
+O e-mail de convite sai **do app** (`/api/invites/issue`), não do n8n — assim o
+link `/signup?token=` e a chave do SendGrid não transitam pelo n8n. O endpoint
+**não** devolve o token na resposta (é credencial de acesso). Em falha de envio
+ele responde 502, e aí o Slack traz nome/e-mail + link do painel de convites.
+
+- **Webhook de produção:** `https://flowhook.chatjuridico.com/webhook/asaas/assinatura-claude-academy`
+- **Endpoint chamado:** `POST https://claudeacademy.chatjuridico.com.br/api/invites/issue`
+
+## Variáveis de ambiente (no n8n, não no Vercel)
+
+O n8n é outro sistema — estas vão no **ambiente do n8n** (Settings → Variables,
+ou `.env` da instância), não bastam no Vercel:
+
+| Var | Uso |
+|-----|-----|
+| `ASAAS_WEBHOOK_TOKEN` | confere o header `asaas-access-token` que o Asaas envia |
+| `ASAAS_API_KEY` | header `access_token` no GET do cliente na API Asaas (atenção: chaves de produção Asaas normalmente têm o `$` inicial) |
+| `INVITE_ISSUE_SECRET` | header `x-api-key` no POST do convite — **igual** ao do Vercel do app |
+
+`INVITE_ISSUE_SECRET` precisa ser o **mesmo valor** aqui e no Vercel do app.
+
+## Importar e configurar
+
+1. No n8n: **Workflows → Import from File** → `asaas-convite-claude-academy.json`.
+2. Defina as 3 variáveis acima no ambiente do n8n.
+3. **Avisar no Slack** (HTTP Request): troque `COLE_AQUI_O_SLACK_INCOMING_WEBHOOK_URL`
+   pelo Incoming Webhook do canal (pode ser o mesmo da waitlist).
+4. No **Asaas** (Configurações → Integrações → Webhooks): aponte para o webhook
+   de produção, marque o evento **PAYMENT_CONFIRMED** e use o token de acesso
+   igual a `ASAAS_WEBHOOK_TOKEN`.
+5. **Ative** o workflow.
+
+> **Filtro de produto:** o IF exige a descrição do pagamento conter `Claude`.
+> Se a conta Asaas vende só o Claude Academy — ou se as assinaturas não trazem
+> "Claude" na descrição — remova a condição `cond-produto` do nó
+> **Assinatura Claude confirmada?** para não perder assinantes.
+
+## Testar
+
+```bash
+curl -X POST https://flowhook.chatjuridico.com/webhook/asaas/assinatura-claude-academy \
+  -H 'Content-Type: application/json' \
+  -H 'asaas-access-token: <ASAAS_WEBHOOK_TOKEN>' \
+  -d '{"event":"PAYMENT_CONFIRMED","payment":{"customer":"cus_000xxxxx","description":"Assinatura Claude Academy"}}'
+```
+
+Espera-se `{"ok": true}`, o e-mail de convite na caixa do cliente e a mensagem
+no Slack (✅ enviado, ou ⚠️ com os dados para gerar na mão).
