@@ -128,7 +128,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
+      <header className="relative z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
         <div
           className={cn(
             pageShellClass,
@@ -138,24 +138,7 @@ export default function Home() {
           <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
           <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
           <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
-            <a
-              href="#precos"
-              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
-            >
-              Preços
-            </a>
-            <Link
-              href="/quiz"
-              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
-            >
-              Quiz
-            </Link>
-            <a
-              href="#comunidade"
-              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
-            >
-              Comunidade
-            </a>
+            <HeaderMarketingNav />
             <HeaderAuthCta />
             <HeaderBuyCta />
             <LandingMobileMenu />
