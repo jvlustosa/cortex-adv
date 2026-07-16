@@ -176,6 +176,8 @@ function VideoCell({
 
 function LessonRow({
   lesson,
+  selected,
+  onToggle,
   onCopy,
   onEdit,
   onPreview,
@@ -183,14 +185,25 @@ function LessonRow({
   onDelete,
 }: {
   lesson: LessonAdminRow;
+  selected: Set<string>;
+  onToggle: (key: string) => void;
   onCopy: (text: string) => void;
   onEdit: (l: LessonAdminRow) => void;
   onPreview: (l: LessonAdminRow) => void;
   onFeedback: (l: LessonAdminRow) => void;
   onDelete: (l: LessonAdminRow) => void;
 }) {
+  const key = `${lesson.moduleId}:${lesson.lessonId}`;
   return (
     <tr className={styles.lessonRow}>
+      <td>
+        <input
+          type="checkbox"
+          checked={selected.has(key)}
+          onChange={() => onToggle(key)}
+          aria-label={`Selecionar ${lesson.title}`}
+        />
+      </td>
       <td>
         <strong>{lesson.title}</strong>
         <br />
@@ -422,6 +435,7 @@ export function AdminDashboard() {
     tella: "",
     published: false,
   });
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const [members, setMembers] = useState<MemberAdminRow[]>([]);
   const [memberTotals, setMemberTotals] = useState<MemberTotals | null>(null);
@@ -459,6 +473,7 @@ export function AdminDashboard() {
     setLessons(lessonsData.lessons);
     setLessonTotals(lessonsData.totals);
     setFeedback(feedbackData.feedback);
+    setSelected(new Set());
   }, []);
 
   const loadMembers = useCallback(async () => {
@@ -642,6 +657,48 @@ export function AdminDashboard() {
     }
   }
 
+  function toggleSelected(key: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  function toggleModuleSelected(keys: string[], on: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const k of keys) {
+        if (on) next.add(k);
+        else next.delete(k);
+      }
+      return next;
+    });
+  }
+
+  async function bulkPublish(published: boolean) {
+    if (selected.size === 0) return;
+    const keys = Array.from(selected).map((k) => {
+      const [moduleId, lessonId] = k.split(":");
+      return { moduleId, lessonId };
+    });
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/lessons/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keys, published }),
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Erro no lote."));
+      }
+      await loadLessons();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro no lote.");
+    }
+  }
+
   async function resendInvite(invite: InviteItem) {
     setResendingId(invite.id);
     setInviteResend(null);
@@ -804,10 +861,37 @@ export function AdminDashboard() {
                 Adicionar aula
               </button>
             </div>
+            {selected.size > 0 ? (
+              <div className={styles.bulkBar}>
+                <span>{selected.size} selecionada(s)</span>
+                <button
+                  type="button"
+                  className={styles.editBtn}
+                  onClick={() => void bulkPublish(true)}
+                >
+                  Publicar
+                </button>
+                <button
+                  type="button"
+                  className={styles.editBtn}
+                  onClick={() => void bulkPublish(false)}
+                >
+                  Despublicar
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  onClick={() => setSelected(new Set())}
+                >
+                  Limpar
+                </button>
+              </div>
+            ) : null}
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
                   <tr>
+                    <th />
                     <th>Aula</th>
                     <th>Views</th>
                     <th>Nota</th>
@@ -820,12 +904,31 @@ export function AdminDashboard() {
                   {groupByModule(lessons).map((group) => (
                     <Fragment key={group.moduleId}>
                       <tr className={styles.moduleRow}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            aria-label={`Selecionar todas de ${group.moduleTitle}`}
+                            checked={group.lessons.every((l) =>
+                              selected.has(`${l.moduleId}:${l.lessonId}`),
+                            )}
+                            onChange={(e) =>
+                              toggleModuleSelected(
+                                group.lessons.map(
+                                  (l) => `${l.moduleId}:${l.lessonId}`,
+                                ),
+                                e.target.checked,
+                              )
+                            }
+                          />
+                        </td>
                         <td colSpan={6}>{group.moduleTitle}</td>
                       </tr>
                       {group.lessons.map((lesson) => (
                         <LessonRow
                           key={`${lesson.moduleId}:${lesson.lessonId}`}
                           lesson={lesson}
+                          selected={selected}
+                          onToggle={toggleSelected}
                           onCopy={copyText}
                           onEdit={openEdit}
                           onPreview={setPreviewLesson}
