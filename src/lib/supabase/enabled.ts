@@ -73,3 +73,14 @@ export function isServiceRoleConfigured(): boolean {
   if (key.startsWith("sb_secret_")) return true;
   return key.startsWith("eyJ") && key.length >= 200;
 }
+
+/**
+ * Fonte do conteúdo do curso. Enquanto o DB não estiver migrado + semeado, o
+ * runtime lê o catálogo estático (course.yml) + overlay de lesson_overrides.
+ * Defina COURSE_SOURCE=db (server-only) para ler das tabelas nativas
+ * courses/modules/lessons. Cutover deliberado e reversível — ver PRD
+ * course-db-native. Sem a flag ligada, comportamento idêntico ao de hoje.
+ */
+export function isDbCourseSource(): boolean {
+  return process.env.COURSE_SOURCE === "db";
+}

@@ -8,6 +8,7 @@ import { LAUNCH } from "@/lib/pricing";
 import {
   LAUNCH_CLOSES_AT,
   LAUNCH_CLOSES_LABEL,
+  LAUNCH_OPENS_AT,
   LAUNCH_OPENS_LABEL,
   formatRemaining,
 } from "@/lib/launch-window";
@@ -20,6 +21,8 @@ export function LaunchBanner() {
   const { now, phase } = useLaunchState();
   const remaining =
     now && phase === "live" ? formatRemaining(now, LAUNCH_CLOSES_AT) : "";
+  const opensIn =
+    now && phase === "before" ? formatRemaining(now, LAUNCH_OPENS_AT) : "";
 
   const spots = <strong className={styles.spots}>{LAUNCH.spots} vagas</strong>;
 
@@ -51,7 +54,8 @@ export function LaunchBanner() {
       badge = LAUNCH.cohort;
       message = (
         <>
-          Abre <strong>{LAUNCH_OPENS_LABEL}</strong> — {spots} no preço de
+          Abre {opensIn ? <>em <strong>{opensIn}</strong> · </> : ""}
+          <strong>{LAUNCH_OPENS_LABEL}</strong> — {spots} no preço de
           lançamento
         </>
       );
