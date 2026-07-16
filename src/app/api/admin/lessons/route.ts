@@ -22,6 +22,7 @@ type PatchBody = {
   moduleId?: string;
   lessonId?: string;
   youtubeId?: string | null;
+  tella?: string | null;
   duration?: string | null;
   title?: string | null;
   description?: string | null;
@@ -51,6 +52,7 @@ export async function PATCH(request: Request) {
       moduleId: body.moduleId,
       lessonId: body.lessonId,
       youtubeId: body.youtubeId,
+      tella: body.tella,
       duration: body.duration,
       title: body.title,
       description: body.description,

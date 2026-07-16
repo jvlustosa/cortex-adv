@@ -21,6 +21,7 @@ function applyOverride(
     duration: override.duration ?? lesson.duration,
     description: override.description ?? lesson.description,
     youtubeId: override.youtube_id ?? lesson.youtubeId,
+    tella: override.tella ?? lesson.tella,
     published: override.published,
   };
 }

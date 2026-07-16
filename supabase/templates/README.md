@@ -18,6 +18,20 @@ correspondente e clique em **Save changes**:
 | `reset-password.html` | Reset password |
 | `reauthentication.html` | Reauthentication |
 
+## Assuntos (Subject heading)
+
+O assunto é um campo separado no dashboard (acima do corpo, em cada template) — não fica
+no HTML. Padrão de fábrica vem em inglês; aplique estes em pt-BR:
+
+| Template no Supabase | Subject heading |
+|---|---|
+| Magic link or OTP | Seu link de acesso ao Claude Academy |
+| Confirm sign up | Confirme seu cadastro no Claude Academy |
+| Invite user | Você foi convidado para o Claude Academy |
+| Change email address | Confirme seu novo e-mail |
+| Reset password | Redefinir sua senha do Claude Academy |
+| Reauthentication | Seu código de verificação |
+
 ## Regra de link (não quebrar)
 
 - **Magic link / Confirm / Invite / Change email** usam o fluxo SSR `token_hash`:

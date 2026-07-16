@@ -139,6 +139,27 @@
   border-color: rgba(217, 119, 87, 0.45);
 }
 
+.dangerBtn {
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.1);
+  font-size: 0.72rem;
+  color: var(--danger);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.dangerBtn:hover {
+  border-color: var(--danger);
+}
+
+.editBtn:disabled,
+.dangerBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .modalBackdrop {
   position: fixed;
   inset: 0;

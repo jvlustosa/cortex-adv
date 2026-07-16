@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "course:build": "node scripts/build-course-content.mjs",
+    "course:video-seed": "node scripts/course-video-seed.mjs",
     "og": "node scripts/generate-og-images.mjs",
     "qr": "node scripts/generate-qr.mjs",
     "favicon": "node scripts/generate-favicon.mjs",

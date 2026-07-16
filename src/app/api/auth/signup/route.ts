@@ -85,11 +85,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Convite inválido ou inexistente." }, { status: 400 });
   }
 
+  // Nome do convite vira display name (full_name) — o trigger sync_user_from_auth
+  // espelha em public.users. Falha aqui não impede o cadastro.
+  const { data: recipientRow } = await admin
+    .from("invite_tokens")
+    .select("recipient_name")
+    .eq("id", invite.id)
+    .maybeSingle();
+  const fullName = recipientRow?.recipient_name?.trim() || undefined;
+
   const { error: createErr } = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
-    user_metadata: { invite_token_id: invite.id },
+    user_metadata: {
+      invite_token_id: invite.id,
+      ...(fullName ? { full_name: fullName } : {}),
+    },
   });
 
   if (createErr) {

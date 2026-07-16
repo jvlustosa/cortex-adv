@@ -1,3 +1,5 @@
+export type InviteTitle = "dr" | "dra";
+
 export type InviteTokenRow = {
   id: string;
   token: string;
@@ -7,6 +9,9 @@ export type InviteTokenRow = {
   expires_at: string | null;
   active: boolean;
   created_at: string;
+  recipient_name: string | null;
+  recipient_email: string | null;
+  recipient_title: InviteTitle | null;
 };
 
 export type CreateInviteInput = {
@@ -14,6 +19,9 @@ export type CreateInviteInput = {
   maxUses?: number;
   expiresAt?: string | Date | null;
   token?: string;
+  recipientName?: string | null;
+  recipientEmail?: string | null;
+  recipientTitle?: InviteTitle | string | null;
 };
 
 export type CreatedInvite = {
@@ -25,5 +33,8 @@ export type CreatedInvite = {
   expiresAt: string | null;
   active: boolean;
   createdAt: string;
+  recipientName: string | null;
+  recipientEmail: string | null;
+  recipientTitle: InviteTitle | null;
   signupUrl: string;
 };

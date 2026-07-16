@@ -19,15 +19,19 @@ const inputClass =
 
 type SignupFormProps = {
   initialToken: string;
+  initialEmail?: string;
 };
 
-export function SignupForm({ initialToken }: SignupFormProps) {
+export function SignupForm({ initialToken, initialEmail = "" }: SignupFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = safeRedirectPath(searchParams.get("next"));
 
   const [token, setToken] = useState(initialToken);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
+  // Link de convite já traz o token: esconde o campo (a pessoa só define a senha).
+  // Sem token na URL, o campo aparece como fallback pra colar o código.
+  const hasInviteToken = initialToken.trim().length > 0;
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<
     "idle" | "loading" | "error" | "success"
@@ -175,18 +179,22 @@ export function SignupForm({ initialToken }: SignupFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-      <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
-        Token de convite
-        <input
-          type="text"
-          required
-          autoComplete="off"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          className={inputClass}
-          placeholder="Cole o código recebido"
-        />
-      </label>
+      {hasInviteToken ? (
+        <input type="hidden" value={token} readOnly />
+      ) : (
+        <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
+          Token de convite
+          <input
+            type="text"
+            required
+            autoComplete="off"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            className={inputClass}
+            placeholder="Cole o código recebido"
+          />
+        </label>
+      )}
       <label className="flex flex-col gap-2 text-sm text-[var(--muted)]">
         E-mail
         <input

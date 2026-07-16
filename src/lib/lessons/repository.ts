@@ -86,6 +86,7 @@ export async function listLessonsForAdmin(): Promise<{
         duration: override?.duration ?? lesson.duration,
         description: override?.description ?? lesson.description,
         youtubeId: override?.youtube_id ?? lesson.youtubeId ?? null,
+        tella: override?.tella ?? lesson.tella ?? null,
         published: override?.published ?? true,
         viewCount: viewMap.get(key) ?? 0,
         feedbackCount: feedback?.count ?? 0,
@@ -122,6 +123,7 @@ export async function upsertLessonOverride(input: {
   moduleId: string;
   lessonId: string;
   youtubeId?: string | null;
+  tella?: string | null;
   duration?: string | null;
   title?: string | null;
   description?: string | null;
@@ -139,6 +141,7 @@ export async function upsertLessonOverride(input: {
   };
 
   if (input.youtubeId !== undefined) payload.youtube_id = input.youtubeId;
+  if (input.tella !== undefined) payload.tella = input.tella;
   if (input.duration !== undefined) payload.duration = input.duration;
   if (input.title !== undefined) payload.title = input.title;
   if (input.description !== undefined) payload.description = input.description;

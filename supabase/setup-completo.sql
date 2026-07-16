@@ -215,6 +215,9 @@ create table if not exists public.invite_tokens (
   expires_at timestamptz,
   active boolean not null default true,
   created_at timestamptz not null default now(),
+  recipient_name text,
+  recipient_email text,
+  recipient_title text check (recipient_title in ('dr', 'dra')),
   constraint invite_tokens_used_lte_max check (used_count <= max_uses)
 );
 
@@ -352,6 +355,7 @@ create table if not exists public.lesson_overrides (
   module_id text not null,
   lesson_id text not null,
   youtube_id text,
+  tella text,
   duration text,
   title text,
   description text,

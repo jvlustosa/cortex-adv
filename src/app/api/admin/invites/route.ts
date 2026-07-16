@@ -27,6 +27,9 @@ type PostBody = {
   maxUses?: number;
   expiresAt?: string | null;
   token?: string;
+  recipientName?: string | null;
+  recipientEmail?: string | null;
+  recipientTitle?: string | null;
 };
 
 export async function POST(request: Request) {
@@ -53,6 +56,12 @@ export async function POST(request: Request) {
       maxUses: Number.isFinite(maxUses) ? maxUses : undefined,
       expiresAt: body.expiresAt ?? undefined,
       token: typeof body.token === "string" ? body.token : undefined,
+      recipientName:
+        typeof body.recipientName === "string" ? body.recipientName : undefined,
+      recipientEmail:
+        typeof body.recipientEmail === "string" ? body.recipientEmail : undefined,
+      recipientTitle:
+        typeof body.recipientTitle === "string" ? body.recipientTitle : undefined,
     });
 
     return NextResponse.json({ ok: true, invite });

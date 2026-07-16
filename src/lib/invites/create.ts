@@ -1,9 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateInviteToken } from "./generate-token";
 import { buildSignupUrl } from "./signup-url";
+import { normalizeInviteTitle } from "./recipient";
 import type { CreateInviteInput, CreatedInvite, InviteTokenRow } from "./types";
 
 const MAX_TOKEN_ATTEMPTS = 5;
+
+const INVITE_COLUMNS =
+  "id, token, label, max_uses, used_count, expires_at, active, created_at, recipient_name, recipient_email, recipient_title";
 
 function normalizeExpiresAt(value: CreateInviteInput["expiresAt"]): string | null {
   if (value == null || value === "") return null;
@@ -12,6 +16,16 @@ function normalizeExpiresAt(value: CreateInviteInput["expiresAt"]): string | nul
     throw new Error("expiresAt inválido.");
   }
   return date.toISOString();
+}
+
+function normalizeText(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function normalizeEmail(value: string | null | undefined): string | null {
+  const normalized = normalizeText(value);
+  return normalized ? normalized.toLowerCase() : null;
 }
 
 function toCreatedInvite(row: InviteTokenRow): CreatedInvite {
@@ -24,6 +38,9 @@ function toCreatedInvite(row: InviteTokenRow): CreatedInvite {
     expiresAt: row.expires_at,
     active: row.active,
     createdAt: row.created_at,
+    recipientName: row.recipient_name,
+    recipientEmail: row.recipient_email,
+    recipientTitle: row.recipient_title,
     signupUrl: buildSignupUrl(row.token),
   };
 }
@@ -49,6 +66,9 @@ export async function createInviteToken(
   const label = input.label?.trim() || null;
   const expiresAt = normalizeExpiresAt(input.expiresAt);
   const customToken = input.token?.trim();
+  const recipientName = normalizeText(input.recipientName);
+  const recipientEmail = normalizeEmail(input.recipientEmail);
+  const recipientTitle = normalizeInviteTitle(input.recipientTitle);
 
   for (let attempt = 0; attempt < MAX_TOKEN_ATTEMPTS; attempt++) {
     const token = customToken || generateInviteToken();
@@ -60,10 +80,11 @@ export async function createInviteToken(
         label,
         max_uses: maxUses,
         expires_at: expiresAt,
+        recipient_name: recipientName,
+        recipient_email: recipientEmail,
+        recipient_title: recipientTitle,
       })
-      .select(
-        "id, token, label, max_uses, used_count, expires_at, active, created_at",
-      )
+      .select(INVITE_COLUMNS)
       .single();
 
     if (!error && data) {

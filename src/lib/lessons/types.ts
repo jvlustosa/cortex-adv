@@ -2,6 +2,8 @@ export type LessonOverrideRow = {
   module_id: string;
   lesson_id: string;
   youtube_id: string | null;
+  /** Slug do vídeo no Tella. Tem prioridade sobre youtube_id (regra do player). */
+  tella: string | null;
   duration: string | null;
   title: string | null;
   description: string | null;
@@ -35,6 +37,7 @@ export type LessonAdminRow = {
   duration: string;
   description: string;
   youtubeId: string | null;
+  tella: string | null;
   published: boolean;
   viewCount: number;
   feedbackCount: number;

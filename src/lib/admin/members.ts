@@ -1,4 +1,5 @@
 import { COURSE } from "@/data/course-content";
+import { grantMemberAccess, type GrantAccessResult } from "@/lib/access/grant";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type MemberAdminRow = {
@@ -11,7 +12,16 @@ export type MemberAdminRow = {
   progressPercent: number;
   feedbackCount: number;
   avgRatingGiven: number | null;
+  banned: boolean;
 };
+
+/** Banimento efetivamente permanente (~100 anos). Reversível via "none". */
+const BAN_DURATION = "876000h";
+
+function isBanned(bannedUntil?: string | null): boolean {
+  if (!bannedUntil) return false;
+  return new Date(bannedUntil).getTime() > Date.now();
+}
 
 export type MemberTotals = {
   members: number;
@@ -31,7 +41,12 @@ export async function listMembersForAdmin(): Promise<{
   const admin = createAdminClient();
   const totalLessons = countCourseLessons();
 
-  const users: { id: string; email?: string; created_at?: string }[] = [];
+  const users: {
+    id: string;
+    email?: string;
+    created_at?: string;
+    banned_until?: string | null;
+  }[] = [];
   let page = 1;
 
   while (true) {
@@ -46,6 +61,7 @@ export async function listMembersForAdmin(): Promise<{
         id: u.id,
         email: u.email,
         created_at: u.created_at,
+        banned_until: (u as { banned_until?: string | null }).banned_until,
       })),
     );
 
@@ -140,6 +156,7 @@ export async function listMembersForAdmin(): Promise<{
           feedback && feedback.count > 0
             ? Math.round((feedback.sum / feedback.count) * 10) / 10
             : null,
+        banned: isBanned(user.banned_until),
       };
     })
     .sort((a, b) => {
@@ -158,4 +175,35 @@ export async function listMembersForAdmin(): Promise<{
       totalViews: totalViewsAll,
     },
   };
+}
+
+/**
+ * Gera um novo link de acesso (magic link) para um membro existente, para o
+ * admin reenviar pelo canal que preferir. Reaproveita o fluxo idempotente de
+ * grantMemberAccess — resolve o e-mail pelo id para não confiar no cliente.
+ */
+export async function resendMemberAccess(
+  memberId: string,
+): Promise<GrantAccessResult> {
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.getUserById(memberId);
+  if (error || !data.user?.email) {
+    throw new Error(error?.message ?? "Membro não encontrado.");
+  }
+  return grantMemberAccess(data.user.email);
+}
+
+/**
+ * Bane (bloqueia login) ou desbane um membro. Banimento é reversível: mantém
+ * conta, progresso e feedback; apenas impede novos logins até desbanir.
+ */
+export async function setMemberBanned(
+  memberId: string,
+  banned: boolean,
+): Promise<void> {
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(memberId, {
+    ban_duration: banned ? BAN_DURATION : "none",
+  });
+  if (error) throw new Error(error.message);
 }
