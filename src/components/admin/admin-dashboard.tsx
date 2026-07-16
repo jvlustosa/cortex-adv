@@ -88,6 +88,17 @@ function lessonVideo(
   return null;
 }
 
+/** URL de embed pro player inline (mesma regra do lado membro). */
+function lessonEmbedUrl(lesson: LessonAdminRow): string | null {
+  if (lesson.tella) {
+    return `https://www.tella.tv/video/${lesson.tella}/embed?b=0&title=0&a=0`;
+  }
+  if (lesson.youtubeId) {
+    return `https://www.youtube-nocookie.com/embed/${lesson.youtubeId}`;
+  }
+  return null;
+}
+
 type LessonGroup = {
   moduleId: string;
   moduleTitle: string;
@@ -115,23 +126,24 @@ function groupByModule(lessons: LessonAdminRow[]): LessonGroup[] {
 function VideoCell({
   lesson,
   onCopy,
+  onPreview,
 }: {
   lesson: LessonAdminRow;
   onCopy: (text: string) => void;
+  onPreview: (l: LessonAdminRow) => void;
 }) {
   const video = lessonVideo(lesson);
   if (!video) return <span className={styles.feedbackMeta}>Sem vídeo</span>;
 
   return (
     <div className={styles.rowActions}>
-      <a
+      <button
+        type="button"
         className={styles.editBtn}
-        href={video.url}
-        target="_blank"
-        rel="noopener noreferrer"
+        onClick={() => onPreview(lesson)}
       >
         Preview ({video.label})
-      </a>
+      </button>
       <button
         type="button"
         className={styles.editBtn}
@@ -139,6 +151,14 @@ function VideoCell({
       >
         Copiar link
       </button>
+      <a
+        className={styles.editBtn}
+        href={video.url}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Abrir
+      </a>
     </div>
   );
 }
@@ -147,10 +167,12 @@ function LessonRow({
   lesson,
   onCopy,
   onEdit,
+  onPreview,
 }: {
   lesson: LessonAdminRow;
   onCopy: (text: string) => void;
   onEdit: (l: LessonAdminRow) => void;
+  onPreview: (l: LessonAdminRow) => void;
 }) {
   return (
     <tr>
@@ -182,7 +204,7 @@ function LessonRow({
         </span>
       </td>
       <td>
-        <VideoCell lesson={lesson} onCopy={onCopy} />
+        <VideoCell lesson={lesson} onCopy={onCopy} onPreview={onPreview} />
       </td>
       <td>
         <button
@@ -197,6 +219,57 @@ function LessonRow({
   );
 }
 
+function PreviewModal({
+  lesson,
+  onClose,
+}: {
+  lesson: LessonAdminRow;
+  onClose: () => void;
+}) {
+  const url = lessonEmbedUrl(lesson);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
+      <div
+        className={styles.modalWide}
+        role="dialog"
+        aria-label={`Preview: ${lesson.title}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={styles.modalHead}>
+          <h2 className={styles.modalTitle}>{lesson.title}</h2>
+          <button
+            type="button"
+            className={styles.editBtn}
+            onClick={onClose}
+            aria-label="Fechar preview"
+          >
+            Fechar
+          </button>
+        </div>
+        {url ? (
+          <div className={styles.playerWrap}>
+            <iframe
+              src={url}
+              title={lesson.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className={styles.player}
+            />
+          </div>
+        ) : (
+          <p className={styles.empty}>Sem vídeo configurado.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("aulas");
   const [loading, setLoading] = useState(true);
@@ -206,6 +279,9 @@ export function AdminDashboard() {
   const [lessonTotals, setLessonTotals] = useState<AdminTotals | null>(null);
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [editing, setEditing] = useState<EditState>(null);
+  const [previewLesson, setPreviewLesson] = useState<LessonAdminRow | null>(
+    null,
+  );
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -516,6 +592,7 @@ export function AdminDashboard() {
                           lesson={lesson}
                           onCopy={copyText}
                           onEdit={openEdit}
+                          onPreview={setPreviewLesson}
                         />
                       ))}
                     </Fragment>
@@ -916,6 +993,13 @@ export function AdminDashboard() {
             </div>
           </div>
         </div>
+      ) : null}
+
+      {previewLesson ? (
+        <PreviewModal
+          lesson={previewLesson}
+          onClose={() => setPreviewLesson(null)}
+        />
       ) : null}
     </div>
   );
