@@ -1,7 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 const testEmail = process.env.TEST_USER_EMAIL;
-const testPassword = process.env.TEST_USER_PASSWORD;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let authMode: "demo" | "auth" = "demo";
 
@@ -10,6 +12,36 @@ test.beforeAll(async ({ request }) => {
   const html = await res.text();
   authMode = html.includes("Em breve") && html.includes("modo demo") ? "demo" : "auth";
 });
+
+/**
+ * Estabelece sessão de membro sem UI: gera um magic link pela admin API e segue
+ * a rota /auth/confirm real (verifyOtp grava o cookie SSR). É o equivalente e2e
+ * de clicar no link do e-mail — não há login por senha para automatizar.
+ * Retorna false (em vez de quebrar) quando faltam credenciais ou o usuário não
+ * existe, para o teste pular com uma mensagem honesta.
+ */
+async function signInViaMagicLink(page: Page, email: string): Promise<boolean> {
+  if (!supabaseUrl || !serviceRoleKey || serviceRoleKey.includes("placeholder")) {
+    return false;
+  }
+
+  const admin = createAdminClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email,
+  });
+
+  const tokenHash = data?.properties?.hashed_token;
+  if (error || !tokenHash) return false;
+
+  await page.goto(
+    `/auth/confirm?token_hash=${tokenHash}&type=magiclink&next=/area-de-membros`,
+  );
+  return true;
+}
 
 test.describe("Login e acesso ao curso", () => {
   test("página de login carrega", async ({ page }) => {
@@ -44,17 +76,55 @@ test.describe("Login e acesso ao curso", () => {
 
     await page.goto("/area-de-membros");
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.url).toContain("next=");
+    expect(page.url()).toContain("next=");
+  });
+
+  test("modo auth: formulário é magic-link, sem senha", async ({ page }) => {
+    test.skip(authMode !== "auth", "modo demo ativo");
+
+    await page.goto("/login");
+    await expect(page.getByPlaceholder("voce@escritorio.com.br")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Receber link de acesso" }),
+    ).toBeVisible();
+    // Login é passwordless: não deve existir campo de senha.
+    await expect(page.getByLabel("Senha")).toHaveCount(0);
+  });
+
+  test("modo auth: pedir link mostra estado neutro sem revelar conta", async ({
+    page,
+  }) => {
+    test.skip(authMode !== "auth", "modo demo ativo");
+
+    // Intercepta o OTP do Supabase: não dispara e-mail real e mantém o teste
+    // determinístico. Conta inexistente cai no mesmo estado neutro do sucesso
+    // (anti-enumeração), então uma resposta OK reproduz o caminho observável.
+    await page.route("**/auth/v1/otp**", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: "{}",
+      }),
+    );
+
+    await page.goto("/login");
+    const email = "sem-conta-e2e@example.com";
+    await page.getByPlaceholder("voce@escritorio.com.br").fill(email);
+    await page.getByRole("button", { name: "Receber link de acesso" }).click();
+
+    await expect(page.getByText("Confira seu e-mail")).toBeVisible();
+    await expect(page.getByText(email)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Usar outro e-mail" }),
+    ).toBeVisible();
   });
 
   test("membro autenticado acessa catálogo e aula", async ({ page }) => {
     test.skip(authMode !== "auth", "modo demo ativo");
-    test.skip(!testEmail || !testPassword, "Defina TEST_USER_EMAIL e TEST_USER_PASSWORD");
+    test.skip(!testEmail, "Defina TEST_USER_EMAIL (membro real) para o fluxo autenticado");
 
-    await page.goto("/login?next=/area-de-membros");
-    await page.getByPlaceholder("voce@escritorio.com.br").fill(testEmail!);
-    await page.getByLabel("Senha").fill(testPassword!);
-    await page.getByRole("button", { name: "Entrar" }).click();
+    const signedIn = await signInViaMagicLink(page, testEmail!);
+    test.skip(!signedIn, "Service role ausente ou e-mail sem conta — pulei o login real");
 
     await expect(page).toHaveURL(/\/area-de-membros/, { timeout: 15_000 });
     await expect(page.getByText("Cowork com Claude").first()).toBeVisible();
@@ -62,21 +132,5 @@ test.describe("Login e acesso ao curso", () => {
     await page.goto("/aulas/cowork/cowork-1");
     await expect(page).toHaveURL(/\/aulas\/cowork\/cowork-1/);
     await expect(page.getByText("Boas-vindas e mapa do curso")).toBeVisible();
-  });
-
-  test("login inválido mostra erro", async ({ page }) => {
-    test.skip(authMode !== "auth", "modo demo ativo");
-
-    await page.goto("/login");
-    const emailInput = page.getByPlaceholder("voce@escritorio.com.br");
-    test.skip(!(await emailInput.isVisible()), "Formulário de login indisponível");
-
-    await emailInput.fill("invalido@example.com");
-    await page.getByLabel("Senha").fill("senha-errada-xyz");
-    await page.getByRole("button", { name: "Entrar" }).click();
-
-    await expect(page.getByText(/invalid|incorret|credentials|senha|login/i)).toBeVisible({
-      timeout: 10_000,
-    });
   });
 });
