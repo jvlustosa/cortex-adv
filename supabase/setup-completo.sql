@@ -359,9 +359,14 @@ create table if not exists public.lesson_overrides (
   title text,
   description text,
   published boolean not null default true,
+  order_index integer,
   updated_at timestamptz not null default now(),
   primary key (module_id, lesson_id)
 );
+
+-- Ordena aulas em runtime (reorder por arrastar no painel) — migration 013.
+create index if not exists lesson_overrides_module_order_idx
+  on public.lesson_overrides (module_id, order_index);
 
 create table if not exists public.lesson_views (
   id uuid primary key default gen_random_uuid(),
