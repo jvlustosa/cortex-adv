@@ -37,6 +37,28 @@
   color: var(--muted);
 }
 
+.urgency {
+  margin: 0 auto 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 38rem;
+  border: 1px solid rgba(217, 119, 87, 0.4);
+  border-radius: 0.75rem;
+  background: rgba(217, 119, 87, 0.08);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--foreground);
+  text-align: center;
+}
+
+.urgencyIcon {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
 .grid {
   display: grid;
   gap: 1.25rem;

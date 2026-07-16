@@ -62,6 +62,6 @@ export const COMMUNITY = {
       "Networking com quem já aplica Claude no escritório",
       "Materiais extras e atualizações antes do público",
     ],
-    note: `Grupo VIP na matrícula. Skills premium após ${PRICING.guaranteeDays} dias.`,
+    note: `Grupo VIP na matrícula, acesso por 1 ano. Skills premium após ${PRICING.guaranteeDays} dias.`,
   },
 } as const;

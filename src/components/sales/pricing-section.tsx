@@ -7,6 +7,7 @@ import {
   PRICING,
 } from "@/lib/pricing";
 import { PricingCta } from "./pricing-cta";
+import { PricingUrgencyNote } from "./pricing-urgency-note";
 import styles from "./pricing-section.module.css";
 
 type Feature = { text: string; icon?: "whatsapp" };
@@ -18,7 +19,7 @@ const features: Feature[] = [
   { text: "Certificado de conclusão verificável online" },
   { text: "Novas aulas e atualizações incluídas, sem pagar de novo" },
   {
-    text: "Comunidade exclusiva no WhatsApp — só alunos, networking de alto nível",
+    text: "Comunidade exclusiva no WhatsApp por 1 ano — só alunos, networking de alto nível",
     icon: "whatsapp",
   },
   { text: "Acompanhamento de perto com o Dr. Marcos Vilas Boas" },
@@ -63,6 +64,8 @@ export function PricingSection() {
             à vista e economiza {formatBRL(savings)}.
           </p>
         </header>
+
+        <PricingUrgencyNote />
 
         <div className={styles.grid}>
           <article className={styles.card}>
