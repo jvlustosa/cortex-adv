@@ -137,6 +137,24 @@
   opacity: 1;
 }
 
+.customBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.68rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 6px;
+  background: rgba(217, 119, 87, 0.15);
+  color: var(--claude, #d97757);
+}
+
+.iconDangerBtn {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--danger, #ef4444);
+  padding: 0.25rem;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

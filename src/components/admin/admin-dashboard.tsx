@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, Trash2 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
@@ -180,12 +180,14 @@ function LessonRow({
   onEdit,
   onPreview,
   onFeedback,
+  onDelete,
 }: {
   lesson: LessonAdminRow;
   onCopy: (text: string) => void;
   onEdit: (l: LessonAdminRow) => void;
   onPreview: (l: LessonAdminRow) => void;
   onFeedback: (l: LessonAdminRow) => void;
+  onDelete: (l: LessonAdminRow) => void;
 }) {
   return (
     <tr className={styles.lessonRow}>
@@ -195,6 +197,9 @@ function LessonRow({
         <span className={styles.feedbackMeta}>
           {lesson.moduleTitle} · {lesson.lessonId}
         </span>
+        {lesson.origin === "custom" ? (
+          <span className={styles.customBadge}>criada no painel</span>
+        ) : null}
       </td>
       <td>{lesson.viewCount}</td>
       <td>
@@ -232,13 +237,25 @@ function LessonRow({
         <VideoCell lesson={lesson} onCopy={onCopy} onPreview={onPreview} />
       </td>
       <td>
-        <button
-          type="button"
-          className={styles.editBtn}
-          onClick={() => onEdit(lesson)}
-        >
-          Editar
-        </button>
+        <div className={styles.rowActions}>
+          <button
+            type="button"
+            className={styles.editBtn}
+            onClick={() => onEdit(lesson)}
+          >
+            Editar
+          </button>
+          {lesson.origin === "custom" ? (
+            <button
+              type="button"
+              className={styles.iconDangerBtn}
+              onClick={() => onDelete(lesson)}
+              aria-label={`Excluir ${lesson.title}`}
+            >
+              <Trash2 className="size-4" aria-hidden />
+            </button>
+          ) : null}
+        </div>
       </td>
     </tr>
   );
@@ -598,6 +615,33 @@ export function AdminDashboard() {
     }
   }
 
+  async function deleteLesson(lesson: LessonAdminRow) {
+    if (
+      !window.confirm(
+        `Excluir "${lesson.title}"? Isso remove a aula e suas avaliações. Ação irreversível.`,
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/lessons", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId: lesson.moduleId,
+          lessonId: lesson.lessonId,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Erro ao excluir."));
+      }
+      await loadLessons();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao excluir.");
+    }
+  }
+
   async function resendInvite(invite: InviteItem) {
     setResendingId(invite.id);
     setInviteResend(null);
@@ -786,6 +830,7 @@ export function AdminDashboard() {
                           onEdit={openEdit}
                           onPreview={setPreviewLesson}
                           onFeedback={openFeedback}
+                          onDelete={deleteLesson}
                         />
                       ))}
                     </Fragment>
