@@ -1,5 +1,8 @@
-// Confete imperativo na paleta Claude (laranja + preto), um pouco mais animado.
-// Burst curto com flutter lateral; some sozinho — sem estado React, sobrevive a redirect.
+// Confete imperativo na paleta Claude (laranja + preto). Sem estado React,
+// sobrevive a redirect. Dois presets:
+//   - fireSubtleConfetti     → burst curto do centro-baixo (lista de espera)
+//   - fireCelebrationConfetti → canhões laterais + jato central (parabéns pós-cadastro)
+// Ambos respeitam prefers-reduced-motion (não disparam nada).
 
 const CONFETTI_COLORS = [
   "#d97757",
@@ -25,17 +28,61 @@ type ConfettiParticle = {
   opacity: number;
 };
 
+type LaunchOptions = {
+  /** Aceleração vertical por frame. */
+  gravity: number;
+  /** Atrito horizontal por frame (0–1). */
+  drag: number;
+  /** A partir de qual frame as peças começam a sumir. */
+  fadeStartFrame: number;
+  /** Quanto de opacidade some por frame depois do fade. */
+  fadeRate: number;
+};
+
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return true;
+  return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+}
+
+function pickColor(): string {
+  return CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+}
+
+/** Uma peça, lançada de (x,y) na direção `angle` com `speed`. */
+function makeParticle(
+  x: number,
+  y: number,
+  angle: number,
+  speed: number,
+  sizeBase: number,
+  sizeVar: number,
+): ConfettiParticle {
+  return {
+    x,
+    y,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    size: sizeBase + Math.random() * sizeVar,
+    color: pickColor(),
+    rotation: Math.random() * Math.PI * 2,
+    rotationSpeed: (Math.random() - 0.5) * 0.4,
+    swayPhase: Math.random() * Math.PI * 2,
+    swayAmp: 0.5 + Math.random() * 0.9,
+    opacity: 0.92,
+  };
+}
+
 /**
- * Solta um confete a partir do centro-baixo da tela.
- * Respeita prefers-reduced-motion (não dispara nada).
- * Retorna `true` se o confete foi disparado, `false` caso contrário —
- * útil pra quem chama decidir se vale esperar a animação.
+ * Cria o canvas, roda o loop até todas as peças sumirem e se limpa sozinho.
+ * `makeParticles` recebe a largura/altura da viewport pra posicionar os jatos.
+ * Retorna `true` se disparou, `false` caso contrário (SSR / reduced-motion /
+ * sem canvas) — útil pra quem chama decidir se vale esperar a animação.
  */
-export function fireSubtleConfetti(): boolean {
-  if (typeof window === "undefined") return false;
-  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-    return false;
-  }
+function launch(
+  makeParticles: (w: number, h: number) => ConfettiParticle[],
+  opts: LaunchOptions,
+): boolean {
+  if (prefersReducedMotion()) return false;
 
   const canvas = document.createElement("canvas");
   canvas.setAttribute("data-testid", "confetti");
@@ -59,27 +106,7 @@ export function fireSubtleConfetti(): boolean {
   canvas.style.height = `${h}px`;
   ctx.scale(dpr, dpr);
 
-  // Burst um pouco mais cheio e espalhado, mas ainda elegante.
-  const originX = w / 2;
-  const originY = h * 0.62;
-  const particles: ConfettiParticle[] = Array.from({ length: 60 }, () => {
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.7;
-    const speed = 5 + Math.random() * 7;
-    return {
-      x: originX + (Math.random() - 0.5) * 120,
-      y: originY,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      size: 4 + Math.random() * 5,
-      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-      rotation: Math.random() * Math.PI * 2,
-      rotationSpeed: (Math.random() - 0.5) * 0.4,
-      swayPhase: Math.random() * Math.PI * 2,
-      swayAmp: 0.5 + Math.random() * 0.9,
-      opacity: 0.92,
-    };
-  });
-
+  const particles = makeParticles(w, h);
   let frame = 0;
   let raf = 0;
 
@@ -90,13 +117,13 @@ export function fireSubtleConfetti(): boolean {
 
     let alive = false;
     for (const p of particles) {
-      p.vy += 0.14; // gravidade
-      p.vx *= 0.985;
+      p.vy += opts.gravity;
+      p.vx *= opts.drag;
       // Flutter lateral: balança enquanto cai, dá vida ao confete.
       p.x += p.vx + Math.sin((frame + p.swayPhase) * 0.13) * p.swayAmp;
       p.y += p.vy;
       p.rotation += p.rotationSpeed;
-      if (frame > 40) p.opacity -= 0.016;
+      if (frame > opts.fadeStartFrame) p.opacity -= opts.fadeRate;
 
       if (p.opacity <= 0 || p.y > h + 20) continue;
       alive = true;
@@ -124,4 +151,77 @@ export function fireSubtleConfetti(): boolean {
 
   raf = requestAnimationFrame(loop);
   return true;
+}
+
+/**
+ * Burst curto e elegante a partir do centro-baixo da tela.
+ * Usado na confirmação da lista de espera.
+ */
+export function fireSubtleConfetti(): boolean {
+  return launch(
+    (w, h) => {
+      const originX = w / 2;
+      const originY = h * 0.62;
+      return Array.from({ length: 60 }, () => {
+        const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.7;
+        const speed = 5 + Math.random() * 7;
+        return makeParticle(
+          originX + (Math.random() - 0.5) * 120,
+          originY,
+          angle,
+          speed,
+          4,
+          5,
+        );
+      });
+    },
+    { gravity: 0.14, drag: 0.985, fadeStartFrame: 40, fadeRate: 0.016 },
+  );
+}
+
+/**
+ * Celebração cheia: dois canhões laterais mirando pra cima + um jato central
+ * largo (~160 peças), com mais tempo no ar. Usado na tela de parabéns do
+ * cadastro. Mesma paleta laranja + preto.
+ */
+export function fireCelebrationConfetti(): boolean {
+  return launch(
+    (w, h) => {
+      const particles: ConfettiParticle[] = [];
+
+      // Canhão esquerdo — mira pra cima-direita.
+      for (let i = 0; i < 55; i++) {
+        const angle = -Math.PI / 3 + (Math.random() - 0.5) * 0.5;
+        particles.push(
+          makeParticle(w * 0.06, h * 0.9, angle, 11 + Math.random() * 8, 4, 6),
+        );
+      }
+
+      // Canhão direito — mira pra cima-esquerda.
+      for (let i = 0; i < 55; i++) {
+        const angle = (-2 * Math.PI) / 3 + (Math.random() - 0.5) * 0.5;
+        particles.push(
+          makeParticle(w * 0.94, h * 0.9, angle, 11 + Math.random() * 8, 4, 6),
+        );
+      }
+
+      // Jato central largo, do meio-baixo.
+      for (let i = 0; i < 50; i++) {
+        const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.9;
+        particles.push(
+          makeParticle(
+            w / 2 + (Math.random() - 0.5) * 140,
+            h * 0.7,
+            angle,
+            7 + Math.random() * 8,
+            4,
+            6,
+          ),
+        );
+      }
+
+      return particles;
+    },
+    { gravity: 0.13, drag: 0.99, fadeStartFrame: 70, fadeRate: 0.012 },
+  );
 }

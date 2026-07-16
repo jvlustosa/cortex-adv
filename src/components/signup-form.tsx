@@ -7,7 +7,7 @@ import { ArrowRight, PartyPopper } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { mapSignInError } from "@/lib/auth/errors";
 import { safeRedirectPath } from "@/lib/auth/safe-redirect";
-import { fireSubtleConfetti } from "@/lib/confetti";
+import { fireCelebrationConfetti } from "@/lib/confetti";
 import {
   isDemoMode,
   isSignupEnabled,
@@ -84,7 +84,7 @@ export function SignupForm({ initialToken }: SignupFormProps) {
 
     // Conta criada: celebra (confete laranja + preto) e segue pra área de membros.
     setStatus("success");
-    fireSubtleConfetti();
+    fireCelebrationConfetti();
     redirectTimer.current = window.setTimeout(goToApp, 2800);
   }
 
