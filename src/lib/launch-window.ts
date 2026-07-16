@@ -9,7 +9,7 @@ export const LAUNCH_OPENS_AT = new Date("2026-07-16T19:45:00-03:00");
 export const LAUNCH_CLOSES_AT = new Date("2026-07-20T23:59:59-03:00");
 
 /** Rótulos pt-BR fixos — não dependem de Intl/fuso do navegador. */
-export const LAUNCH_OPENS_LABEL = "hoje às 19h45";
+export const LAUNCH_OPENS_LABEL = "às 19h45";
 export const LAUNCH_CLOSES_LABEL = "segunda, 20/07 às 23h59";
 
 export type LaunchPhase = "before" | "live" | "closed";

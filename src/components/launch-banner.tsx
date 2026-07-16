@@ -51,7 +51,7 @@ export function LaunchBanner() {
       ctaLabel = "Lista de espera";
       break;
     case "before":
-      badge = LAUNCH.cohort;
+      badge = "É hoje";
       message = (
         <>
           Abre {opensIn ? <>em <strong>{opensIn}</strong> · </> : ""}
