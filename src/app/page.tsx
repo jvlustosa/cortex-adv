@@ -156,13 +156,7 @@ export default function Home() {
               Comunidade
             </a>
             <HeaderAuthCta />
-            <a
-              href="#lista-espera"
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-3.5 py-2 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] sm:px-4"
-            >
-              <span className="sm:hidden">Vaga</span>
-              <span className="hidden sm:inline">Garantir vaga</span>
-            </a>
+            <HeaderBuyCta />
             <LandingMobileMenu />
           </nav>
         </div>

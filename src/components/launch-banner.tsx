@@ -12,11 +12,12 @@ import {
   formatRemaining,
 } from "@/lib/launch-window";
 import { useLaunchState } from "@/lib/use-launch-phase";
+import { PreviewIndicator } from "./preview-indicator";
 import { cn } from "@/lib/utils";
 import styles from "./launch-banner.module.css";
 
 export function LaunchBanner() {
-  const { now, phase, isPreview } = useLaunchState();
+  const { now, phase } = useLaunchState();
   const remaining =
     now && phase === "live" ? formatRemaining(now, LAUNCH_CLOSES_AT) : "";
 
@@ -66,19 +67,22 @@ export function LaunchBanner() {
   }
 
   return (
-    <div className={styles.banner} role="status" aria-live="polite">
-      <div className={cn(pageShellClass, styles.inner)}>
-        <p className={styles.text}>
-          {isPreview && <span className={styles.preview}>Prévia</span>}
-          <span className={styles.cohort}>{badge}</span>
-          <span className={styles.message}>{message}</span>
-        </p>
+    <>
+      <div className={styles.banner} role="status" aria-live="polite">
+        <div className={cn(pageShellClass, styles.inner)}>
+          <p className={styles.text}>
+            <span className={styles.cohort}>{badge}</span>
+            <span className={styles.message}>{message}</span>
+          </p>
 
-        <Link href={ctaHref} className={styles.cta}>
-          {ctaLabel}
-          <ArrowRight className="size-3.5" aria-hidden />
-        </Link>
+          <Link href={ctaHref} className={styles.cta}>
+            {ctaLabel}
+            <ArrowRight className="size-3.5" aria-hidden />
+          </Link>
+        </div>
       </div>
-    </div>
+
+      <PreviewIndicator />
+    </>
   );
 }
