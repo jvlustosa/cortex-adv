@@ -1,15 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { ChevronDown, CircleUser } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, CircleUser, GraduationCap } from "lucide-react";
 import { SignOutButton } from "@/components/sign-out-button";
 import styles from "./aulas-shell.module.css";
 
 type UserMenuProps = {
   userEmail: string;
+  /**
+   * Quando informado, mostra um atalho pra área de membros dentro do painel.
+   * Usado no header da landing (onde o perfil não teria outro caminho pro
+   * curso); omitido dentro da própria área de membros, que já tem a nav.
+   */
+  membersHref?: string;
 };
 
-export function UserMenu({ userEmail }: UserMenuProps) {
+export function UserMenu({ userEmail, membersHref }: UserMenuProps) {
   const panelId = useId();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,6 +81,12 @@ export function UserMenu({ userEmail }: UserMenuProps) {
             {userEmail}
           </span>
         </p>
+        {membersHref ? (
+          <Link href={membersHref} className={styles.userMenuItem} onClick={close}>
+            <GraduationCap className="size-4 shrink-0" aria-hidden />
+            Área de membros
+          </Link>
+        ) : null}
         <SignOutButton
           className={styles.userMenuItem}
           onSignedOut={close}

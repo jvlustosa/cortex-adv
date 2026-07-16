@@ -151,20 +151,26 @@ Body: `{ moduleId, lessonId }`.
 
 ## Riscos & mitigação
 
-1. **Apagar campos de aula visível ao membro** via reorder/batch gravando null → upsert toca só a coluna-alvo (`onConflict DO UPDATE SET` mínimo); overlay é null-coalescing; `published default true`. **Verificar em teste** que reorder/batch não mexem em title/tella/published de aula editada.
-2. **Regressão de ordem/inclusão no lado dos membros** → testes de `getMergedCourse` + checagem manual de um módulo antes/depois no `course-area`.
-3. **Migration não aplicada** → degradação silenciosa (ordem = catálogo, custom invisível). Documentado; feature checa `order_index` disponível.
-4. **Colisão de slug** ao criar → unicidade dentro do módulo contra catálogo + overrides.
-5. **PII/LGPD** no modal de avaliações (e-mail + comentário) → só admin (`requireAdmin`), padrão já usado em `listRecentFeedback`; nunca logar e-mail/comentário.
+1. **Re-publicar rascunho no reorder** → payload de reorder é `order_index`-only (nunca `published`); batch é `published`-only. Teste: reordenar um módulo com aula despublicada **não** republica ela.
+2. **Apagar title/tella de aula editada** via upsert parcial → payload uniforme mínimo + overlay null-coalescing. Teste explícito.
+3. **Módulo vazio quebra o player do membro** → `getMergedCourse` dropa módulo vazio + `course-area` trata "sem aulas". Teste: despublicar todas de um módulo.
+4. **Progresso/certificado inflado** por custom fora do denominador → atualizar `countPublishedLessons` + `countCourseLessons`. Teste: concluir custom não passa de 100%.
+5. **Migration não aplicada** → leitura degrada; escrita dá 500 → erro amigável no admin.
+6. **Colisão/degeneração de slug** → unicidade por módulo + fallback `aula` + `.insert`.
+7. **Analytics órfã** ao excluir custom → cascata em `lesson_views`/`lesson_feedback`.
+8. **PII/LGPD** no modal de avaliações (e-mail + comentário) → só admin (`requireAdmin`), padrão de `listRecentFeedback`; nunca logar e-mail/comentário.
 
 ## Arquivos afetados
 
 | Arquivo | Mudança |
 |---------|---------|
 | `supabase/migrations/013_lesson_order.sql` | **novo** — `order_index` + índice |
-| `src/lib/lessons/types.ts` | `LessonAdminRow` ganha `orderIndex`, `origin`; tipo de feedback por aula |
-| `src/lib/lessons/repository.ts` | list ordenada + custom; `createLesson`/`reorderModule`/`setPublishedBatch`/`deleteCustomLesson`/`listFeedbackForLesson` |
-| `src/lib/lessons/merge-course.ts` | incluir custom publicadas + ordenar |
+| `src/lib/lessons/types.ts` | `LessonOverrideRow` ganha `order_index`; `LessonAdminRow` ganha `orderIndex`+`origin`; tipo de feedback por aula |
+| `src/lib/lessons/repository.ts` | list ordenada + custom; `createLesson`/`reorderModule`/`setPublishedBatch`/`deleteCustomLesson`/`listFeedbackForLesson`; `slugify` helper |
+| `src/lib/lessons/merge-course.ts` | incluir custom publicadas + ordenar + dropar módulo vazio |
+| `src/lib/course/progress.ts` | `countPublishedLessons` inclui custom publicadas |
+| `src/lib/admin/members.ts` | `countCourseLessons` inclui custom publicadas |
+| `src/components/members/course-area.tsx` | tratar módulo/lista vazia sem crashar |
 | `src/app/api/admin/lessons/route.ts` | `POST`, `DELETE`, estende `PATCH` |
 | `src/app/api/admin/lessons/reorder/route.ts` | **novo** |
 | `src/app/api/admin/lessons/batch/route.ts` | **novo** |
@@ -174,6 +180,6 @@ Body: `{ moduleId, lessonId }`.
 
 ## Verificação
 
-- **Unit:** função de ordem efetiva; gerador de slug (unicidade/colisão).
-- **Integração (rotas):** `POST` cria; `/reorder` reescreve ordem sem tocar published/title; `/batch` alterna publicado; `DELETE` barra aula de catálogo; `/feedback` retorna média+comentários.
-- **Manual (skill `verify`/`run`):** subir app → `/admin` → reordenar um módulo, adicionar aula, publicar/despublicar em lote, abrir preview, abrir avaliações. Depois conferir no `course-area` (lado membro) que a ordem e o filtro de publicadas refletem, e que nenhuma aula editada teve título/tella apagados.
+- **Unit:** ordem efetiva (mix `order_index`/`catalogIndex`, custom após empate); `slugify` (unicidade por módulo, colisão→sufixo, título vazio/só-símbolo→`aula`); denominador de progresso com custom publicada.
+- **Integração (rotas):** `POST` cria (`.insert`, PK colide em corrida); `/reorder` reescreve ordem **sem** tocar `published`/`title` (rascunho continua rascunho); `/batch` alterna publicado; `DELETE` barra catálogo + cascateia analytics; `/feedback` retorna média+comentários.
+- **Manual (skill `verify`/`run`):** subir app → `/admin` → reordenar módulo, adicionar aula, publicar/despublicar em lote, abrir preview, abrir avaliações. Depois no `course-area` (membro): ordem e filtro de publicadas refletem; **despublicar todas de um módulo não quebra o player**; nenhuma aula editada teve título/tella apagados; **concluir uma custom não passa de 100% nem emite certificado cedo**.

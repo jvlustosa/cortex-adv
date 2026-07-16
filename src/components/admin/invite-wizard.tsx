@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import styles from "./admin-dashboard.module.css";
 
 type Props = {
@@ -413,13 +414,19 @@ export function InviteWizard({ onCreated }: Props) {
             type="button"
             className={styles.btnPrimary}
             disabled={creating}
+            aria-busy={creating}
             onClick={() => void submit()}
           >
-            {creating
-              ? "Gerando…"
-              : willSend
-                ? "Gerar e enviar"
-                : "Gerar convite"}
+            {creating ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                Gerando…
+              </>
+            ) : willSend ? (
+              "Gerar e enviar"
+            ) : (
+              "Gerar convite"
+            )}
           </button>
         )}
       </div>

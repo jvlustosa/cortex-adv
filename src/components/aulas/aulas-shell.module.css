@@ -239,6 +239,7 @@
 }
 
 .navLink {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 2.75rem;
@@ -247,8 +248,8 @@
   font-size: 0.95rem;
   color: var(--muted);
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navLink:hover {
@@ -257,9 +258,44 @@
 }
 
 .navLinkActive {
-  background: var(--surface);
+  background: var(--accent-dim);
   color: var(--foreground);
   font-weight: 500;
+}
+
+/* Underline indicator: hover previews it, the active tab fills it in. */
+.desktopNav .navLink:not(.adminLink)::after {
+  content: "";
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.32rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+}
+
+.desktopNav .navLink:hover::after {
+  transform: scaleX(0.35);
+  opacity: 0.45;
+}
+
+.desktopNav .navLinkActive::after,
+.desktopNav .navLinkActive:hover::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktopNav .navLink:not(.adminLink)::after {
+    transition: opacity 0.2s ease;
+  }
 }
 
 /* Tab Admin: label + legenda "só equipe" empilhados */

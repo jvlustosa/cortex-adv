@@ -125,6 +125,10 @@
 }
 
 .editBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   padding: 0.35rem 0.65rem;
   border-radius: 0.45rem;
   border: 1px solid var(--border);
@@ -240,6 +244,10 @@
 
 .btnPrimary,
 .btnGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   padding: 0.5rem 0.9rem;
   border-radius: 0.5rem;
   font-size: 0.82rem;
@@ -328,6 +336,10 @@
 }
 
 .loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: 2rem;
   text-align: center;
   color: var(--muted);

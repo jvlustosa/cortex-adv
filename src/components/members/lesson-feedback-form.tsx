@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import styles from "./lesson-feedback-form.module.css";
 
@@ -105,8 +106,16 @@ export function LessonFeedbackForm({
         type="submit"
         className={styles.submit}
         disabled={status === "sending"}
+        aria-busy={status === "sending"}
       >
-        {status === "sending" ? "Enviando…" : "Enviar avaliação"}
+        {status === "sending" ? (
+          <>
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+            Enviando…
+          </>
+        ) : (
+          "Enviar avaliação"
+        )}
       </button>
     </form>
   );

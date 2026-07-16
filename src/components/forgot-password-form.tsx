@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { mapPasswordResetRequestError } from "@/lib/auth/errors";
 import { passwordResetRedirectUrl } from "@/lib/auth/password-reset";
@@ -100,9 +101,17 @@ export function ForgotPasswordForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
+        aria-busy={status === "loading"}
+        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
       >
-        {status === "loading" ? "Enviando…" : "Enviar link de recuperação"}
+        {status === "loading" ? (
+          <>
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+            Enviando…
+          </>
+        ) : (
+          "Enviar link de recuperação"
+        )}
       </button>
       {message && status === "error" ? (
         <p className="text-sm text-[var(--danger)]" role="alert">

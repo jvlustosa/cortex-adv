@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { mapPasswordUpdateError } from "@/lib/auth/errors";
@@ -110,9 +111,17 @@ export function ResetPasswordForm({ nextPath }: ResetPasswordFormProps) {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
+        aria-busy={status === "loading"}
+        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
       >
-        {status === "loading" ? "Salvando…" : "Definir nova senha"}
+        {status === "loading" ? (
+          <>
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+            Salvando…
+          </>
+        ) : (
+          "Definir nova senha"
+        )}
       </button>
       {message ? (
         <p className="text-sm text-[var(--danger)]" role="alert">

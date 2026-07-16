@@ -20,7 +20,10 @@ export function HeaderAuthCta() {
   if (user) {
     return (
       <div className="hidden sm:block">
-        <UserMenu userEmail={user.email ?? "Minha conta"} />
+        <UserMenu
+          userEmail={user.email ?? "Minha conta"}
+          membersHref="/area-de-membros"
+        />
       </div>
     );
   }

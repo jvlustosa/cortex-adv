@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { mapMagicLinkRequestError } from "@/lib/auth/errors";
 import { SITE_URL } from "@/lib/site";
@@ -147,9 +148,17 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
+        aria-busy={status === "loading"}
+        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
       >
-        {status === "loading" ? "Enviando…" : "Receber link de acesso"}
+        {status === "loading" ? (
+          <>
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+            Enviando…
+          </>
+        ) : (
+          "Receber link de acesso"
+        )}
       </button>
       <p className="text-center text-xs leading-relaxed text-[var(--muted)]">
         Entre só com o e-mail — enviamos um link de acesso, sem senha.

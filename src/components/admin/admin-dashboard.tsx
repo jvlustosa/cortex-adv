@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
@@ -386,7 +387,10 @@ export function AdminDashboard() {
       {error ? <p className={styles.error}>{error}</p> : null}
 
       {loading ? (
-        <p className={styles.loading}>Carregando…</p>
+        <p className={styles.loading}>
+          <Loader2 className="size-4 animate-spin" aria-hidden />
+          Carregando…
+        </p>
       ) : tab === "aulas" ? (
         <>
           {lessonTotals ? (
@@ -699,11 +703,20 @@ export function AdminDashboard() {
                                 type="button"
                                 className={styles.editBtn}
                                 disabled={resendingId === invite.id}
+                                aria-busy={resendingId === invite.id}
                                 onClick={() => void resendInvite(invite)}
                               >
-                                {resendingId === invite.id
-                                  ? "Enviando…"
-                                  : "Reenviar e-mail"}
+                                {resendingId === invite.id ? (
+                                  <>
+                                    <Loader2
+                                      className="size-3.5 animate-spin"
+                                      aria-hidden
+                                    />
+                                    Enviando…
+                                  </>
+                                ) : (
+                                  "Reenviar e-mail"
+                                )}
                               </button>
                             ) : null}
                             <button
@@ -838,9 +851,17 @@ export function AdminDashboard() {
                 type="button"
                 className={styles.btnPrimary}
                 disabled={saving}
+                aria-busy={saving}
                 onClick={() => void saveLesson()}
               >
-                {saving ? "Salvando…" : "Salvar"}
+                {saving ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                    Salvando…
+                  </>
+                ) : (
+                  "Salvar"
+                )}
               </button>
             </div>
           </div>
