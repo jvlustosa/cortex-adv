@@ -1,7 +1,6 @@
-import { COURSE } from "@/data/course-content";
 import { isServiceRoleConfigured, isSupabaseEnabled } from "@/lib/supabase/enabled";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { fetchLessonOverrides } from "@/lib/lessons/merge-course";
+import { getMergedCourse } from "@/lib/lessons/merge-course";
 
 export type CourseProgress = {
   totalLessons: number;
@@ -13,17 +12,8 @@ export type CourseProgress = {
 };
 
 async function countPublishedLessons(): Promise<number> {
-  const overrides = await fetchLessonOverrides();
-  const unpublished = new Set(
-    overrides.filter((o) => !o.published).map((o) => `${o.module_id}:${o.lesson_id}`),
-  );
-
-  return COURSE.modules.reduce(
-    (sum, mod) =>
-      sum +
-      mod.lessons.filter((lesson) => !unpublished.has(`${mod.id}:${lesson.id}`)).length,
-    0,
-  );
+  const course = await getMergedCourse(); // já filtra publicadas + inclui custom
+  return course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
 }
 
 export async function getUserCourseProgress(

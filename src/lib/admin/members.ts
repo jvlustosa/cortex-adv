@@ -1,6 +1,6 @@
-import { COURSE } from "@/data/course-content";
 import { grantMemberAccess, type GrantAccessResult } from "@/lib/access/grant";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getMergedCourse } from "@/lib/lessons/merge-course";
 
 export type MemberAdminRow = {
   id: string;
@@ -30,8 +30,9 @@ export type MemberTotals = {
   totalViews: number;
 };
 
-function countCourseLessons(): number {
-  return COURSE.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
+async function countCourseLessons(): Promise<number> {
+  const course = await getMergedCourse();
+  return course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
 }
 
 export async function listMembersForAdmin(): Promise<{
@@ -39,7 +40,7 @@ export async function listMembersForAdmin(): Promise<{
   totals: MemberTotals;
 }> {
   const admin = createAdminClient();
-  const totalLessons = countCourseLessons();
+  const totalLessons = await countCourseLessons();
 
   const users: {
     id: string;
