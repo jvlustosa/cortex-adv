@@ -25,7 +25,8 @@
     "playwright:install": "playwright install chromium",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test": "npm run test:security && npm run test:auth"
+    "test": "npm run test:security && npm run test:auth",
+    "test:unit": "tsx --test tests/unit/slug.test.ts tests/unit/ordering.test.ts tests/unit/merge.test.ts"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
