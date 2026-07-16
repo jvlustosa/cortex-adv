@@ -35,6 +35,11 @@ export const OPEN_WHATSAPP_GROUP_URL =
   process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL ??
   "https://chat.whatsapp.com/G2VXJ9UManZ77Rx7Uzn7NT";
 
+/** Grupo Exclusivo (Comunidade VIP) no WhatsApp: fechado, só alunos. */
+export const VIP_WHATSAPP_GROUP_URL =
+  process.env.NEXT_PUBLIC_VIP_WHATSAPP_GROUP_URL ??
+  "https://chat.whatsapp.com/GLeGCIvaUk6KRTkEXA85BG";
+
 export const COMMUNITY = {
   open: {
     name: "Grupo aberto",

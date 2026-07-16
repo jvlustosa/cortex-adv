@@ -1,6 +1,7 @@
 import { AulasShell } from "@/components/aulas/aulas-shell";
 import { LessonCardsGrid } from "@/components/aulas/lesson-cards-grid";
 import { CertificateProgress } from "@/components/members/certificate-progress";
+import { VipGroupStep } from "@/components/members/vip-group-step";
 import { isAdminUser } from "@/lib/admin/require-admin";
 import { getUserCourseProgress } from "@/lib/course/progress";
 import { requireCourseAccess } from "@/lib/course/require-access";
@@ -36,6 +37,7 @@ export default async function AreaDeMembrosPage() {
       isAdmin={isAdmin}
     >
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
+        <VipGroupStep />
         <LessonCardsGrid course={course} />
         <CertificateProgress
           progress={progress}

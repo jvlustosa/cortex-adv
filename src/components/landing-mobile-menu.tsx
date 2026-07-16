@@ -157,14 +157,16 @@ export function LandingMobileMenu() {
                   </Link>
                 )}
 
-                <a
-                  href="#lista-espera"
-                  onClick={close}
-                  className="mt-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
-                >
-                  Garantir vaga
-                  <ArrowRight className="size-4" aria-hidden />
-                </a>
+                {!user && (
+                  <a
+                    href="#lista-espera"
+                    onClick={close}
+                    className="mt-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
+                  >
+                    Garantir vaga
+                    <ArrowRight className="size-4" aria-hidden />
+                  </a>
+                )}
               </nav>
             </div>,
             document.body,

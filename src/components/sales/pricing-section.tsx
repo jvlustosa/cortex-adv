@@ -12,7 +12,8 @@ const features = [
   `Trilha completa em vídeo — ${COURSE.modules.length} módulos, do primeiro prompt à automação`,
   "Certificado digital ao concluir",
   "Novas aulas e atualizações incluídas, sem pagar de novo",
-  "Comunidade VIP no WhatsApp: suporte às aulas e networking entre alunos",
+  "Comunidade exclusiva no WhatsApp — só alunos, networking de alto nível",
+  "Acompanhamento de perto com o Dr. Marcos Vilas Boas",
   `Skills premium exclusivas — liberadas após ${PRICING.guaranteeDays} dias da compra`,
 ] as const;
 
