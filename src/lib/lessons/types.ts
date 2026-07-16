@@ -8,6 +8,8 @@ export type LessonOverrideRow = {
   title: string | null;
   description: string | null;
   published: boolean;
+  /** Posição da aula dentro do módulo (null = usa a ordem do catálogo). */
+  order_index: number | null;
   updated_at: string;
 };
 
@@ -42,10 +44,20 @@ export type LessonAdminRow = {
   viewCount: number;
   feedbackCount: number;
   avgRating: number | null;
+  orderIndex: number | null;
+  /** "catalog" = vem do course.yml; "custom" = criada no painel (só-Supabase). */
+  origin: "catalog" | "custom";
 };
 
 export type AdminTotals = {
   views: number;
   feedbacks: number;
   avgRating: number | null;
+};
+
+export type LessonFeedbackItem = {
+  rating: number;
+  comment: string | null;
+  userEmail: string | null;
+  createdAt: string;
 };
