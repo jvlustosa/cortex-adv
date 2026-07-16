@@ -134,6 +134,10 @@
   color: var(--accent);
 }
 
+.featureIconWa {
+  color: #25d366;
+}
+
 .cta {
   margin-top: 1.5rem;
   display: inline-flex;

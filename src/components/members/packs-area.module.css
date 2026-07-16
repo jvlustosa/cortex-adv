@@ -117,6 +117,7 @@
 
 .itemList {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.85rem;
   margin-top: 1.25rem;
 }
@@ -193,6 +194,7 @@
   margin: 0.9rem 0 0;
   padding-left: 1.25rem;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.35rem;
 }
 

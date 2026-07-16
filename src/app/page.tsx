@@ -172,9 +172,9 @@ export default function Home() {
 
         <AnimatedFeatureGrid />
 
-        <TrilhaSneakPeek />
-
         <CertificatePreview />
+
+        <TrilhaSneakPeek />
 
         <PricingSection />
 

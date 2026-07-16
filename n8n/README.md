@@ -97,7 +97,7 @@ ou `.env` da instância), não bastam no Vercel:
 | Var | Uso |
 |-----|-----|
 | `ASAAS_WEBHOOK_TOKEN` | confere o header `asaas-access-token` que o Asaas envia |
-| `ASAAS_API_KEY` | header `access_token` no GET do cliente na API Asaas (atenção: chaves de produção Asaas normalmente têm o `$` inicial) |
+| `ASAAS_API_KEY` | GET do cliente na API Asaas. Guarde **sem** o `$` inicial — o fluxo concatena o `$` na hora de usar (`access_token` = `=${{ $env.ASAAS_API_KEY }}`) |
 | `INVITE_ISSUE_SECRET` | header `x-api-key` no POST do convite — **igual** ao do Vercel do app |
 
 `INVITE_ISSUE_SECRET` precisa ser o **mesmo valor** aqui e no Vercel do app.

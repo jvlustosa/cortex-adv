@@ -5,9 +5,13 @@ export const TRILHA_PUBLIC_META = {
   title: "O que você vai percorrer",
   subtitle:
     "Organizado por tarefa do escritório, do básico ao avançado. O roteiro completo fica na área de membros.",
-  duration: "8 blocos em microaulas",
+  duration: "8 módulos · 32 aulas",
   format: "Screencast · direto ao ponto",
+  release: "Liberadas aos poucos",
 } as const;
+
+/** Escopo total planejado do curso — usado no copy da oferta. */
+export const COURSE_SCOPE = { modules: 8, lessons: 32 } as const;
 
 export type TrilhaNivelPublic = {
   /** Rótulo curto exibido no marcador da timeline */

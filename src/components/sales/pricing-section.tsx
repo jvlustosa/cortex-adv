@@ -1,5 +1,6 @@
 import { Check, ShieldCheck } from "lucide-react";
-import { COURSE } from "@/data/course-content";
+import { WhatsAppIcon } from "@/components/icons/whatsapp";
+import { COURSE_SCOPE } from "@/data/curso-trilha-public";
 import {
   formatBRL,
   getPricingSummary,
@@ -8,14 +9,38 @@ import {
 import { PricingCta } from "./pricing-cta";
 import styles from "./pricing-section.module.css";
 
-const features = [
-  `Trilha completa em vídeo — ${COURSE.modules.length} módulos, do primeiro prompt à automação`,
-  "Certificado digital ao concluir",
-  "Novas aulas e atualizações incluídas, sem pagar de novo",
-  "Comunidade exclusiva no WhatsApp — só alunos, networking de alto nível",
-  "Acompanhamento de perto com o Dr. Marcos Vilas Boas",
-  `Skills premium exclusivas — liberadas após ${PRICING.guaranteeDays} dias da compra`,
-] as const;
+type Feature = { text: string; icon?: "whatsapp" };
+
+const features: Feature[] = [
+  {
+    text: `${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas em vídeo — do primeiro prompt à automação, liberadas aos poucos`,
+  },
+  { text: "Certificado digital ao concluir" },
+  { text: "Novas aulas e atualizações incluídas, sem pagar de novo" },
+  {
+    text: "Comunidade exclusiva no WhatsApp — só alunos, networking de alto nível",
+    icon: "whatsapp",
+  },
+  { text: "Acompanhamento de perto com o Dr. Marcos Vilas Boas" },
+  {
+    text: `Skills premium exclusivas — liberadas após ${PRICING.guaranteeDays} dias da compra`,
+  },
+];
+
+function FeatureItem({ feature }: { feature: Feature }) {
+  return (
+    <li className={styles.feature}>
+      {feature.icon === "whatsapp" ? (
+        <WhatsAppIcon
+          className={`size-4 ${styles.featureIcon} ${styles.featureIconWa}`}
+        />
+      ) : (
+        <Check className={`size-4 ${styles.featureIcon}`} aria-hidden />
+      )}
+      <span>{feature.text}</span>
+    </li>
+  );
+}
 
 export function PricingSection() {
   const { total, upfront, savings, upfrontDiscountPercent } =
@@ -50,10 +75,7 @@ export function PricingSection() {
             </p>
             <ul className={styles.features}>
               {features.map((feature) => (
-                <li key={feature} className={styles.feature}>
-                  <Check className={`size-4 ${styles.featureIcon}`} aria-hidden />
-                  {feature}
-                </li>
+                <FeatureItem key={feature.text} feature={feature} />
               ))}
             </ul>
             <PricingCta
@@ -77,10 +99,7 @@ export function PricingSection() {
             </p>
             <ul className={styles.features}>
               {features.map((feature) => (
-                <li key={feature} className={styles.feature}>
-                  <Check className={`size-4 ${styles.featureIcon}`} aria-hidden />
-                  {feature}
-                </li>
+                <FeatureItem key={feature.text} feature={feature} />
               ))}
             </ul>
             <PricingCta

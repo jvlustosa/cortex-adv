@@ -73,7 +73,8 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  /* Acima do header (z-index 30): drawer/backdrop vivem em portal no body. */
+  z-index: 40;
   border: 0;
   background: rgba(0, 0, 0, 0.45);
   cursor: pointer;
@@ -83,7 +84,8 @@
   position: fixed;
   top: 0;
   right: 0;
-  z-index: 25;
+  /* Acima do header (z-index 30) e do backdrop (40). */
+  z-index: 45;
   display: flex;
   width: min(18rem, 88vw);
   height: 100dvh;

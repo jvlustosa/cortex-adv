@@ -1,13 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useId, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { createPortal } from "react-dom";
 import { Menu, X } from "lucide-react";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { SignOutButton } from "@/components/sign-out-button";
 import { UserMenu } from "./user-menu";
 import styles from "./aulas-shell.module.css";
+
+// Detecta o client sem setState-em-effect (false no SSR, true após hidratar).
+const emptySubscribe = () => () => {};
+function useIsClient() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
 
 type MembersShellHeaderProps = {
   supportUrl: string;
@@ -26,6 +43,7 @@ export function MembersShellHeader({
 }: MembersShellHeaderProps) {
   const menuId = useId();
   const [open, setOpen] = useState(false);
+  const mounted = useIsClient();
 
   const closeMenu = useCallback(() => setOpen(false), []);
 
@@ -111,76 +129,86 @@ export function MembersShellHeader({
         </button>
       </div>
 
-      {open ? (
-        <button
-          type="button"
-          className={styles.backdrop}
-          aria-label="Fechar menu"
-          onClick={closeMenu}
-        />
-      ) : null}
+      {/* Drawer + backdrop em portal no body: o `backdrop-filter` do header cria
+          containing block e o `fixed` do drawer escaparia do clip do body,
+          gerando scroll horizontal fantasma no mobile (mesmo padrão da landing). */}
+      {mounted
+        ? createPortal(
+            <>
+              {open ? (
+                <button
+                  type="button"
+                  className={styles.backdrop}
+                  aria-label="Fechar menu"
+                  onClick={closeMenu}
+                />
+              ) : null}
 
-      <nav
-        id={menuId}
-        className={`${styles.mobileNav} ${open ? styles.mobileNavOpen : ""}`}
-        aria-label="Menu da área de membros"
-        aria-hidden={!open}
-      >
-        {userEmail ? (
-          <p className={styles.mobileUser} title={userEmail}>
-            {userEmail}
-          </p>
-        ) : null}
+              <nav
+                id={menuId}
+                className={`${styles.mobileNav} ${open ? styles.mobileNavOpen : ""}`}
+                aria-label="Menu da área de membros"
+                aria-hidden={!open}
+              >
+                {userEmail ? (
+                  <p className={styles.mobileUser} title={userEmail}>
+                    {userEmail}
+                  </p>
+                ) : null}
 
-        <Link
-          href="/area-de-membros"
-          className={membersLinkClass}
-          aria-current={active === "catalog" ? "page" : undefined}
-          onClick={closeMenu}
-        >
-          Área de membros
-        </Link>
+                <Link
+                  href="/area-de-membros"
+                  className={membersLinkClass}
+                  aria-current={active === "catalog" ? "page" : undefined}
+                  onClick={closeMenu}
+                >
+                  Área de membros
+                </Link>
 
-        <Link
-          href="/area-de-membros/packs"
-          className={packsLinkClass}
-          aria-current={active === "packs" ? "page" : undefined}
-          onClick={closeMenu}
-        >
-          Packs
-        </Link>
+                <Link
+                  href="/area-de-membros/packs"
+                  className={packsLinkClass}
+                  aria-current={active === "packs" ? "page" : undefined}
+                  onClick={closeMenu}
+                >
+                  Packs
+                </Link>
 
-        {isAdmin ? (
-          <Link
-            href="/admin"
-            className={`${styles.navLink} ${styles.adminLink}`}
-            onClick={closeMenu}
-          >
-            Admin
-            <span className={styles.adminCaption}>
-              Apenas para a equipe Chat Jurídico
-            </span>
-          </Link>
-        ) : null}
+                {isAdmin ? (
+                  <Link
+                    href="/admin"
+                    className={`${styles.navLink} ${styles.adminLink}`}
+                    onClick={closeMenu}
+                  >
+                    Admin
+                    <span className={styles.adminCaption}>
+                      Apenas para a equipe Chat Jurídico
+                    </span>
+                  </Link>
+                ) : null}
 
-        <a
-          href={supportUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.mobileSupportLink}
-          onClick={closeMenu}
-        >
-          <WhatsAppIcon className="size-4" />
-          Suporte no WhatsApp
-        </a>
+                <a
+                  href={supportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.mobileSupportLink}
+                  onClick={closeMenu}
+                >
+                  <WhatsAppIcon className="size-4" />
+                  Suporte no WhatsApp
+                </a>
 
-        {authOn ? (
-          <SignOutButton
-            className={styles.mobileSignOutBtn}
-            onSignedOut={closeMenu}
-          />
-        ) : null}
-      </nav>
+                {authOn ? (
+                  <SignOutButton
+                    className={styles.mobileSignOutBtn}
+                    onSignedOut={closeMenu}
+                  />
+                ) : null}
+              </nav>
+            </>,
+            document.body,
+          )
+        : null}
     </header>
   );
 }

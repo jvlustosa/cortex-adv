@@ -32,6 +32,9 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
           <p className="mt-2 text-sm text-[var(--muted)]/80">
             {TRILHA_PUBLIC_META.duration} · {TRILHA_PUBLIC_META.format}
           </p>
+          <p className="mt-1 text-sm text-[var(--muted)]/80">
+            {TRILHA_PUBLIC_META.release}
+          </p>
         </div>
 
         <ol className="relative mt-10 space-y-0">

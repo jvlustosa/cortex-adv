@@ -71,7 +71,7 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "access_token", "value": "={{ $env.ASAAS_API_KEY }}" }
+            { "name": "access_token", "value": "=${{ $env.ASAAS_API_KEY }}" }
           ]
         },
         "options": {}
