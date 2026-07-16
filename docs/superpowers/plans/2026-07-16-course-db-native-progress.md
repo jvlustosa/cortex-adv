@@ -19,7 +19,7 @@ Log vivo da execução em loop (iteração a cada ~20 min). Fonte de requisitos:
 ### Fase 2 — CRUD de seção no admin (P0)
 - [x] 2.1 Repository de módulos em `repository-db.ts` (list/create/update/delete/reorder + `resolveCourseId`); delete limpa views/feedback por slug, aulas caem via FK cascade
 - [x] 2.2 API `/api/admin/modules` (GET/POST/PATCH/DELETE) + `/reorder`, com `assertAdminApi()` + guard de modo DB (409 se flag off)
-- [~] 2.3 UI admin: prop `dbMode` (do server) + painel "Seções" com **criar** e **excluir** + dropdown de criar aula agora inclui seções do DB. Falta: **editar seção** (PATCH) e **reordenar seção** na UI (API já existe)
+- [x] 2.3 UI admin: prop `dbMode` (do server) + painel "Seções" com **criar / editar / excluir** + dropdown de criar aula inclui seções do DB. (Reordenar seção por drag na UI fica como nicety futura — API `/reorder` já existe; nova seção entra no fim por padrão.)
 - [x] 2.4 Adicionar vídeo dentro de seção nova — dropdown do modal inclui seções do DB (inclusive vazias); editar vídeo na seção usa o fluxo de aula existente (repository resolve no modo DB)
 - [ ] 2.5 Testes CRUD de módulo + E2E admin
 
@@ -79,3 +79,9 @@ Log vivo da execução em loop (iteração a cada ~20 min). Fonte de requisitos:
 - **Verificação:** `npx tsc --noEmit` limpo · `npx eslint` limpo · `npm run build` **verde** (rotas /admin + /api/admin/modules(+reorder) registradas).
 - **Nota:** com a flag off, a UI é idêntica à de hoje (painel de seções escondido). Editar/reordenar seção pela UI fica pra Iteração 7 (API PATCH/reorder já existem).
 - **Próximo (Iteração 7):** completar 2.3 (editar + reordenar seção na UI) e iniciar 2.5 (testes de CRUD de módulo). Depois Fase 3 (decisão do usuário sobre marketing).
+
+### Iteração 7 — 2026-07-16 (Fase 2: editar seção na UI)
+- **Feito:** `admin-dashboard.tsx` — `editingSectionId` + `openEditSection` + `saveEditSection` (PATCH); botão "Editar" na linha da seção; modal reaproveitado com título/botão condicionais (Criar vs Editar/Salvar). CRUD de seção completo na UI (criar/editar/excluir).
+- **Verificação:** `npx tsc --noEmit` limpo · `npx eslint` limpo · `npm run build` **verde**.
+- **Nota:** reordenar seção por drag na UI ficou de fora (nicety; API `/reorder` já existe; nova seção entra no fim).
+- **Próximo (Iteração 8):** tarefa 2.5 — testes. Cobrir o que é lógica pura/verificável sem DB (ex.: extrair e testar o mapeamento do seed `buildPlan` e/ou o merge de `moduleOptions`); repository-db é DB-bound (sem framework de mock aqui) → cobrir via checagem de guard + build. Depois disso, só restam itens BLOQUEADOS no usuário (Fase 3 decisão A/B/C + passos manuais Supabase p/ 1.6).

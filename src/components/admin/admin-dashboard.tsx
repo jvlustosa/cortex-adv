@@ -519,6 +519,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     unlockAfterDays: 0,
     published: true,
   });
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     duration: "",
@@ -725,6 +726,20 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       unlockAfterDays: 0,
       published: true,
     });
+    setEditingSectionId(null);
+    setCreatingSection(true);
+  }
+
+  function openEditSection(section: SectionAdminRow) {
+    setSectionForm({
+      title: section.title,
+      description: section.description,
+      thumbnailGradient: section.thumbnailGradient,
+      coverImage: section.coverImage ?? "",
+      unlockAfterDays: section.unlockAfterDays,
+      published: section.published,
+    });
+    setEditingSectionId(section.moduleId);
     setCreatingSection(true);
   }
 
@@ -755,6 +770,40 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       await loadLessons();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar seção.");
+    } finally {
+      setSavingSection(false);
+    }
+  }
+
+  async function saveEditSection() {
+    if (!editingSectionId || !sectionForm.title.trim()) {
+      setError("Título da seção é obrigatório.");
+      return;
+    }
+    setSavingSection(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/modules", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId: editingSectionId,
+          title: sectionForm.title.trim(),
+          description: sectionForm.description.trim() || null,
+          thumbnailGradient: sectionForm.thumbnailGradient.trim() || null,
+          coverImage: sectionForm.coverImage.trim() || null,
+          unlockAfterDays: sectionForm.unlockAfterDays || 0,
+          published: sectionForm.published,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Erro ao salvar seção."));
+      }
+      setCreatingSection(false);
+      setEditingSectionId(null);
+      await loadLessons();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar seção.");
     } finally {
       setSavingSection(false);
     }
@@ -1120,6 +1169,13 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                           <td>{s.lessonCount}</td>
                           <td>{s.published ? "Publicada" : "Rascunho"}</td>
                           <td>
+                            <button
+                              type="button"
+                              className={styles.editBtn}
+                              onClick={() => openEditSection(s)}
+                            >
+                              Editar
+                            </button>
                             <button
                               type="button"
                               className={styles.editBtn}
@@ -1803,7 +1859,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id="create-section-title" className={styles.modalTitle}>
-              Criar seção
+              {editingSectionId ? "Editar seção" : "Criar seção"}
             </h2>
 
             <label className={styles.field}>
@@ -1896,12 +1952,16 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 className={styles.btnPrimary}
                 disabled={savingSection}
                 aria-busy={savingSection}
-                onClick={() => void saveNewSection()}
+                onClick={() =>
+                  void (editingSectionId ? saveEditSection() : saveNewSection())
+                }
               >
                 {savingSection ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden /> Criando…
+                    <Loader2 className="size-4 animate-spin" aria-hidden /> Salvando…
                   </>
+                ) : editingSectionId ? (
+                  "Salvar seção"
                 ) : (
                   "Criar seção"
                 )}
