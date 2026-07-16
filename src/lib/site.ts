@@ -50,7 +50,7 @@ export const COMMUNITY = {
   vip: {
     name: "Comunidade VIP",
     badge: "Só alunos",
-    tagline: "Incluída na matrícula do curso",
+    tagline: "Fechada para garantir troca de alto nível",
     perks: [
       `Skills premium liberadas após ${PRICING.guaranteeDays} dias da compra`,
       "Dúvidas sobre as aulas respondidas no grupo",

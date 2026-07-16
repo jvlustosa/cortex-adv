@@ -10,7 +10,7 @@ import {
 } from "@/data/curso-roteiro";
 
 const BADGE_LABEL: Record<AulaBadge, string> = {
-  gratis: "Amostra grátis",
+  gratis: "Amostra",
   ancora: "Aula-âncora",
   entregavel: "Entregável",
   capstone: "Certificado",

@@ -10,7 +10,7 @@ export const CURSO_NIVEIS = [
     id: "n0",
     level: 0,
     title: "Fundamentos e Segurança",
-    subtitle: "Aulas 0.1 e 0.2 liberadas como amostra grátis",
+    subtitle: "Aulas 0.1 e 0.2 liberadas como amostra",
     aulas: [
       { id: "0.1", title: "Boas-vindas", objective: "Mapa do curso, caso-fio-condutor e biblioteca de prompts", minutes: 3, badge: "gratis" },
       { id: "0.2", title: "O que o Claude é e o que ele não é", objective: 'Modelo de linguagem; por que ele "inventa" com confiança', minutes: 5, badge: "gratis" },

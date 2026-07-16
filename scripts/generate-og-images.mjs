@@ -409,7 +409,7 @@ const pages = [
       container([
         glow(-120, -80, 500, 0.15),
         orbDots(),
-        tag("Mini curso gratuito + Comunidade no WhatsApp"),
+        tag("Curso Claude Cowork + Comunidade no WhatsApp"),
         title("IA generativa para advogados", 64),
         subtitle(
           "Aprenda a usar o Claude no seu escritório — prompts, automações e fluxos completos"
@@ -429,7 +429,7 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
-        tag("Quiz gratuito · 2 minutos"),
+        tag("Quiz · 2 minutos"),
         title("Quão atualizado você está com IA?"),
         subtitle(
           "Perguntas sobre ferramentas, agentes e automação com IA na advocacia. Descubra seu nível."
@@ -457,10 +457,10 @@ const pages = [
       container([
         glow(-100, -60, 400, 0.12),
         orbDots(),
-        tag("Claude Academy · Cadastro com convite"),
-        title("Curso gratuito de Claude para advogados"),
+        tag("Claude Academy · Convite de acesso"),
+        title("Seu convite para o curso de Claude"),
         subtitle(
-          "Crie sua conta e acesse o material completo: prompts, automações e fluxos para o escritório."
+          "Cadastro com convite: crie sua conta e acesse a trilha completa, prompts e automações para o escritório."
         ),
         footer(),
       ]),
@@ -470,7 +470,7 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
-        tag("Mini curso gratuito · Claude Cowork"),
+        tag("Curso Claude Cowork"),
         title("Skills de Claude para advogados"),
         subtitle(
           "Peças, pesquisa jurídica, automação de rotinas, relatórios e comunicação com clientes — tudo com IA."

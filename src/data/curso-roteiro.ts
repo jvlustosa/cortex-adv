@@ -48,7 +48,7 @@ export const CURSO_NIVEIS: CursoNivel[] = [
     id: "n0",
     level: 0,
     title: "Fundamentos e Segurança",
-    subtitle: "Aulas 0.1 e 0.2 liberadas como amostra grátis",
+    subtitle: "Aulas 0.1 e 0.2 liberadas como amostra",
     aulas: [
       {
         id: "0.1",

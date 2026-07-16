@@ -55,7 +55,7 @@ const faqItems: FaqItem[] = [
   {
     question: "O que é a Comunidade VIP?",
     answer:
-      `Grupo exclusivo no WhatsApp só para alunos matriculados. Incluída na compra do curso. Lá você tira dúvidas das aulas, troca experiências com quem já aplica Claude no escritório e recebe conteúdo extra. As skills premium são liberadas após ${PRICING.guaranteeDays} dias da compra. O acesso ao grupo é imediato na matrícula.`,
+      `Grupo exclusivo no WhatsApp só para alunos matriculados — fechado de propósito, pra garantir uma troca de alto nível entre quem realmente aplica. Incluído na compra do curso. Lá você tira dúvidas das aulas, troca experiências com quem já usa Claude no escritório e recebe conteúdo extra. As skills premium são liberadas após ${PRICING.guaranteeDays} dias da compra. O acesso ao grupo é imediato na matrícula.`,
   },
   {
     question: "Quanto custa o curso?",

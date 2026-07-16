@@ -29,10 +29,11 @@ export function CommunityTiers({
             Grupo aberto ou Comunidade VIP?
           </h2>
           <p className={styles.subtitle}>
-            O <strong className="text-[var(--foreground)]">grupo aberto</strong> é
-            gratuito e serve pra conhecer o movimento. A{" "}
-            <strong className="text-[var(--foreground)]">Comunidade VIP</strong>{" "}
-            é exclusiva de quem compra o curso completo.
+            A <strong className="text-[var(--foreground)]">Comunidade VIP</strong>{" "}
+            é fechada, só para alunos — é isso que garante uma troca de alto
+            nível. Prefere só conhecer o movimento primeiro? O{" "}
+            <strong className="text-[var(--foreground)]">grupo aberto</strong> é
+            gratuito e recebe qualquer advogado.
           </p>
         </header>
 
