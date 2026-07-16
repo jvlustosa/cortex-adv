@@ -446,7 +446,7 @@ const pages = [
         tag("Claude Academy"),
         title("Área de membros"),
         subtitle(
-          "Acesse o mini curso de Claude e IA generativa para advogados. Login seguro com e-mail e senha."
+          "Acesse o mini curso de Claude e IA generativa para advogados. Login só por link de acesso no e-mail, sem senha."
         ),
         footer(),
       ]),
@@ -456,6 +456,7 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
+        orbDots(),
         tag("Claude Academy · Cadastro com convite"),
         title("Curso gratuito de Claude para advogados"),
         subtitle(

@@ -29,7 +29,8 @@ export default function LoginPage() {
           Área de membros
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Informe o e-mail do seu convite — enviamos um link de acesso, sem senha.
+          Sem senha: informe o e-mail do seu convite e enviamos um link de
+          acesso. É o único jeito de entrar.
         </p>
         <div className="mt-8">
           <Suspense fallback={null}>

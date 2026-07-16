@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight, PartyPopper } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { mapSignInError } from "@/lib/auth/errors";
 import { safeRedirectPath } from "@/lib/auth/safe-redirect";
+import { fireSubtleConfetti } from "@/lib/confetti";
 import {
   isDemoMode,
   isSignupEnabled,
@@ -27,8 +29,24 @@ export function SignupForm({ initialToken }: SignupFormProps) {
   const [token, setToken] = useState(initialToken);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "error" | "success"
+  >("idle");
   const [message, setMessage] = useState<string | null>(null);
+
+  // Timer do redirect pós-parabéns; limpo no unmount pra não navegar depois.
+  const redirectTimer = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    return () => {
+      if (redirectTimer.current) window.clearTimeout(redirectTimer.current);
+    };
+  }, []);
+
+  const goToApp = useCallback(() => {
+    if (redirectTimer.current) window.clearTimeout(redirectTimer.current);
+    router.push(next);
+    router.refresh();
+  }, [next, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,8 +82,46 @@ export function SignupForm({ initialToken }: SignupFormProps) {
       return;
     }
 
-    router.push(next);
-    router.refresh();
+    // Conta criada: celebra (confete laranja + preto) e segue pra área de membros.
+    setStatus("success");
+    fireSubtleConfetti();
+    redirectTimer.current = window.setTimeout(goToApp, 2800);
+  }
+
+  if (status === "success") {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-[var(--background)]/95 px-6 text-center backdrop-blur-sm"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="ca-celebrate flex flex-col items-center gap-5">
+          <div className="ca-badge-pop flex size-20 items-center justify-center rounded-full bg-[var(--accent)]/12 text-[var(--accent)] ring-1 ring-[var(--accent)]/30">
+            <PartyPopper className="size-9" aria-hidden />
+          </div>
+
+          <div className="ca-rise" style={{ animationDelay: "0.14s" }}>
+            <h2 className="font-serif text-3xl tracking-tight text-[var(--foreground)]">
+              Parabéns! Sua conta está pronta
+            </h2>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-[var(--muted)]">
+              Bem-vindo à Claude Academy. Estamos te levando para a área de
+              membros…
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={goToApp}
+            className="ca-rise inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[#0a0a0a] transition hover:bg-[var(--accent-hover)]"
+            style={{ animationDelay: "0.24s" }}
+          >
+            Entrar agora
+            <ArrowRight className="size-4" aria-hidden />
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!isSupabaseEnabled()) {

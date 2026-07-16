@@ -1,3 +1,6 @@
+// GENERATED — não edite à mão. Fonte da verdade: src/data/course.yml
+// Rode `npm run course:build` após editar o YAML (o `prebuild` também roda).
+
 export type CourseLesson = {
   id: string;
   title: string;
@@ -20,97 +23,105 @@ export type CourseModule = {
   lessons: CourseLesson[];
 };
 
-export const COURSE = {
+export type Course = {
+  title: string;
+  subtitle: string;
+  modules: CourseModule[];
+};
+
+export const COURSE: Course = {
   title: "Curso Claude Cowork para Advogados",
   subtitle: "Automatize 100% do seu escritório",
   modules: [
     {
-      id: "cowork",
-      title: "Cowork com Claude",
-      description:
-        "Como tratar o Claude como par na bancada: contexto, iteração e revisão de peças.",
-      thumbnailGradient:
-        "linear-gradient(145deg, #1a0f0a 0%, #3d2218 40%, #d97757 100%)",
+      id: "comece-aqui",
+      title: "Comece aqui",
+      description: "O primeiro contato com o Claude: o que é, quem está por trás e o que decidir antes de começar.",
+      thumbnailGradient: "linear-gradient(145deg, #1a0f0a 0%, #3d2218 40%, #d97757 100%)",
+      coverImage: "/assets/images/temporadas/temporada-0-comece-aqui.png",
       lessons: [
         {
-          id: "cowork-1",
-          title: "Boas-vindas e mapa do curso",
-          duration: "8 min",
-          description:
-            "O que você vai dominar neste módulo e como organizar o Claude no fluxo do escritório.",
+          id: "o-que-e-claude",
+          title: "O que é o Claude",
+          tella: "01-ca-1-o-que-e-o-claude-f528",
+          duration: "3:32",
+          description: "Não é só mais um chatbot. Uma inteligência que lê, raciocina e responde no nível de um colega sênior.",
         },
         {
-          id: "cowork-2",
-          title: "Contexto que o Claude precisa para peças",
-          duration: "14 min",
-          description:
-            "Como montar briefing, anexos e instruções para o Claude não perder o fio do caso.",
+          id: "o-que-e-anthropic",
+          title: "O que é a Anthropic",
+          tella: "02-ca-2-o-que-e-a-anthropic-d1o3",
+          duration: "4:15",
+          description: "Quem está por trás do Claude e por que isso importa pra quem lida com dado sensível de cliente.",
         },
         {
-          id: "cowork-3",
-          title: "Iteração e revisão na bancada",
-          duration: "12 min",
-          description:
-            "Ciclos de rascunho, crítica e refinamento, com supervisão humana em cada etapa.",
+          id: "claude-vs-chatgpt",
+          title: "Claude vs ChatGPT",
+          tella: "03-ca-3-claude-vs-chatgpt-ahkq",
+          duration: "5:34",
+          description: "Onde o Claude brilha no jurídico, onde o ChatGPT leva vantagem, e por que o curso aposta no Claude.",
+        },
+        {
+          id: "nivel-de-dificuldade",
+          title: "Nível de dificuldade para adaptação",
+          tella: "04-ca-4-nivel-de-dificuldade-para-adaptacao-224s",
+          duration: "6:09",
+          description: "A curva real de aprendizado: suave, com vitórias rápidas nos primeiros dias. Precisa de curiosidade, não de ser técnico.",
+        },
+        {
+          id: "qual-plano-escolher",
+          title: "Qual plano escolher",
+          tella: "05-ca-5-qual-plano-escolher-04qx",
+          duration: "5:42",
+          description: "Visão geral de Free, Pro e Max pra você não travar na largada. O suficiente pra começar certo.",
         },
       ],
     },
     {
-      id: "automacao",
-      title: "Automatizar o escritório",
-      description:
-        "Modelos, checklists e fluxos para reduzir retrabalho sem abrir mão da supervisão humana.",
-      thumbnailGradient:
-        "linear-gradient(145deg, #0a0a0a 0%, #1f1410 45%, #c2410c 100%)",
+      id: "fundacao-pratica",
+      title: "Fundação prática",
+      description: "Do primeiro uau à primeira peça revisada. Aqui você para de assistir e começa a fazer.",
+      thumbnailGradient: "linear-gradient(145deg, #0a0a0a 0%, #1f1410 45%, #c2410c 100%)",
+      coverImage: "/assets/images/temporadas/temporada-1-fundacao-pratica.png",
       lessons: [
         {
-          id: "auto-1",
-          title: "Rotinas que valem automação",
-          duration: "11 min",
-          description:
-            "Triagem, follow-up, resumos e classificação. Priorize o que dá retorno rápido.",
+          id: "o-que-vai-aprender",
+          title: "O que você vai aprender no Módulo 1",
+          tella: "10-intro-o-que-voce-vai-aprender-no-modulo-1-1-5ut1",
+          duration: "4:27",
+          description: "O trailer do módulo em poucos minutos: a jornada do primeiro uau à primeira petição revisada.",
         },
         {
-          id: "auto-2",
-          title: "Checklists e modelos reutilizáveis",
-          duration: "16 min",
-          description:
-            "Templates de prompts e fluxos Cowork para tarefas repetitivas do escritório.",
+          id: "5-superpoderes",
+          title: "Os 5 superpoderes do Claude que mais ajudam advogados",
+          tella: "11-os-5-superpoderes-do-claude-que-mais-ajudam-advogados-1-5crm",
+          duration: "9:34",
+          description: "Ler processos inteiros, dissecar contratos e laudos, criar peças e calculadoras do zero. A aula do encantamento.",
         },
         {
-          id: "auto-3",
-          title: "Integrando com WhatsApp e CRM",
-          duration: "13 min",
-          description:
-            "Visão de como conectar Claude ao atendimento jurídico sem quebrar o processo.",
+          id: "escritorio-seguro-ia",
+          title: "Seu escritório está seguro para usar IA?",
+          tella: "12-seu-escritorio-esta-seguro-para-usar-ia-4uuo",
+          duration: "15:20",
+          description: "As configurações de privacidade que todo advogado precisa ativar, e o que o Claude faz (e não faz) com o dado do cliente. LGPD e OAB desarmados.",
+        },
+        {
+          id: "o-que-e-contexto",
+          title: "O que é o contexto",
+          tella: "13-o-que-e-contexto-326q",
+          duration: "10:15",
+          description: "O conceito mais importante do curso. O que o Claude tem em mente em cada conversa, e o que acontece quando estoura.",
+        },
+        {
+          id: "ambientes-claude",
+          title: "Chat, Projects, Chrome e Cowork: quando usar cada ambiente",
+          tella: "14-chat-projects-chrome-e-cowork-quando-usar-cada-ambiente-dggd",
+          duration: "7:02",
+          description: "Chat pra dúvida pontual, Projects pro contexto permanente, Cowork pro Claude agindo nos seus arquivos. Quando usar cada um.",
         },
       ],
     },
-    {
-      id: "etica",
-      title: "Ética e dados",
-      description:
-        "Limites do uso de IA em dados sensíveis e comunicação com clientes.",
-      thumbnailGradient:
-        "linear-gradient(145deg, #0a0a0a 0%, #121212 50%, #8b4513 100%)",
-      lessons: [
-        {
-          id: "etica-1",
-          title: "Sigilo, LGPD e OAB na prática",
-          duration: "15 min",
-          description:
-            "O que pode e o que não pode ir para o Claude: dados de clientes e processos.",
-        },
-        {
-          id: "etica-2",
-          title: "Comunicação transparente com clientes",
-          duration: "9 min",
-          description:
-            "Como falar de IA no atendimento sem perder confiança nem violar deveres profissionais.",
-        },
-      ],
-    },
-  ] as CourseModule[],
+  ],
 };
 
 export function findLesson(moduleId: string, lessonId: string) {
