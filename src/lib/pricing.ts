@@ -10,6 +10,21 @@ export const LAUNCH = {
   scarcity: "Apenas 20 vagas",
 } as const;
 
+/**
+ * Links de checkout (ASAAS). São páginas de pagamento públicas — ficam no
+ * código pra funcionar já no deploy, sem depender de env na Vercel. Dá pra
+ * sobrescrever por env (NEXT_PUBLIC_CHECKOUT_*) sem mexer no código.
+ * A liberação por horário fica no gate de lançamento (ver launch-window).
+ */
+export const CHECKOUT = {
+  installments:
+    process.env.NEXT_PUBLIC_CHECKOUT_INSTALLMENTS_URL ??
+    "https://www.asaas.com/c/s8toxiqpsd8xs66h",
+  upfront:
+    process.env.NEXT_PUBLIC_CHECKOUT_UPFRONT_URL ??
+    "https://www.asaas.com/c/pbwfl1hwekzmyz0s",
+} as const;
+
 export function getLaunchLabel() {
   return `${LAUNCH.cohort} · ${LAUNCH.scarcity}`;
 }

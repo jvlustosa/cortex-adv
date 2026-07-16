@@ -1,23 +1,12 @@
-import { ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck } from "lucide-react";
 import { COURSE } from "@/data/course-content";
 import {
   formatBRL,
   getPricingSummary,
   PRICING,
 } from "@/lib/pricing";
+import { PricingCta } from "./pricing-cta";
 import styles from "./pricing-section.module.css";
-
-const checkoutInstallments =
-  process.env.NEXT_PUBLIC_CHECKOUT_INSTALLMENTS_URL;
-const checkoutUpfront = process.env.NEXT_PUBLIC_CHECKOUT_UPFRONT_URL;
-
-function checkoutHref(plan: "installments" | "upfront") {
-  const url =
-    plan === "installments" ? checkoutInstallments : checkoutUpfront;
-  if (url) return url;
-
-  return "#lista-espera";
-}
 
 const features = [
   `Trilha completa em vídeo — ${COURSE.modules.length} módulos, do primeiro prompt à automação`,
@@ -66,16 +55,11 @@ export function PricingSection() {
                 </li>
               ))}
             </ul>
-            <a
-              href={checkoutHref("installments")}
-              {...(checkoutInstallments
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
+            <PricingCta
+              plan="installments"
               className={`${styles.cta} ${styles.ctaSecondary}`}
-            >
-              Garantir vaga em 12×
-              <ArrowRight className="size-4 opacity-80" aria-hidden />
-            </a>
+              liveLabel="Garantir vaga em 12×"
+            />
           </article>
 
           <article className={`${styles.card} ${styles.cardFeatured}`}>
@@ -98,16 +82,11 @@ export function PricingSection() {
                 </li>
               ))}
             </ul>
-            <a
-              href={checkoutHref("upfront")}
-              {...(checkoutUpfront
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
+            <PricingCta
+              plan="upfront"
               className={`${styles.cta} ${styles.ctaPrimary}`}
-            >
-              Garantir vaga à vista
-              <ArrowRight className="size-4 opacity-80" aria-hidden />
-            </a>
+              liveLabel="Garantir vaga à vista"
+            />
           </article>
         </div>
 
