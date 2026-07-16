@@ -165,6 +165,29 @@
   background: var(--surface-2, rgba(255, 255, 255, 0.04));
 }
 
+.aulaCell {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.dragHandle {
+  background: transparent;
+  border: 0;
+  cursor: grab;
+  color: var(--muted, #9ca3af);
+  padding: 0.15rem;
+  margin-top: 0.1rem;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.lessonRow[draggable="true"] {
+  user-select: none;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

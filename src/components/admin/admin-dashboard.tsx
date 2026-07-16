@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { Loader2, MessageSquare, Trash2 } from "lucide-react";
+import { GripVertical, Loader2, MessageSquare, Trash2 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
@@ -134,6 +134,39 @@ function groupByModule(lessons: LessonAdminRow[]): LessonGroup[] {
   return groups;
 }
 
+/** Move uma aula dentro do seu módulo, retornando a lista achatada nova. */
+function moveWithinModule(
+  lessons: LessonAdminRow[],
+  moduleId: string,
+  fromKey: string,
+  toKey: string,
+): LessonAdminRow[] {
+  const modKeys = lessons
+    .filter((l) => l.moduleId === moduleId)
+    .map((l) => `${l.moduleId}:${l.lessonId}`);
+  const from = modKeys.indexOf(fromKey);
+  const to = modKeys.indexOf(toKey);
+  if (from < 0 || to < 0 || from === to) return lessons;
+  modKeys.splice(to, 0, modKeys.splice(from, 1)[0]);
+  // reconstrói a lista achatada preservando ordem dos módulos
+  const byKey = new Map(
+    lessons.map((l) => [`${l.moduleId}:${l.lessonId}`, l]),
+  );
+  const result: LessonAdminRow[] = [];
+  const seenModule = new Set<string>();
+  for (const l of lessons) {
+    if (l.moduleId === moduleId) {
+      if (!seenModule.has(moduleId)) {
+        seenModule.add(moduleId);
+        for (const k of modKeys) result.push(byKey.get(k)!);
+      }
+    } else {
+      result.push(l);
+    }
+  }
+  return result;
+}
+
 function VideoCell({
   lesson,
   onCopy,
@@ -183,6 +216,9 @@ function LessonRow({
   onPreview,
   onFeedback,
   onDelete,
+  onDragStart,
+  onDrop,
+  onKeyMove,
 }: {
   lesson: LessonAdminRow;
   selected: Set<string>;
@@ -192,10 +228,19 @@ function LessonRow({
   onPreview: (l: LessonAdminRow) => void;
   onFeedback: (l: LessonAdminRow) => void;
   onDelete: (l: LessonAdminRow) => void;
+  onDragStart: (key: string) => void;
+  onDrop: (moduleId: string, targetKey: string) => void;
+  onKeyMove: (l: LessonAdminRow, dir: -1 | 1) => void;
 }) {
   const key = `${lesson.moduleId}:${lesson.lessonId}`;
   return (
-    <tr className={styles.lessonRow}>
+    <tr
+      className={styles.lessonRow}
+      draggable
+      onDragStart={() => onDragStart(key)}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={() => onDrop(lesson.moduleId, key)}
+    >
       <td>
         <input
           type="checkbox"
@@ -205,14 +250,35 @@ function LessonRow({
         />
       </td>
       <td>
-        <strong>{lesson.title}</strong>
-        <br />
-        <span className={styles.feedbackMeta}>
-          {lesson.moduleTitle} · {lesson.lessonId}
-        </span>
-        {lesson.origin === "custom" ? (
-          <span className={styles.customBadge}>criada no painel</span>
-        ) : null}
+        <div className={styles.aulaCell}>
+          <button
+            type="button"
+            className={styles.dragHandle}
+            aria-label={`Reordenar ${lesson.title}. Use as setas para cima e para baixo.`}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowUp") {
+                e.preventDefault();
+                onKeyMove(lesson, -1);
+              }
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                onKeyMove(lesson, 1);
+              }
+            }}
+          >
+            <GripVertical className="size-4" aria-hidden />
+          </button>
+          <div>
+            <strong>{lesson.title}</strong>
+            <br />
+            <span className={styles.feedbackMeta}>
+              {lesson.moduleTitle} · {lesson.lessonId}
+            </span>
+            {lesson.origin === "custom" ? (
+              <span className={styles.customBadge}>criada no painel</span>
+            ) : null}
+          </div>
+        </div>
       </td>
       <td>{lesson.viewCount}</td>
       <td>
@@ -436,6 +502,7 @@ export function AdminDashboard() {
     published: false,
   });
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [dragKey, setDragKey] = useState<string | null>(null);
 
   const [members, setMembers] = useState<MemberAdminRow[]>([]);
   const [memberTotals, setMemberTotals] = useState<MemberTotals | null>(null);
@@ -699,6 +766,53 @@ export function AdminDashboard() {
     }
   }
 
+  async function persistOrder(moduleId: string, ordered: LessonAdminRow[]) {
+    const lessonIds = ordered
+      .filter((l) => l.moduleId === moduleId)
+      .map((l) => l.lessonId);
+    const snapshot = lessons;
+    try {
+      const res = await fetch("/api/admin/lessons/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ moduleId, lessonIds }),
+      });
+      if (!res.ok) throw new Error("reorder falhou");
+    } catch {
+      setLessons(snapshot); // rollback otimista
+      setError("Não consegui salvar a nova ordem. Revertido.");
+    }
+  }
+
+  function handleDrop(moduleId: string, targetKey: string) {
+    if (!dragKey) return;
+    const dragged = lessons.find(
+      (l) => `${l.moduleId}:${l.lessonId}` === dragKey,
+    );
+    if (!dragged || dragged.moduleId !== moduleId) {
+      setDragKey(null);
+      return;
+    } // só dentro do módulo
+    const next = moveWithinModule(lessons, moduleId, dragKey, targetKey);
+    setLessons(next);
+    setDragKey(null);
+    void persistOrder(moduleId, next);
+  }
+
+  function moveByKeyboard(lesson: LessonAdminRow, dir: -1 | 1) {
+    const key = `${lesson.moduleId}:${lesson.lessonId}`;
+    const modLessons = lessons.filter((l) => l.moduleId === lesson.moduleId);
+    const idx = modLessons.findIndex(
+      (l) => `${l.moduleId}:${l.lessonId}` === key,
+    );
+    const targetIdx = idx + dir;
+    if (targetIdx < 0 || targetIdx >= modLessons.length) return;
+    const targetKey = `${modLessons[targetIdx].moduleId}:${modLessons[targetIdx].lessonId}`;
+    const next = moveWithinModule(lessons, lesson.moduleId, key, targetKey);
+    setLessons(next);
+    void persistOrder(lesson.moduleId, next);
+  }
+
   async function resendInvite(invite: InviteItem) {
     setResendingId(invite.id);
     setInviteResend(null);
@@ -934,6 +1048,9 @@ export function AdminDashboard() {
                           onPreview={setPreviewLesson}
                           onFeedback={openFeedback}
                           onDelete={deleteLesson}
+                          onDragStart={setDragKey}
+                          onDrop={handleDrop}
+                          onKeyMove={moveByKeyboard}
                         />
                       ))}
                     </Fragment>
