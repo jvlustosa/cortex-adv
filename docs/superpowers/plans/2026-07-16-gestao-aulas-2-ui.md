@@ -739,7 +739,7 @@ Na célula de ações (última `<td>`), ao lado do "Editar":
 {lesson.origin === "custom" ? (
   <button
     type="button"
-    className={styles.dangerBtn}
+    className={styles.iconDangerBtn}
     onClick={() => onDelete(lesson)}
     aria-label={`Excluir ${lesson.title}`}
   >
@@ -750,7 +750,9 @@ Na célula de ações (última `<td>`), ao lado do "Editar":
 
 Adicione `Trash2` ao import de lucide-react, a prop `onDelete` ao `LessonRow`, e passe `onDelete={deleteLesson}`.
 
-- [ ] **Step 3: CSS**
+> ⚠️ **Não** use `styles.dangerBtn` — já existe no CSS (é o pill do botão "Banir" de membros). Use uma classe nova `.iconDangerBtn` pro ícone de excluir.
+
+- [ ] **Step 3: CSS** (classe nova, sem colidir com `.dangerBtn` existente)
 
 ```css
 .customBadge {
@@ -760,13 +762,13 @@ Adicione `Trash2` ao import de lucide-react, a prop `onDelete` ao `LessonRow`, e
   padding: 0.05rem 0.4rem;
   border-radius: 6px;
   background: rgba(217, 119, 87, 0.15);
-  color: #d97757;
+  color: var(--claude, #d97757);
 }
-.dangerBtn {
+.iconDangerBtn {
   background: transparent;
   border: 0;
   cursor: pointer;
-  color: #ef4444;
+  color: var(--danger, #ef4444);
   padding: 0.25rem;
 }
 ```
@@ -850,7 +852,7 @@ async function bulkPublish(published: boolean) {
 </td>
 ```
 
-Passe `selected`/`onToggle` ao `LessonRow`. Ajuste os `colSpan` das linhas de módulo (Task 1) de `6` para `7`.
+Passe `selected`/`onToggle` ao `LessonRow`. **Não** mexa no `colSpan={6}` do título da linha de módulo — no Step 4 a linha de módulo ganha um `<td>` de checkbox **antes** do título (1 + 6 = 7 colunas, alinhado).
 
 - [ ] **Step 4: "Selecionar todos" por módulo** na linha de subcabeçalho
 

@@ -823,49 +823,50 @@ git commit -m "fix(progress): count custom published lessons in denominator (no 
 
 ---
 
-## Task 9: Blindar o player contra módulo/curso vazio
+## Task 9: Fechar o crash de módulo vazio (dado + pai, sem violar hooks)
 
 **Files:**
-- Modify: `src/components/members/course-area.tsx`
+- Modify: `src/components/members/course-area.tsx` (só `pickInitial`, defensivo)
+- Verify: `src/app/aulas/[modulo]/[aula]/page.tsx`
 
-- [ ] **Step 1: Guard de curso vazio no início de `CourseArea`**
+> Contexto: o crash (`pickInitial`/`activeLesson` derefando `undefined`) só acontece se `CourseArea` receber um módulo/curso vazio. Duas defesas já fecham o caminho, **sem** mexer na estrutura de hooks:
+> 1. **Task 5** faz `getMergedCourse` **dropar módulos vazios** — módulo com todas as aulas despublicadas some do merge.
+> 2. A página pai **já** faz `notFound()` quando a aula não está no merge (`aulas/[modulo]/[aula]/page.tsx:47-51`). Despublicar todas as aulas de um módulo → o módulo some do merge → a URL daquela aula cai em 404 e `CourseArea` nunca é montado vazio.
+>
+> ❌ **Não** adicione early-return dentro de `CourseArea`: há 8 hooks depois da linha 93 (`useEffect`/`useCallback`/`useRef` nas linhas 123/143/150/152/162/178/184/193). Retornar antes deles viola as Rules of Hooks e quebra o `npm run lint`.
 
-Logo após a desestruturação de props (antes do `const router = useRouter()` **não** — hooks primeiro; coloque o guard **depois de todos os hooks**, imediatamente antes do primeiro uso de `activeModule`). Antes da linha 93 (`const activeModule = ...`), insira:
+- [ ] **Step 1: Confirmar o guard do pai** (só ler, sem mudança)
+
+Confirme em `src/app/aulas/[modulo]/[aula]/page.tsx:47-51` que `findMergedLesson` + `notFound()` cobrem "aula fora do merge".
+
+- [ ] **Step 2: Endurecer `pickInitial`** (defensivo, sem early-return)
+
+Troque os `!` por acesso seguro (não altera o caminho feliz):
 
 ```tsx
-  if (course.modules.length === 0 || course.modules.every((m) => m.lessons.length === 0)) {
-    return (
-      <div className={styles.emptyState}>
-        <p>Nenhuma aula publicada ainda.</p>
-      </div>
-    );
-  }
-```
-
-> Como `getMergedCourse` já dropa módulos vazios, na prática só cai aqui se **tudo** estiver despublicado. `pickInitial` (linha 44-47) fica seguro: sempre há `modules[0]` e `lessons[0]` quando passamos do guard.
-
-- [ ] **Step 2: Estilo mínimo do empty state**
-
-Em `course-area.module.css`, adicione (ajuste ao padrão do arquivo):
-
-```css
-.emptyState {
-  padding: 3rem 1.5rem;
-  text-align: center;
-  color: var(--muted, #9ca3af);
+function pickInitial(
+  course: MergedCourse,
+  modParam: string | null,
+  lessonParam: string | null,
+): { moduleId: string; lessonId: string } {
+  const mod =
+    course.modules.find((m) => m.id === modParam) ?? course.modules[0];
+  const lesson =
+    mod?.lessons.find((l) => l.id === lessonParam) ?? mod?.lessons[0];
+  return { moduleId: mod?.id ?? "", lessonId: lesson?.id ?? "" };
 }
 ```
 
-- [ ] **Step 3: Verificar build**
+- [ ] **Step 3: Verificar**
 
 Run: `npx tsc --noEmit && npm run lint`
-Expected: sem erros.
+Expected: sem erros e **sem** aviso de `react-hooks/rules-of-hooks` (não introduzimos early-return).
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/components/members/course-area.tsx src/components/members/course-area.module.css
-git commit -m "fix(course-area): render empty state instead of crashing on no lessons"
+git add src/components/members/course-area.tsx
+git commit -m "fix(course-area): harden pickInitial; empty-module crash closed by drop-empty + parent notFound"
 ```
 
 ---
@@ -1162,7 +1163,7 @@ Com a migration 013 aplicada em dev, exercite (via UI de rede/DevTools ou `curl`
 
 - [ ] **Step 4: Regressão lado membro** (skill `verify`)
 
-Abra `/curso` como membro: ordem e filtro de publicadas batem; **despublicar todas as aulas de um módulo não quebra a página** (módulo some / empty state); progresso não passa de 100% ao concluir uma custom.
+Como membro, abra `/area-de-membros` e uma aula em `/aulas/<modulo>/<aula>`: ordem e filtro de publicadas batem; **despublicar todas as aulas de um módulo** → o módulo some do menu e a URL daquela aula retorna **404 (não crash)**; progresso não passa de 100% ao concluir uma custom.
 
 - [ ] **Step 5: Commit final (se houver ajuste)**
 
