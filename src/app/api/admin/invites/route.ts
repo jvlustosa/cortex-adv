@@ -4,6 +4,7 @@ import {
   listInvitesForAdmin,
   setInviteActive,
 } from "@/lib/admin/invites-repository";
+import { sendInviteEmail } from "@/lib/invites/invite-email";
 import { assertAdminApi } from "@/lib/admin/require-admin";
 
 export async function GET() {
@@ -64,7 +65,21 @@ export async function POST(request: Request) {
         typeof body.recipientTitle === "string" ? body.recipientTitle : undefined,
     });
 
-    return NextResponse.json({ ok: true, invite });
+    // Dispara o e-mail só quando há destinatário. Uma falha no envio não desfaz
+    // o convite: devolvemos o status para a UI avisar e oferecer reenvio.
+    let email: { sent: boolean; error?: string } | null = null;
+    if (invite.recipientEmail) {
+      const result = await sendInviteEmail(invite);
+      email = result.ok ? { sent: true } : { sent: false, error: result.error };
+      if (!result.ok) {
+        console.error("[api/admin/invites POST] envio de e-mail falhou", {
+          inviteId: invite.id,
+          error: result.error,
+        });
+      }
+    }
+
+    return NextResponse.json({ ok: true, invite, email });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Erro ao criar convite.";

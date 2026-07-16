@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
+import { InviteWizard } from "./invite-wizard";
 import styles from "./admin-dashboard.module.css";
 
 type Tab = "aulas" | "membros" | "convites";
@@ -145,16 +146,12 @@ export function AdminDashboard() {
   } | null>(null);
 
   const [invites, setInvites] = useState<InviteItem[]>([]);
-  const [creatingInvite, setCreatingInvite] = useState(false);
-  const [createdInviteUrl, setCreatedInviteUrl] = useState<string | null>(null);
-  const [inviteForm, setInviteForm] = useState({
-    label: "",
-    maxUses: "1",
-    expiresAt: "",
-    recipientName: "",
-    recipientEmail: "",
-    recipientTitle: "",
-  });
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [inviteResend, setInviteResend] = useState<{
+    id: string;
+    ok: boolean;
+    message: string;
+  } | null>(null);
 
   const loadLessons = useCallback(async () => {
     const [lessonsRes, feedbackRes] = await Promise.all([
@@ -263,47 +260,29 @@ export function AdminDashboard() {
     }
   }
 
-  async function createInvite() {
-    setCreatingInvite(true);
+  async function resendInvite(invite: InviteItem) {
+    setResendingId(invite.id);
+    setInviteResend(null);
     setError(null);
-    setCreatedInviteUrl(null);
-
     try {
-      const maxUses = Number.parseInt(inviteForm.maxUses, 10);
-      const res = await fetch("/api/admin/invites", {
+      const res = await fetch("/api/admin/invites/resend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          label: inviteForm.label.trim() || undefined,
-          maxUses: Number.isFinite(maxUses) ? maxUses : 1,
-          expiresAt: inviteForm.expiresAt.trim() || null,
-          recipientName: inviteForm.recipientName.trim() || null,
-          recipientEmail: inviteForm.recipientEmail.trim() || null,
-          recipientTitle: inviteForm.recipientTitle || null,
-        }),
+        body: JSON.stringify({ id: invite.id }),
       });
-
-      const data = (await res.json()) as {
-        error?: string;
-        invite?: { signupUrl: string };
-      };
-
-      if (!res.ok) throw new Error(data.error ?? "Erro ao criar convite.");
-
-      setCreatedInviteUrl(data.invite?.signupUrl ?? null);
-      setInviteForm({
-        label: "",
-        maxUses: "1",
-        expiresAt: "",
-        recipientName: "",
-        recipientEmail: "",
-        recipientTitle: "",
-      });
-      await loadInvites();
+      const data = (await res.json()) as { error?: string; ok?: boolean };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? "Erro ao reenviar convite.");
+      }
+      setInviteResend({ id: invite.id, ok: true, message: "E-mail reenviado." });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar convite.");
+      setInviteResend({
+        id: invite.id,
+        ok: false,
+        message: err instanceof Error ? err.message : "Erro ao reenviar.",
+      });
     } finally {
-      setCreatingInvite(false);
+      setResendingId(null);
     }
   }
 
@@ -662,117 +641,7 @@ export function AdminDashboard() {
         <>
           <section className={styles.section}>
             <div className={styles.sectionHead}>Novo convite</div>
-            <div className={styles.inviteForm}>
-              <label className={styles.field}>
-                <span className={styles.label}>Nome do convidado (opcional)</span>
-                <input
-                  className={styles.input}
-                  type="text"
-                  autoComplete="off"
-                  placeholder="Ex.: Fulana de Tal"
-                  value={inviteForm.recipientName}
-                  onChange={(e) =>
-                    setInviteForm((f) => ({ ...f, recipientName: e.target.value }))
-                  }
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span className={styles.label}>E-mail do convidado (opcional)</span>
-                <input
-                  className={styles.input}
-                  type="email"
-                  autoComplete="off"
-                  placeholder="convidado@escritorio.com.br"
-                  value={inviteForm.recipientEmail}
-                  onChange={(e) =>
-                    setInviteForm((f) => ({ ...f, recipientEmail: e.target.value }))
-                  }
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span className={styles.label}>Título (opcional)</span>
-                <select
-                  className={styles.input}
-                  value={inviteForm.recipientTitle}
-                  onChange={(e) =>
-                    setInviteForm((f) => ({ ...f, recipientTitle: e.target.value }))
-                  }
-                >
-                  <option value="">Sem título</option>
-                  <option value="dra">Dra.</option>
-                  <option value="dr">Dr.</option>
-                </select>
-              </label>
-
-              <label className={styles.field}>
-                <span className={styles.label}>Rótulo (opcional)</span>
-                <select
-                  className={styles.input}
-                  value={inviteForm.label}
-                  onChange={(e) =>
-                    setInviteForm((f) => ({ ...f, label: e.target.value }))
-                  }
-                >
-                  <option value="">Selecione…</option>
-                  <option value="1ª turma">1ª turma</option>
-                  <option value="2ª turma">2ª turma</option>
-                  <option value="3ª turma">3ª turma</option>
-                  <option value="Convite premium">Convite premium</option>
-                </select>
-              </label>
-
-              <label className={styles.field}>
-                <span className={styles.label}>Usos permitidos</span>
-                <input
-                  className={styles.input}
-                  type="number"
-                  min={1}
-                  value={inviteForm.maxUses}
-                  onChange={(e) =>
-                    setInviteForm((f) => ({ ...f, maxUses: e.target.value }))
-                  }
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span className={styles.label}>Expira em (opcional)</span>
-                <input
-                  className={styles.input}
-                  type="date"
-                  value={inviteForm.expiresAt}
-                  onChange={(e) =>
-                    setInviteForm((f) => ({ ...f, expiresAt: e.target.value }))
-                  }
-                />
-              </label>
-
-              <div className={styles.inviteActions}>
-                <button
-                  type="button"
-                  className={styles.btnPrimary}
-                  disabled={creatingInvite}
-                  onClick={() => void createInvite()}
-                >
-                  {creatingInvite ? "Gerando…" : "Gerar convite"}
-                </button>
-              </div>
-
-              {createdInviteUrl ? (
-                <div className={styles.inviteCreated}>
-                  <p className={styles.feedbackMeta}>Link de cadastro gerado:</p>
-                  <code className={styles.inviteUrl}>{createdInviteUrl}</code>
-                  <button
-                    type="button"
-                    className={styles.editBtn}
-                    onClick={() => void copyText(createdInviteUrl)}
-                  >
-                    Copiar link
-                  </button>
-                </div>
-              ) : null}
-            </div>
+            <InviteWizard onCreated={loadInvites} />
           </section>
 
           <section className={styles.section}>
@@ -825,6 +694,18 @@ export function AdminDashboard() {
                             >
                               Copiar
                             </button>
+                            {invite.recipientEmail ? (
+                              <button
+                                type="button"
+                                className={styles.editBtn}
+                                disabled={resendingId === invite.id}
+                                onClick={() => void resendInvite(invite)}
+                              >
+                                {resendingId === invite.id
+                                  ? "Enviando…"
+                                  : "Reenviar e-mail"}
+                              </button>
+                            ) : null}
                             <button
                               type="button"
                               className={styles.editBtn}
@@ -835,6 +716,18 @@ export function AdminDashboard() {
                               {invite.active ? "Desativar" : "Ativar"}
                             </button>
                           </div>
+                          {inviteResend?.id === invite.id ? (
+                            <p
+                              className={`${styles.emailNote} ${
+                                inviteResend.ok
+                                  ? styles.emailNoteOk
+                                  : styles.emailNoteWarn
+                              }`}
+                            >
+                              {inviteResend.ok ? "✓ " : "⚠ "}
+                              {inviteResend.message}
+                            </p>
+                          ) : null}
                         </td>
                       </tr>
                     ))}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { LandingMobileMenu } from "@/components/landing-mobile-menu";
+import { HeaderAuthCta } from "@/components/header-auth-cta";
 import { CourseEnrollment } from "@/components/course-enrollment";
 import { CourseHero } from "@/components/course-hero";
 import { PricingSection } from "@/components/sales/pricing-section";
@@ -154,12 +155,7 @@ export default function Home() {
             >
               Comunidade
             </a>
-            <Link
-              href="/login"
-              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
-            >
-              Entrar
-            </Link>
+            <HeaderAuthCta />
             <a
               href="#lista-espera"
               className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-3.5 py-2 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)] sm:px-4"
@@ -250,7 +246,7 @@ export default function Home() {
               </Link>
             )}
             <Link
-              href="/login"
+              href="/area-de-membros"
               className="underline underline-offset-4 hover:text-[var(--foreground)]"
             >
               Área de membros

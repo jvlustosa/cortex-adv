@@ -60,6 +60,19 @@ export async function createInviteForAdmin(
   return createInviteToken(input);
 }
 
+export async function getInviteById(id: string): Promise<InviteAdminRow | null> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("invite_tokens")
+    .select(INVITE_COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+  return toInviteRow(data as InviteTokenRow);
+}
+
 export async function setInviteActive(
   id: string,
   active: boolean,

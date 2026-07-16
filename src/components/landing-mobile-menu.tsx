@@ -11,6 +11,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Menu, X } from "lucide-react";
+import { useIsAuthed } from "@/lib/auth/use-session";
 import { cn } from "@/lib/utils";
 
 const linkClass =
@@ -35,6 +36,7 @@ export function LandingMobileMenu() {
   const menuId = useId();
   const [open, setOpen] = useState(false);
   const mounted = useIsClient();
+  const isAuthed = useIsAuthed();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -122,9 +124,19 @@ export function LandingMobileMenu() {
                 <a href="#comunidade" onClick={close} className={linkClass}>
                   Comunidade
                 </a>
-                <Link href="/login" onClick={close} className={linkClass}>
-                  Entrar
-                </Link>
+                {isAuthed ? (
+                  <Link
+                    href="/area-de-membros"
+                    onClick={close}
+                    className={linkClass}
+                  >
+                    Área de membros
+                  </Link>
+                ) : (
+                  <Link href="/login" onClick={close} className={linkClass}>
+                    Entrar
+                  </Link>
+                )}
 
                 <a
                   href="#lista-espera"

@@ -398,10 +398,6 @@
   padding: 1rem 1.1rem 1.1rem;
 }
 
-.inviteActions {
-  margin-top: 0.5rem;
-}
-
 .inviteCreated {
   margin-top: 1rem;
   padding: 0.85rem;
@@ -422,4 +418,159 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+}
+
+/* Wizard de convite */
+.wizardSteps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0 0 0.35rem;
+  padding: 0;
+}
+
+.wizardStep {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.wizardStepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.wizardStepActive {
+  border-color: rgba(217, 119, 87, 0.55);
+  background: rgba(217, 119, 87, 0.12);
+  color: var(--foreground);
+}
+
+.wizardStepActive .wizardStepNum {
+  border-color: var(--claude);
+  background: var(--claude);
+  color: #0a0a0a;
+}
+
+.wizardStepDone {
+  color: var(--foreground);
+}
+
+.wizardStepDone .wizardStepNum {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--success);
+}
+
+.wizardNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.wizardReview {
+  margin-top: 0.35rem;
+}
+
+.reviewList {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+
+.reviewRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.reviewRow:last-child {
+  border-bottom: none;
+}
+
+.reviewKey {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.reviewVal {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--foreground);
+  text-align: right;
+  word-break: break-word;
+}
+
+.fieldHint {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.emailNote {
+  margin: 0.6rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.emailNoteOk {
+  color: var(--success);
+}
+
+.emailNoteWarn {
+  color: var(--danger);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.chip {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.7rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.chip:hover {
+  border-color: rgba(217, 119, 87, 0.4);
+  color: var(--foreground);
+}
+
+.chipActive {
+  border-color: rgba(217, 119, 87, 0.55);
+  background: rgba(217, 119, 87, 0.12);
+  color: var(--foreground);
 }

@@ -4,7 +4,9 @@ import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { LoginForm } from "@/components/login-form";
 import { LoginStatusBanner } from "@/components/login-status-banner";
+import { SignOutButton } from "@/components/sign-out-button";
 import { OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "Entrar | Área de membros | Claude para advogados",
@@ -20,30 +22,60 @@ export const metadata = {
   },
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  // Sessão já ativa: mostra o estado logado em vez do formulário — o login
+  // persiste em cookie, então quem já entrou não deve ver "Entrar" de novo.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <div className="flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
       <ClaudeAcademyBrand size="md" className="mb-10 max-w-full" />
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm sm:p-8">
-        <h1 className="font-serif text-2xl tracking-tight text-[var(--foreground)]">
-          Área de membros
-        </h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          Sem senha: informe o e-mail do seu convite e enviamos um link de
-          acesso. É o único jeito de entrar.
-        </p>
-        <div className="mt-8">
-          <Suspense fallback={null}>
-            <LoginStatusBanner />
-          </Suspense>
-          <Suspense
-            fallback={
-              <div className="h-40 animate-pulse rounded-xl bg-[var(--border)]/30" />
-            }
-          >
-            <LoginForm />
-          </Suspense>
-        </div>
+        {user ? (
+          <>
+            <h1 className="font-serif text-2xl tracking-tight text-[var(--foreground)]">
+              Você já está conectado
+            </h1>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Sua sessão está ativa como{" "}
+              <span className="text-[var(--foreground)]">{user.email}</span>.
+            </p>
+            <div className="mt-8 flex flex-col gap-3">
+              <Link
+                href="/area-de-membros"
+                className="rounded-xl bg-[var(--accent)] px-4 py-3 text-center text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
+              >
+                Ir para a área de membros
+              </Link>
+              <SignOutButton className="rounded-xl border border-[var(--border)] px-4 py-3 text-center text-sm text-[var(--muted)] transition hover:border-[var(--foreground)]/20 hover:text-[var(--foreground)]" />
+            </div>
+          </>
+        ) : (
+          <>
+            <h1 className="font-serif text-2xl tracking-tight text-[var(--foreground)]">
+              Área de membros
+            </h1>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Sem senha: informe o e-mail do seu convite e enviamos um link de
+              acesso. É o único jeito de entrar.
+            </p>
+            <div className="mt-8">
+              <Suspense fallback={null}>
+                <LoginStatusBanner />
+              </Suspense>
+              <Suspense
+                fallback={
+                  <div className="h-40 animate-pulse rounded-xl bg-[var(--border)]/30" />
+                }
+              >
+                <LoginForm />
+              </Suspense>
+            </div>
+          </>
+        )}
       </div>
       <div className="mt-8 text-center text-sm text-[var(--muted)]">
         <p>Ainda não faz parte?</p>
