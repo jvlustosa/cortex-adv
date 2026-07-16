@@ -24,24 +24,29 @@
 
 Run: `git checkout -b feature-gestao-aulas-painel`
 
-- [ ] **Step 2: Confirmar suporte a TypeScript no test runner**
+- [ ] **Step 2: Instalar `tsx`** (runner que resolve TS + o alias `@/`)
 
-Run: `node --version`
-Expected: `v22.6.0` ou maior (necessário pra `--experimental-strip-types` importar `.ts` nos testes `node --test`). Se for menor, avise no handoff — o fallback é instalar `tsx` (não está nas deps) ou compilar os helpers; **não** improvise.
+O repo usa `node --test`, mas bare node **não** resolve imports `@/…` nem `.ts` sem extensão (confirmado: Node v26 aqui). `tsx` resolve os dois e mantém `node:test`.
+
+Run: `npm install -D tsx`
 
 - [ ] **Step 3: Registrar o script de teste unitário**
 
-Em `package.json`, dentro de `"scripts"`, adicione:
+Em `package.json`, dentro de `"scripts"`, adicione (lista explícita evita ambiguidade de descoberta/glob):
 
 ```json
-"test:unit": "node --experimental-strip-types --test tests/unit/*.test.mjs"
+"test:unit": "tsx --test tests/unit/slug.test.ts tests/unit/ordering.test.ts tests/unit/merge.test.ts"
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Sanidade do runner**
+
+Crie `tests/unit/smoke.test.ts` com um teste trivial (`test("ok", () => assert.equal(1,1))`) e rode `npx tsx --test tests/unit/smoke.test.ts` → PASS. Apague o arquivo depois. Confirma que `tsx --test` roda nesta máquina antes de escrever os testes reais.
+
+- [ ] **Step 5: Commit**
 
 ```bash
-git add package.json
-git commit -m "chore: add test:unit script for lesson-management pure logic"
+git add package.json package-lock.json
+git commit -m "chore: add tsx + test:unit script for lesson-management logic"
 ```
 
 ---
@@ -134,15 +139,15 @@ git commit -m "feat(lessons): add order_index/origin/feedback-item types"
 
 **Files:**
 - Create: `src/lib/lessons/slug.ts`
-- Test: `tests/unit/slug.test.mjs`
+- Test: `tests/unit/slug.test.ts`
 
 - [ ] **Step 1: Escrever o teste que falha**
 
-```js
-// tests/unit/slug.test.mjs
+```ts
+// tests/unit/slug.test.ts
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { slugifyLessonTitle, uniqueLessonId } from "../../src/lib/lessons/slug.ts";
+import { slugifyLessonTitle, uniqueLessonId } from "@/lib/lessons/slug";
 
 test("slugify: minúsculo, sem acento, hífens", () => {
   assert.equal(slugifyLessonTitle("O que é o Claude"), "o-que-e-o-claude");
@@ -199,7 +204,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib/lessons/slug.ts tests/unit/slug.test.mjs
+git add src/lib/lessons/slug.ts tests/unit/slug.test.ts
 git commit -m "feat(lessons): slugifyLessonTitle + uniqueLessonId with tests"
 ```
 
@@ -209,15 +214,15 @@ git commit -m "feat(lessons): slugifyLessonTitle + uniqueLessonId with tests"
 
 **Files:**
 - Create: `src/lib/lessons/ordering.ts`
-- Test: `tests/unit/ordering.test.mjs`
+- Test: `tests/unit/ordering.test.ts`
 
 - [ ] **Step 1: Teste que falha**
 
-```js
-// tests/unit/ordering.test.mjs
+```ts
+// tests/unit/ordering.test.ts
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { compareLessons, nextOrderIndex } from "../../src/lib/lessons/ordering.ts";
+import { compareLessons, nextOrderIndex } from "@/lib/lessons/ordering";
 
 const cat = (i, title) => ({ orderIndex: null, catalogIndex: i, title });
 const withOrder = (o, title) => ({ orderIndex: o, catalogIndex: null, title });
@@ -299,7 +304,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib/lessons/ordering.ts tests/unit/ordering.test.mjs
+git add src/lib/lessons/ordering.ts tests/unit/ordering.test.ts
 git commit -m "feat(lessons): pure ordering helpers with tests"
 ```
 
@@ -309,15 +314,17 @@ git commit -m "feat(lessons): pure ordering helpers with tests"
 
 **Files:**
 - Modify: `src/lib/lessons/merge-course.ts`
-- Test: `tests/unit/merge-course.test.mjs`
+- Test: `tests/unit/merge.test.ts`
+
+> Importar `merge-course.ts` é seguro no teste: os imports de Supabase/`@/data` são só referenciados dentro de funções (nenhuma conexão no carregamento). `tsx` resolve o alias `@/`.
 
 - [ ] **Step 1: Teste que falha** (núcleo puro `mergeCourseWithOverrides`)
 
-```js
-// tests/unit/merge-course.test.mjs
+```ts
+// tests/unit/merge.test.ts
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mergeCourseWithOverrides } from "../../src/lib/lessons/merge-course.ts";
+import { mergeCourseWithOverrides } from "@/lib/lessons/merge-course";
 
 const course = {
   title: "T", subtitle: "S",
@@ -458,7 +465,7 @@ Expected: PASS. Depois `npx tsc --noEmit` sem erros em `merge-course.ts`.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib/lessons/merge-course.ts tests/unit/merge-course.test.mjs
+git add src/lib/lessons/merge-course.ts tests/unit/merge.test.ts
 git commit -m "feat(lessons): include custom lessons, order, drop empty modules in merge"
 ```
 
@@ -781,7 +788,7 @@ async function countPublishedLessons(): Promise<number> {
 }
 ```
 
-Remova o import de `fetchLessonOverrides` se ficar sem uso (`npx tsc --noEmit` acusa).
+Remova os imports que ficam sem uso: `COURSE` (`@/data/course-content`, só usado na função antiga) **e** `fetchLessonOverrides` — `npx tsc --noEmit` / lint acusam.
 
 - [ ] **Step 2: `members.ts` — mesmo denominador**
 

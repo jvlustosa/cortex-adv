@@ -8,6 +8,7 @@ import { CourseRoadmap } from "@/components/sales/course-roadmap";
 import { PricingSection } from "@/components/sales/pricing-section";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { COURSE } from "@/data/course-content";
+import { COURSE_SCOPE } from "@/data/curso-trilha-public";
 import {
   formatBRL,
   getPricingSummary,
@@ -23,7 +24,7 @@ const { upfront, upfrontDiscountPercent } = getPricingSummary();
 
 export const metadata: Metadata = {
   title: "Curso Claude Cowork para Advogados | Garanta sua vaga",
-  description: `Domine o Claude Cowork no escritório. ${COURSE.modules.length} módulos, trilha completa. A partir de 12× ${formatBRL(PRICING.installments.amount)} ou ${formatBRL(upfront)} à vista.`,
+  description: `Domine o Claude Cowork no escritório. ${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas, liberadas aos poucos. A partir de 12× ${formatBRL(PRICING.installments.amount)} ou ${formatBRL(upfront)} à vista.`,
 };
 
 export default function CursoSalesPage() {

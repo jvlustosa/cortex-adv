@@ -1,29 +1,12 @@
 import Image from "next/image";
-import { BookOpen, Clock, Layers } from "lucide-react";
+import { BookOpen, Check, Clock, Layers, Plus } from "lucide-react";
 import { COURSE } from "@/data/course-content";
+import { COURSE_SCOPE } from "@/data/curso-trilha-public";
 import { getModuleCoverImage } from "@/lib/course/module-covers";
 import styles from "./course-roadmap.module.css";
 
-function totalDurationMinutes() {
-  return COURSE.modules.reduce(
-    (sum, mod) =>
-      sum +
-      mod.lessons.reduce((lessonSum, lesson) => {
-        const match = lesson.duration.match(/(\d+)/);
-        return lessonSum + (match ? Number(match[1]) : 0);
-      }, 0),
-    0,
-  );
-}
-
 export function CourseRoadmap() {
-  const totalLessons = COURSE.modules.reduce(
-    (sum, mod) => sum + mod.lessons.length,
-    0,
-  );
-  const totalMinutes = totalDurationMinutes();
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const upcomingModules = COURSE_SCOPE.modules - COURSE.modules.length;
 
   return (
     <section className={styles.section} aria-labelledby="roadmap-heading">
@@ -40,17 +23,15 @@ export function CourseRoadmap() {
           <div className={styles.stats}>
             <span className={styles.stat}>
               <Layers className="size-3.5" aria-hidden />
-              {COURSE.modules.length} módulos
+              {COURSE_SCOPE.modules} módulos
             </span>
             <span className={styles.stat}>
               <BookOpen className="size-3.5" aria-hidden />
-              {totalLessons} aulas
+              {COURSE_SCOPE.lessons} aulas
             </span>
             <span className={styles.stat}>
               <Clock className="size-3.5" aria-hidden />
-              {hours > 0 ? `${hours}h` : ""}
-              {minutes > 0 ? `${hours > 0 ? " " : ""}${minutes} min` : ""} de
-              conteúdo
+              liberadas aos poucos
             </span>
           </div>
         </header>
@@ -74,6 +55,10 @@ export function CourseRoadmap() {
                     />
                   </div>
                   <div className={styles.moduleHeadText}>
+                    <span className={styles.moduleBadge}>
+                      <Check className="size-3" aria-hidden />
+                      Disponível
+                    </span>
                     <h3 className={styles.moduleTitle}>{mod.title}</h3>
                     <p className={styles.moduleDescription}>
                       {mod.description}
@@ -94,6 +79,29 @@ export function CourseRoadmap() {
               </article>
             </li>
           ))}
+          {upcomingModules > 0 ? (
+            <li className={styles.module}>
+              <span
+                className={`${styles.marker} ${styles.markerUpcoming}`}
+                aria-hidden
+              >
+                <Plus className="size-4" />
+              </span>
+              <article
+                className={`${styles.moduleCard} ${styles.moduleUpcoming}`}
+              >
+                <h3 className={styles.moduleTitle}>
+                  Mais {upcomingModules} módulos a caminho
+                </h3>
+                <p className={styles.moduleDescription}>
+                  A trilha completa tem {COURSE_SCOPE.modules} módulos e{" "}
+                  {COURSE_SCOPE.lessons} aulas, liberados aos poucos e inclusos
+                  sem pagar de novo. Você começa pelos que já estão no ar e
+                  destrava o resto conforme sai.
+                </p>
+              </article>
+            </li>
+          ) : null}
         </ol>
       </div>
     </section>
