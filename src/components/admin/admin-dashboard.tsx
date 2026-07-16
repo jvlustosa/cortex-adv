@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
@@ -88,6 +88,30 @@ function lessonVideo(
   return null;
 }
 
+type LessonGroup = {
+  moduleId: string;
+  moduleTitle: string;
+  lessons: LessonAdminRow[];
+};
+
+/** Agrupa aulas por módulo preservando a ordem que o backend já entregou. */
+function groupByModule(lessons: LessonAdminRow[]): LessonGroup[] {
+  const groups: LessonGroup[] = [];
+  for (const lesson of lessons) {
+    let g = groups.find((x) => x.moduleId === lesson.moduleId);
+    if (!g) {
+      g = {
+        moduleId: lesson.moduleId,
+        moduleTitle: lesson.moduleTitle,
+        lessons: [],
+      };
+      groups.push(g);
+    }
+    g.lessons.push(lesson);
+  }
+  return groups;
+}
+
 function VideoCell({
   lesson,
   onCopy,
@@ -116,6 +140,60 @@ function VideoCell({
         Copiar link
       </button>
     </div>
+  );
+}
+
+function LessonRow({
+  lesson,
+  onCopy,
+  onEdit,
+}: {
+  lesson: LessonAdminRow;
+  onCopy: (text: string) => void;
+  onEdit: (l: LessonAdminRow) => void;
+}) {
+  return (
+    <tr>
+      <td>
+        <strong>{lesson.title}</strong>
+        <br />
+        <span className={styles.feedbackMeta}>
+          {lesson.moduleTitle} · {lesson.lessonId}
+        </span>
+      </td>
+      <td>{lesson.viewCount}</td>
+      <td>
+        {lesson.avgRating !== null ? (
+          <>
+            <Stars rating={Math.round(lesson.avgRating)} />{" "}
+            <span className={styles.feedbackMeta}>
+              {lesson.avgRating} ({lesson.feedbackCount})
+            </span>
+          </>
+        ) : (
+          <span className={styles.feedbackMeta}>-</span>
+        )}
+      </td>
+      <td>
+        <span
+          className={`${styles.badge} ${lesson.published ? styles.badgeOn : styles.badgeOff}`}
+        >
+          {lesson.published ? "Publicada" : "Rascunho"}
+        </span>
+      </td>
+      <td>
+        <VideoCell lesson={lesson} onCopy={onCopy} />
+      </td>
+      <td>
+        <button
+          type="button"
+          className={styles.editBtn}
+          onClick={() => onEdit(lesson)}
+        >
+          Editar
+        </button>
+      </td>
+    </tr>
   );
 }
 
@@ -427,48 +505,20 @@ export function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {lessons.map((lesson) => (
-                    <tr key={`${lesson.moduleId}:${lesson.lessonId}`}>
-                      <td>
-                        <strong>{lesson.title}</strong>
-                        <br />
-                        <span className={styles.feedbackMeta}>
-                          {lesson.moduleTitle} · {lesson.lessonId}
-                        </span>
-                      </td>
-                      <td>{lesson.viewCount}</td>
-                      <td>
-                        {lesson.avgRating !== null ? (
-                          <>
-                            <Stars rating={Math.round(lesson.avgRating)} />{" "}
-                            <span className={styles.feedbackMeta}>
-                              {lesson.avgRating} ({lesson.feedbackCount})
-                            </span>
-                          </>
-                        ) : (
-                          <span className={styles.feedbackMeta}>-</span>
-                        )}
-                      </td>
-                      <td>
-                        <span
-                          className={`${styles.badge} ${lesson.published ? styles.badgeOn : styles.badgeOff}`}
-                        >
-                          {lesson.published ? "Publicada" : "Rascunho"}
-                        </span>
-                      </td>
-                      <td>
-                        <VideoCell lesson={lesson} onCopy={copyText} />
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className={styles.editBtn}
-                          onClick={() => openEdit(lesson)}
-                        >
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
+                  {groupByModule(lessons).map((group) => (
+                    <Fragment key={group.moduleId}>
+                      <tr className={styles.moduleRow}>
+                        <td colSpan={6}>{group.moduleTitle}</td>
+                      </tr>
+                      {group.lessons.map((lesson) => (
+                        <LessonRow
+                          key={`${lesson.moduleId}:${lesson.lessonId}`}
+                          lesson={lesson}
+                          onCopy={copyText}
+                          onEdit={openEdit}
+                        />
+                      ))}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>

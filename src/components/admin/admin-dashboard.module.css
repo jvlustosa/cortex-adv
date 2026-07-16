@@ -103,6 +103,15 @@
   border-bottom: none;
 }
 
+.moduleRow td {
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted, #9ca3af);
+  padding-top: 1rem;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
