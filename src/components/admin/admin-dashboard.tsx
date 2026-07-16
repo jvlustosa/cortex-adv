@@ -217,6 +217,7 @@ function LessonRow({
   onFeedback,
   onDelete,
   onDragStart,
+  onDragEnd,
   onDrop,
   onKeyMove,
 }: {
@@ -229,6 +230,7 @@ function LessonRow({
   onFeedback: (l: LessonAdminRow) => void;
   onDelete: (l: LessonAdminRow) => void;
   onDragStart: (key: string) => void;
+  onDragEnd: () => void;
   onDrop: (moduleId: string, targetKey: string) => void;
   onKeyMove: (l: LessonAdminRow, dir: -1 | 1) => void;
 }) {
@@ -237,7 +239,12 @@ function LessonRow({
     <tr
       className={styles.lessonRow}
       draggable
-      onDragStart={() => onDragStart(key)}
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", key);
+        e.dataTransfer.effectAllowed = "move";
+        onDragStart(key);
+      }}
+      onDragEnd={() => onDragEnd()}
       onDragOver={(e) => e.preventDefault()}
       onDrop={() => onDrop(lesson.moduleId, key)}
     >
@@ -1049,6 +1056,7 @@ export function AdminDashboard() {
                           onFeedback={openFeedback}
                           onDelete={deleteLesson}
                           onDragStart={setDragKey}
+                          onDragEnd={() => setDragKey(null)}
                           onDrop={handleDrop}
                           onKeyMove={moveByKeyboard}
                         />

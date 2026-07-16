@@ -112,7 +112,7 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: var(--muted, #9ca3af);
+  color: var(--muted);
   padding-top: 1rem;
 }
 
@@ -128,7 +128,7 @@
   background: transparent;
   border: 0;
   cursor: pointer;
-  color: var(--muted, #9ca3af);
+  color: var(--muted);
   padding: 0.15rem;
 }
 
@@ -144,14 +144,14 @@
   padding: 0.05rem 0.4rem;
   border-radius: 6px;
   background: rgba(217, 119, 87, 0.15);
-  color: var(--claude, #d97757);
+  color: var(--claude);
 }
 
 .iconDangerBtn {
   background: transparent;
   border: 0;
   cursor: pointer;
-  color: var(--danger, #ef4444);
+  color: var(--danger);
   padding: 0.25rem;
 }
 
@@ -162,7 +162,7 @@
   padding: 0.6rem 0.9rem;
   margin-bottom: 0.75rem;
   border-radius: 10px;
-  background: var(--surface-2, rgba(255, 255, 255, 0.04));
+  background: var(--surface-raised);
 }
 
 .aulaCell {
@@ -175,7 +175,7 @@
   background: transparent;
   border: 0;
   cursor: grab;
-  color: var(--muted, #9ca3af);
+  color: var(--muted);
   padding: 0.15rem;
   margin-top: 0.1rem;
 }
@@ -272,7 +272,7 @@
 }
 
 .modalWide {
-  background: var(--surface, #14110f);
+  background: var(--surface);
   border-radius: 16px;
   padding: 1.25rem;
   width: min(880px, 92vw);
@@ -371,6 +371,8 @@
   border-radius: 0.5rem;
   font-size: 0.82rem;
   font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
   cursor: pointer;
 }
 
