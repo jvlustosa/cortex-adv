@@ -57,11 +57,12 @@ export const COMMUNITY = {
     badge: "Só alunos",
     tagline: "Fechada para garantir troca de alto nível",
     perks: [
+      "Acesso à comunidade por 1 ano",
       `Skills premium liberadas após ${PRICING.guaranteeDays} dias da compra`,
       "Dúvidas sobre as aulas respondidas no grupo",
       "Networking com quem já aplica Claude no escritório",
       "Materiais extras e atualizações antes do público",
     ],
-    note: `Grupo VIP na matrícula, acesso por 1 ano. Skills premium após ${PRICING.guaranteeDays} dias.`,
+    note: `Grupo VIP na matrícula. Skills premium após ${PRICING.guaranteeDays} dias.`,
   },
 } as const;

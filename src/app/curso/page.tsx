@@ -30,40 +30,42 @@ export const metadata: Metadata = {
 export default function CursoSalesPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col">
-      <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
-        <div
-          className={cn(
-            pageShellClass,
-            "flex items-center justify-between gap-3 py-3 sm:gap-6 sm:py-4",
-          )}
-        >
-          <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
-          <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
-          <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
-            <a
-              href="#precos"
-              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
-            >
-              Preços
-            </a>
-            <Link
-              href="/"
-              className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
-            >
-              Início
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
-            >
-              Entrar
-            </Link>
-            <HeaderBuyCta />
-          </nav>
-        </div>
-      </header>
+      <div className="sticky top-0 z-50">
+        <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
+          <div
+            className={cn(
+              pageShellClass,
+              "flex items-center justify-between gap-3 py-3 sm:gap-6 sm:py-4",
+            )}
+          >
+            <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
+            <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
+            <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
+              <a
+                href="#precos"
+                className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
+              >
+                Preços
+              </a>
+              <Link
+                href="/"
+                className="hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline"
+              >
+                Início
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
+              >
+                Entrar
+              </Link>
+              <HeaderBuyCta />
+            </nav>
+          </div>
+        </header>
 
-      <LaunchBanner />
+        <LaunchBanner />
+      </div>
 
       <main className="flex flex-1 flex-col">
         <section className="relative overflow-hidden px-4 pt-12 pb-14 sm:px-6 sm:pt-14 sm:pb-16 md:pt-20 md:pb-20">

@@ -128,25 +128,27 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <header className="relative z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
-        <div
-          className={cn(
-            pageShellClass,
-            "flex items-center justify-between gap-3 py-3 sm:gap-6 sm:py-4",
-          )}
-        >
-          <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
-          <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
-          <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
-            <HeaderMarketingNav />
-            <HeaderAuthCta />
-            <HeaderBuyCta />
-            <LandingMobileMenu />
-          </nav>
-        </div>
-      </header>
+      <div className="sticky top-0 z-50">
+        <header className="relative border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
+          <div
+            className={cn(
+              pageShellClass,
+              "flex items-center justify-between gap-3 py-3 sm:gap-6 sm:py-4",
+            )}
+          >
+            <ClaudeAcademyBrand size="sm" className="shrink sm:hidden" />
+            <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
+            <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
+              <HeaderMarketingNav />
+              <HeaderAuthCta />
+              <HeaderBuyCta />
+              <LandingMobileMenu />
+            </nav>
+          </div>
+        </header>
 
-      <LaunchBanner />
+        <LaunchBanner />
+      </div>
 
       <main className="flex flex-1 flex-col">
         <CourseHero />
