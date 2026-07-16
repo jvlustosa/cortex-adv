@@ -91,6 +91,8 @@ export async function listLessonsForAdmin(): Promise<{
         viewCount: viewMap.get(key) ?? 0,
         feedbackCount: feedback?.count ?? 0,
         avgRating: feedback ? Math.round(feedback.avg * 10) / 10 : null,
+        orderIndex: override?.order_index ?? null,
+        origin: "catalog",
       });
     }
   }
