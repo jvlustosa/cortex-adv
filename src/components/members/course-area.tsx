@@ -44,7 +44,7 @@ function pickInitial(
     course.modules.find((m) => m.id === modParam) ?? course.modules[0];
   const lesson =
     mod?.lessons.find((l) => l.id === lessonParam) ?? mod?.lessons[0];
-  return { moduleId: mod!.id, lessonId: lesson!.id };
+  return { moduleId: mod?.id ?? "", lessonId: lesson?.id ?? "" };
 }
 
 export function CourseArea({
