@@ -383,12 +383,14 @@ export async function createLesson(input: {
 
 export async function reorderModule(moduleId: string, lessonIds: string[]): Promise<void> {
   const admin = createAdminClient();
+  const now = new Date().toISOString();
   const rows = lessonIds.map((lesson_id, i) => ({
     module_id: moduleId,
     lesson_id,
     order_index: i,
+    updated_at: now,
   }));
-  // ON CONFLICT DO UPDATE SET order_index — published/title/tella intactos.
+  // ON CONFLICT DO UPDATE SET order_index, updated_at — published/title/tella intactos.
   const { error } = await admin
     .from("lesson_overrides")
     .upsert(rows, { onConflict: "module_id,lesson_id" });
@@ -400,10 +402,12 @@ export async function setPublishedBatch(
   published: boolean,
 ): Promise<void> {
   const admin = createAdminClient();
+  const now = new Date().toISOString();
   const rows = keys.map((k) => ({
     module_id: k.moduleId,
     lesson_id: k.lessonId,
     published,
+    updated_at: now,
   }));
   const { error } = await admin
     .from("lesson_overrides")
@@ -418,8 +422,10 @@ export async function deleteCustomLesson(moduleId: string, lessonId: string): Pr
   }
   const admin = createAdminClient();
   const match = { module_id: moduleId, lesson_id: lessonId };
-  await admin.from("lesson_views").delete().match(match);
-  await admin.from("lesson_feedback").delete().match(match);
+  const { error: viewsErr } = await admin.from("lesson_views").delete().match(match);
+  if (viewsErr) throw viewsErr;
+  const { error: feedbackErr } = await admin.from("lesson_feedback").delete().match(match);
+  if (feedbackErr) throw feedbackErr;
   const { error } = await admin.from("lesson_overrides").delete().match(match);
   if (error) throw error;
 }
