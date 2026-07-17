@@ -37,7 +37,9 @@ begin
   end if;
 
   update public.invite_tokens
-  set used_count = used_count + 1
+  -- Qualifica a coluna: "used_count" nu é ambíguo (também é nome do parâmetro
+  -- OUT em `returns table`), o que dispara 42702 e derruba o consumo (500).
+  set used_count = invite_tokens.used_count + 1
   where invite_tokens.id = v_row.id
   returning invite_tokens.id, invite_tokens.max_uses, invite_tokens.used_count
   into id, max_uses, used_count;
