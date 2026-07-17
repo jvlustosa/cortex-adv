@@ -77,4 +77,13 @@ describe("convite — saudação personalizada", () => {
     assert.ok(recipient.includes('.eq("token"'));
     assert.ok(!recipient.includes(".ilike("));
   });
+
+  it("o lookup é à prova de falha — personalização nunca derruba o /signup", () => {
+    const recipient = readSrc("src/lib/invites/recipient.ts");
+    // Sem env/service role, degrada pra saudação genérica em vez de 500.
+    assert.ok(recipient.includes("isServiceRoleConfigured"));
+    // createAdminClient() e a query ficam dentro de try/catch: qualquer throw
+    // (env ausente, rede, coluna faltando) vira null, não erro no server component.
+    assert.match(recipient, /try\s*{[\s\S]*createAdminClient\(\)[\s\S]*}\s*catch/);
+  });
 });

@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isServiceRoleConfigured, isSupabaseEnabled } from "@/lib/supabase/enabled";
 import type { InviteTitle } from "./types";
 
 export type InviteRecipient = {
@@ -47,23 +48,29 @@ export async function getInviteRecipientByToken(
 ): Promise<InviteRecipient | null> {
   const normalized = token.trim();
   if (!normalized) return null;
+  // Personalização é best-effort: sem service role (ou com env ausente) apenas
+  // degrada pra saudação genérica. NUNCA pode derrubar o /signup — qualquer
+  // throw aqui (createAdminClient, rede, coluna ausente) viraria HTTP 500.
+  if (!isSupabaseEnabled() || !isServiceRoleConfigured()) return null;
 
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("invite_tokens")
-    .select("recipient_name, recipient_email, recipient_title")
-    .eq("token", normalized)
-    .maybeSingle();
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("invite_tokens")
+      .select("recipient_name, recipient_email, recipient_title")
+      .eq("token", normalized)
+      .maybeSingle();
 
-  if (error) {
-    console.error("[invites/recipient] getInviteRecipientByToken", error);
+    if (error) throw error;
+    if (!data) return null;
+
+    return {
+      name: data.recipient_name ?? null,
+      email: data.recipient_email ?? null,
+      title: (data.recipient_title as InviteTitle | null) ?? null,
+    };
+  } catch (err) {
+    console.error("[invites/recipient] getInviteRecipientByToken", err);
     return null;
   }
-  if (!data) return null;
-
-  return {
-    name: data.recipient_name ?? null,
-    email: data.recipient_email ?? null,
-    title: (data.recipient_title as InviteTitle | null) ?? null,
-  };
 }
