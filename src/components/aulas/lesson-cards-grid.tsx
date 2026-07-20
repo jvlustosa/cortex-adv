@@ -13,13 +13,17 @@ type LessonCardsGridProps = {
   enrolledAt?: string | null;
   /** Admin/demo: ignora a trava e libera tudo. */
   bypassLock?: boolean;
+  /** Chaves "module_id:lesson_id" das aulas já assistidas. */
+  completedKeys?: string[];
 };
 
 export function LessonCardsGrid({
   course,
   enrolledAt = null,
   bypassLock = false,
+  completedKeys = [],
 }: LessonCardsGridProps) {
+  const completed = new Set(completedKeys);
   const totalLessons = course.modules.reduce(
     (sum, mod) => sum + mod.lessons.length,
     0,
@@ -81,6 +85,7 @@ export function LessonCardsGrid({
                     lesson={lesson}
                     index={i}
                     moduleIndex={modIndex}
+                    completed={completed.has(`${mod.id}:${lesson.id}`)}
                   />
                 ))}
               </div>

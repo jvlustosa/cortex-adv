@@ -46,6 +46,7 @@ export default async function AreaDeMembrosPage() {
           course={course}
           enrolledAt={user?.created_at ?? null}
           bypassLock={bypassLock}
+          completedKeys={progress.completedKeys}
         />
         <CertificateProgress
           progress={progress}

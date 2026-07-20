@@ -22,7 +22,6 @@ import { LaunchBanner } from "@/components/launch-banner";
 import { MentorProfile } from "@/components/mentor-profile";
 import { TrilhaSneakPeek } from "@/components/trilha-sneak-peek";
 import { pageShellClass } from "@/lib/layout";
-import { PRICING } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 const faqItems: FaqItem[] = [
@@ -57,7 +56,7 @@ const faqItems: FaqItem[] = [
   {
     question: "O que é a Comunidade VIP?",
     answer:
-      `Grupo exclusivo no WhatsApp só para alunos matriculados — fechado de propósito, pra garantir uma troca de alto nível entre quem realmente aplica. Incluído na compra do curso. Lá você tira dúvidas das aulas, troca experiências com quem já usa Claude no escritório e recebe conteúdo extra. As skills premium são liberadas após ${PRICING.guaranteeDays} dias da compra. O acesso ao grupo é imediato na matrícula e vale por 1 ano.`,
+      `Grupo exclusivo no WhatsApp só para alunos matriculados — fechado de propósito, pra garantir uma troca de alto nível entre quem realmente aplica. Incluído na compra do curso. Na matrícula você já entra no grupo (acesso por 1 ano), tira dúvidas das aulas e troca com quem já usa Claude no escritório. Em preparação — e vem mais: skills premium, conectores, materiais extras, lives e templates. Tudo que for liberado no ano entra sem pagar de novo.`,
   },
   {
     question: "Quanto custa o curso?",

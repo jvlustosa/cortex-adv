@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Play } from "lucide-react";
+import { Check, Clock, Play } from "lucide-react";
 import { getModuleCoverImage } from "@/lib/course/module-covers";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
 import styles from "./lesson-card.module.css";
@@ -10,6 +10,8 @@ type LessonCardProps = {
   lesson: CourseLesson;
   index: number;
   moduleIndex: number;
+  /** Aula já marcada como assistida (lesson_views). */
+  completed?: boolean;
 };
 
 export function LessonCard({
@@ -17,13 +19,22 @@ export function LessonCard({
   lesson,
   index,
   moduleIndex,
+  completed = false,
 }: LessonCardProps) {
   const href = `/aulas/${module.id}/${lesson.id}`;
   const coverSrc = getModuleCoverImage(module.id, moduleIndex, module.coverImage);
   const indexLabel = (index + 1).toString().padStart(2, "0");
 
   return (
-    <Link href={href} className={styles.card}>
+    <Link
+      href={href}
+      className={`${styles.card} ${completed ? styles.cardDone : ""}`}
+      aria-label={
+        completed
+          ? `${lesson.title} — assistida`
+          : `${lesson.title} — assistir aula`
+      }
+    >
       <div className={styles.visual}>
         <Image
           src={coverSrc}
@@ -35,15 +46,26 @@ export function LessonCard({
           aria-hidden
         />
         <div className={styles.visualOverlay} aria-hidden />
-        <span className={styles.playBadge} aria-hidden>
-          <Play className="size-4 fill-current" />
+        <span
+          className={`${styles.playBadge} ${completed ? styles.playBadgeDone : ""}`}
+          aria-hidden
+        >
+          {completed ? (
+            <Check className="size-4" strokeWidth={3} />
+          ) : (
+            <Play className="size-4 fill-current" />
+          )}
         </span>
       </div>
 
       <div className={styles.body}>
         <div className={styles.bodyHead}>
           <span className={styles.moduleTag}>{module.title}</span>
-          <span className={styles.lessonIndex}>{indexLabel}</span>
+          {completed ? (
+            <span className={styles.doneBadge}>Assistida</span>
+          ) : (
+            <span className={styles.lessonIndex}>{indexLabel}</span>
+          )}
         </div>
         <h3 className={styles.title}>{lesson.title}</h3>
         <p className={styles.description}>{lesson.description}</p>
@@ -52,7 +74,9 @@ export function LessonCard({
             <Clock className="size-3" aria-hidden />
             {lesson.duration}
           </span>
-          <span className={styles.cta}>Assistir aula →</span>
+          <span className={completed ? styles.ctaDone : styles.cta}>
+            {completed ? "Revisar aula →" : "Assistir aula →"}
+          </span>
         </div>
       </div>
     </Link>

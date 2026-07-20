@@ -6,9 +6,9 @@ import { computePackAccess, type PackAccess } from "@/lib/course/packs-access";
 import { requireCourseAccess } from "@/lib/course/require-access";
 
 export const metadata = {
-  title: "Packs | Claude Cowork para advogados",
+  title: "Galeria Premium | Claude Cowork para advogados",
   description:
-    "Skills e conectores prontos do curso — incluindo o Conector de Publicações do DJEN — para instalar direto no seu Claude.",
+    "Skills, conectores e itens premium do curso — exclusivos de alunos da Claude Academy.",
   openGraph: {
     images: [{ url: "/og/membros.png", width: 1200, height: 630 }],
   },
@@ -34,7 +34,7 @@ export default async function PacksPage() {
       active="packs"
       isAdmin={isAdmin}
     >
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
+      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
         <PacksArea packs={PACKS} access={access} />
       </main>
     </AulasShell>

@@ -82,6 +82,25 @@ export function CommunityTiers({
                 </li>
               ))}
             </ul>
+            {vip.comingSoon.length > 0 ? (
+              <div className={styles.soonBlock}>
+                <p className={styles.soonLabel}>Sendo preparado · e vem mais</p>
+                <ul className={styles.perks}>
+                  {vip.comingSoon.map((perk) => (
+                    <li key={perk} className={`${styles.perk} ${styles.perkSoon}`}>
+                      <Lock
+                        className={`${styles.perkIcon} size-3.5`}
+                        aria-hidden
+                      />
+                      {perk}
+                    </li>
+                  ))}
+                </ul>
+                <p className={styles.soonMore}>
+                  + novidades ao longo do ano, sem pagar de novo
+                </p>
+              </div>
+            ) : null}
             <p className={styles.note}>{vip.note}</p>
             {vipIsExternal ? (
               <a

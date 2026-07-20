@@ -1,7 +1,9 @@
 .card {
   display: flex;
   flex-direction: row;
+  width: 100%;
   height: 100%;
+  min-height: 10.5rem;
   border-radius: 1rem;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -11,7 +13,20 @@
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.cardDone {
+  border-color: color-mix(in srgb, #22c55e 42%, var(--border));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, #22c55e 8%, transparent) 0%,
+      transparent 55%
+    ),
+    var(--surface);
+  box-shadow: inset 3px 0 0 #22c55e;
 }
 
 @media (hover: hover) {
@@ -23,9 +38,21 @@
     transform: translateY(-3px);
   }
 
+  .cardDone:hover {
+    border-color: color-mix(in srgb, #22c55e 55%, var(--border));
+    box-shadow:
+      inset 3px 0 0 #22c55e,
+      0 0 0 1px color-mix(in srgb, #22c55e 18%, transparent),
+      0 16px 32px rgba(0, 0, 0, 0.4);
+  }
+
   .card:hover .playBadge {
     background: rgba(217, 119, 87, 0.55);
     transform: translate(-50%, -50%) scale(1.06);
+  }
+
+  .cardDone:hover .playBadgeDone {
+    background: color-mix(in srgb, #22c55e 65%, transparent);
   }
 }
 
@@ -81,6 +108,25 @@
     transform 0.15s ease;
 }
 
+.playBadgeDone {
+  border-color: color-mix(in srgb, #22c55e 55%, white);
+  background: color-mix(in srgb, #22c55e 72%, transparent);
+  color: #fff;
+}
+
+.cardDone .coverImage {
+  filter: saturate(0.85) brightness(0.92);
+}
+
+.cardDone .visualOverlay {
+  background: linear-gradient(
+    105deg,
+    rgba(34, 197, 94, 0.12) 0%,
+    rgba(0, 0, 0, 0.28) 55%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
 /* Conteúdo (direita) */
 .body {
   display: flex;
@@ -119,12 +165,29 @@
   color: var(--muted);
 }
 
+.doneBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #22c55e 45%, transparent);
+  background: color-mix(in srgb, #22c55e 16%, transparent);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4ade80;
+}
+
 .title {
   font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
   font-size: 1.02rem;
   line-height: 1.25;
   letter-spacing: -0.01em;
   color: var(--foreground);
+  /* Reserva sempre 2 linhas — evita card mais baixo com título curto */
+  min-height: calc(1.02rem * 1.25 * 2);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -136,6 +199,7 @@
   font-size: 0.78rem;
   line-height: 1.5;
   color: var(--muted);
+  min-height: calc(0.78rem * 1.5 * 2);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -147,7 +211,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
-  margin-top: 0.1rem;
+  margin-top: auto;
 }
 
 .duration {
@@ -167,6 +231,14 @@
   color: var(--claude);
 }
 
+.ctaDone {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #4ade80;
+}
+
 @media (max-width: 479px) {
   .visual {
     flex-basis: 36%;
@@ -180,5 +252,6 @@
 
   .title {
     font-size: 0.95rem;
+    min-height: calc(0.95rem * 1.25 * 2);
   }
 }

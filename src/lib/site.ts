@@ -56,13 +56,20 @@ export const COMMUNITY = {
     name: "Comunidade VIP",
     badge: "Só alunos",
     tagline: "Fechada para garantir troca de alto nível",
+    /** Já incluso na matrícula — o que o aluno encontra no grupo hoje. */
     perks: [
       "Acesso à comunidade por 1 ano",
-      `Skills premium liberadas após ${PRICING.guaranteeDays} dias da compra`,
       "Dúvidas sobre as aulas respondidas no grupo",
       "Networking com quem já aplica Claude no escritório",
-      "Materiais extras e atualizações antes do público",
     ],
-    note: `Grupo VIP na matrícula. Skills premium após ${PRICING.guaranteeDays} dias.`,
+    /** Ainda não liberado — bloco "sendo preparado" pra sinalizar que a comunidade cresce. */
+    comingSoon: [
+      `Skills premium (após ${PRICING.guaranteeDays} dias de garantia)`,
+      "Pack de conectores pro Claude no escritório",
+      "Materiais extras e atualizações antes do público",
+      "Novas aulas e lives só pra alunos",
+      "Templates e playbooks prontos pra copiar",
+    ],
+    note: "Grupo VIP na matrícula. O resto está sendo preparado — aluno tem acesso a tudo que for liberado no ano.",
   },
 } as const;

@@ -131,7 +131,33 @@
   margin-top: 1.1rem;
   display: grid;
   gap: 0.55rem;
+}
+
+.soonBlock {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
   flex: 1;
+}
+
+.soonBlock .perks {
+  margin-top: 0.65rem;
+}
+
+.soonLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.soonMore {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  font-style: italic;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--muted) 85%, var(--accent));
 }
 
 .perk {
@@ -143,10 +169,18 @@
   color: var(--muted);
 }
 
+.perkSoon {
+  color: color-mix(in srgb, var(--muted) 78%, transparent);
+}
+
 .perkIcon {
   margin-top: 0.15rem;
   flex-shrink: 0;
   color: var(--accent);
+}
+
+.perkSoon .perkIcon {
+  opacity: 0.55;
 }
 
 .note {
@@ -157,7 +191,8 @@
 }
 
 .cta {
-  margin-top: 1.25rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
   display: inline-flex;
   width: 100%;
   align-items: center;

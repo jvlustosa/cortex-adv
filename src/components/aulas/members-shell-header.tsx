@@ -93,7 +93,7 @@ export function MembersShellHeader({
             className={packsLinkClass}
             aria-current={active === "packs" ? "page" : undefined}
           >
-            Packs
+            Galeria
           </Link>
 
           {isAdmin ? (
@@ -171,7 +171,7 @@ export function MembersShellHeader({
                   aria-current={active === "packs" ? "page" : undefined}
                   onClick={closeMenu}
                 >
-                  Packs
+                  Galeria
                 </Link>
 
                 {isAdmin ? (

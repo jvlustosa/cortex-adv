@@ -24,7 +24,7 @@ const features: Feature[] = [
   },
   { text: "Acompanhamento de perto com o Dr. Marcos Vilas Boas" },
   {
-    text: `Skills premium exclusivas — liberadas após ${PRICING.guaranteeDays} dias da compra`,
+    text: `Skills premium exclusivas — sendo preparadas (após ${PRICING.guaranteeDays} dias de garantia)`,
   },
 ];
 
