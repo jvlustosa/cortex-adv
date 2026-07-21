@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import {
   ArrowRight,
   Lock,
@@ -7,7 +6,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import { countPackItems, type Pack, type PackIconKey } from "@/data/packs";
+import { countPackItems, lessonHref, type Pack, type PackIconKey } from "@/data/packs";
 import type { PackAccess } from "@/lib/course/packs-access";
 import { formatUnlockDate } from "@/lib/course/packs-access";
 import { PRICING } from "@/lib/pricing";
@@ -142,16 +141,7 @@ export function PacksArea({ packs, access }: PacksAreaProps) {
       </section>
 
       {skillsPack ? (
-        <GalleryGroup
-          pack={skillsPack}
-          unlocked={access.isUnlocked}
-          cta={
-            <Link href="/area-de-membros" className={styles.skillsCta}>
-              Ver skills nos materiais das aulas
-              <ArrowRight className="size-4 opacity-80" aria-hidden />
-            </Link>
-          }
-        />
+        <GalleryGroup pack={skillsPack} unlocked={access.isUnlocked} />
       ) : null}
 
       {connectorPack ? (
@@ -164,11 +154,9 @@ export function PacksArea({ packs, access }: PacksAreaProps) {
 function GalleryGroup({
   pack,
   unlocked,
-  cta,
 }: {
   pack: Pack;
   unlocked: boolean;
-  cta?: ReactNode;
 }) {
   const Icon = PACK_ICONS[pack.icon];
   const readyCount = pack.items.filter((i) => !isTeaser(i.status)).length;
@@ -191,6 +179,8 @@ function GalleryGroup({
         {pack.items.map((item) => {
           const teaser = isTeaser(item.status);
           const showDetail = unlocked && !teaser;
+          const href =
+            item.kind === "lesson-ref" ? lessonHref(item) : null;
 
           return (
             <article
@@ -239,6 +229,15 @@ function GalleryGroup({
                     </div>
                   )
                 ) : null}
+
+                {item.kind === "lesson-ref" && href && unlocked ? (
+                  <Link href={href} className={styles.lessonLink}>
+                    {teaser
+                      ? "Ver aula relacionada"
+                      : "Abrir aula e baixar nos materiais"}
+                    <ArrowRight className="size-3.5 opacity-80" aria-hidden />
+                  </Link>
+                ) : null}
               </div>
               <span className={styles.boxAction} aria-hidden>
                 {teaser || !unlocked ? (
@@ -251,8 +250,6 @@ function GalleryGroup({
           );
         })}
       </div>
-
-      {cta && unlocked ? cta : null}
     </div>
   );
 }

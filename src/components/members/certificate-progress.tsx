@@ -32,7 +32,7 @@ export function CertificateProgress({
         <p className={styles.subtitle}>
           {isLocked
             ? "Assista todas as aulas do curso para liberar o certificado digital com código de verificação."
-            : "Você concluiu o curso. Em breve seu certificado ficará disponível aqui."}
+            : "Você concluiu o curso. Seu certificado digital com código de verificação já está disponível."}
         </p>
       </header>
 

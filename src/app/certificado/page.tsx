@@ -1,7 +1,9 @@
 import { CourseCertificate } from "@/components/members/course-certificate";
+import { getOrIssueCertificate } from "@/lib/certificates/issue";
 import { getUserCourseProgress } from "@/lib/course/progress";
 import { requireCourseAccess } from "@/lib/course/require-access";
 import { COURSE } from "@/data/course-content";
+import { DEMO_CERTIFICATE_CODE } from "@/lib/certificates/constants";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata = {
@@ -28,17 +30,40 @@ export default async function CertificadoPage() {
   )?.trim();
   const rawName =
     fullName || user?.email?.split("@")[0] || "Aluno(a) Claude Academy";
-  // Nome próprio em certificado vai capitalizado (o full_name pode vir minúsculo).
   const recipientName = capitalizeName(rawName);
 
-  // Prévia até concluir 100% (não emitido). Em modo demo, mostra a prévia também.
   const isPreview = demoMode || !progress.isComplete;
 
-  const issuedDateLabel = new Intl.DateTimeFormat("pt-BR", {
+  let code: string | null = null;
+  let issuedDateLabel = new Intl.DateTimeFormat("pt-BR", {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(new Date());
+  let verifyUrl = SITE_URL;
+
+  if (!isPreview && user?.id) {
+    const issued = await getOrIssueCertificate({
+      userId: user.id,
+      recipientName,
+      courseTitle: COURSE.title,
+      workloadHours: WORKLOAD_HOURS,
+    });
+    if (issued) {
+      code = issued.code;
+      verifyUrl = issued.verifyUrl;
+      issuedDateLabel = new Intl.DateTimeFormat("pt-BR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(`${issued.issuedAt}T12:00:00Z`));
+    }
+  } else if (demoMode) {
+    // Prévia demo: código de exemplo (seed), sem emitir de verdade.
+    code = DEMO_CERTIFICATE_CODE;
+    verifyUrl = `${SITE_URL}/validar/${DEMO_CERTIFICATE_CODE}`;
+  }
 
   return (
     <main className="min-h-dvh bg-[var(--background)] px-4 py-8 sm:px-6 sm:py-12 print:bg-white print:p-0">
@@ -47,8 +72,8 @@ export default async function CertificadoPage() {
         courseTitle={COURSE.title}
         workloadHours={WORKLOAD_HOURS}
         issuedDateLabel={issuedDateLabel}
-        code={null}
-        verifyUrl={SITE_URL}
+        code={code}
+        verifyUrl={verifyUrl}
         isPreview={isPreview}
       />
     </main>

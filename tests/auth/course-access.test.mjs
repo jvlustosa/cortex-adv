@@ -8,7 +8,7 @@ import {
   locationPath,
 } from "./helpers.mjs";
 
-const LESSON_PATH = "/aulas/cowork/cowork-1";
+const LESSON_PATH = "/aulas/comece-aqui/o-que-e-claude";
 const MEMBERS_PATH = "/area-de-membros";
 const MEMBERS_PACKS_PATH = "/area-de-membros/packs";
 const ADMIN_PATH = "/admin";

@@ -1,8 +1,13 @@
-import { BookOpen, Layers, Lock } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, BookOpen, Layers, Lock, Play } from "lucide-react";
 import type { MergedCourse } from "@/components/members/course-area";
 import { ModuleCover } from "@/components/aulas/module-cover";
 import { getModuleCoverImage } from "@/lib/course/module-covers";
 import { computeModuleAccess } from "@/lib/course/module-access";
+import {
+  findNextLesson,
+  type NextLessonTarget,
+} from "@/lib/course/progress";
 import { formatUnlockDate } from "@/lib/course/packs-access";
 import { LessonCard } from "./lesson-card";
 import styles from "./lesson-cards-grid.module.css";
@@ -28,6 +33,13 @@ export function LessonCardsGrid({
     (sum, mod) => sum + mod.lessons.length,
     0,
   );
+  const doneTotal = completedKeys.length;
+  const nextLesson: NextLessonTarget | null = findNextLesson(
+    course,
+    completedKeys,
+  );
+  const allDone = totalLessons > 0 && doneTotal >= totalLessons;
+
   return (
     <div>
       <header className={styles.pageIntro}>
@@ -44,9 +56,34 @@ export function LessonCardsGrid({
           </span>
           <span className={styles.stat}>
             <BookOpen className="size-3.5" aria-hidden />
-            {totalLessons} aulas
+            {doneTotal}/{totalLessons} aulas
           </span>
         </div>
+
+        {nextLesson ? (
+          <Link href={nextLesson.href} className={styles.continueCta}>
+            <span className={styles.continueIcon} aria-hidden>
+              <Play className="size-4 fill-current" />
+            </span>
+            <span className={styles.continueText}>
+              <span className={styles.continueLabel}>Continuar assistindo</span>
+              <span className={styles.continueLesson}>
+                {nextLesson.moduleTitle} · {nextLesson.lessonTitle}
+              </span>
+            </span>
+            <ArrowRight className="size-4 opacity-80" aria-hidden />
+          </Link>
+        ) : allDone ? (
+          <Link href="/certificado" className={styles.continueCta}>
+            <span className={styles.continueText}>
+              <span className={styles.continueLabel}>Curso concluído</span>
+              <span className={styles.continueLesson}>
+                Ver e baixar seu certificado
+              </span>
+            </span>
+            <ArrowRight className="size-4 opacity-80" aria-hidden />
+          </Link>
+        ) : null}
       </header>
 
       {course.modules.map((mod, modIndex) => {
@@ -54,6 +91,9 @@ export function LessonCardsGrid({
           ? { isUnlocked: true, unlockAt: null }
           : computeModuleAccess(enrolledAt, mod.unlockAfterDays);
         const unlockDate = formatUnlockDate(access.unlockAt);
+        const doneInModule = mod.lessons.filter((l) =>
+          completed.has(`${mod.id}:${l.id}`),
+        ).length;
 
         return (
           <section key={mod.id} className={styles.moduleSection}>
@@ -66,7 +106,10 @@ export function LessonCardsGrid({
               <div className={styles.moduleIntro}>
                 <p className={styles.moduleDescription}>{mod.description}</p>
                 <span className={styles.moduleCount}>
-                  {mod.lessons.length} aulas
+                  {doneInModule}/{mod.lessons.length} aulas
+                  {doneInModule === mod.lessons.length && mod.lessons.length > 0
+                    ? " · concluído"
+                    : ""}
                 </span>
               </div>
             </div>

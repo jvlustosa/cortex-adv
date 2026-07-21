@@ -543,6 +543,22 @@
   opacity: 0.85;
 }
 
+.lessonLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.lessonLink:hover {
+  opacity: 0.85;
+}
+
 @media (max-width: 479px) {
   .box {
     padding: 0.95rem 1rem;

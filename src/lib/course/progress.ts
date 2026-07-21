@@ -7,19 +7,68 @@ export type CourseProgress = {
   viewedLessons: number;
   progressPercent: number;
   isComplete: boolean;
-  /** Chaves "module_id:lesson_id" das aulas concluídas pelo usuário. */
+  /** Chaves "module_id:lesson_id" das aulas concluídas (só as ainda publicadas). */
   completedKeys: string[];
 };
 
-async function countPublishedLessons(): Promise<number> {
-  const course = await getMergedCourse(); // já filtra publicadas + inclui custom
-  return course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
+export type NextLessonTarget = {
+  moduleId: string;
+  lessonId: string;
+  moduleTitle: string;
+  lessonTitle: string;
+  href: string;
+};
+
+type CourseCatalog = {
+  modules: {
+    id: string;
+    title: string;
+    lessons: { id: string; title: string }[];
+  }[];
+};
+
+function publishedKeys(course: CourseCatalog): Set<string> {
+  const keys = new Set<string>();
+  for (const mod of course.modules) {
+    for (const lesson of mod.lessons) {
+      keys.add(`${mod.id}:${lesson.id}`);
+    }
+  }
+  return keys;
+}
+
+/**
+ * Primeira aula ainda não concluída (ordem do catálogo).
+ * Se tudo concluído, null.
+ */
+export function findNextLesson(
+  course: CourseCatalog,
+  completedKeys: Iterable<string>,
+): NextLessonTarget | null {
+  const done = new Set(completedKeys);
+  for (const mod of course.modules) {
+    for (const lesson of mod.lessons) {
+      const key = `${mod.id}:${lesson.id}`;
+      if (!done.has(key)) {
+        return {
+          moduleId: mod.id,
+          lessonId: lesson.id,
+          moduleTitle: mod.title,
+          lessonTitle: lesson.title,
+          href: `/aulas/${mod.id}/${lesson.id}`,
+        };
+      }
+    }
+  }
+  return null;
 }
 
 export async function getUserCourseProgress(
   userId: string | null | undefined,
 ): Promise<CourseProgress> {
-  const totalLessons = await countPublishedLessons();
+  const course = await getMergedCourse();
+  const catalogKeys = publishedKeys(course);
+  const totalLessons = catalogKeys.size;
 
   if (
     !userId ||
@@ -55,7 +104,8 @@ export async function getUserCourseProgress(
 
   const uniqueLessons = new Set<string>();
   for (const row of data ?? []) {
-    uniqueLessons.add(`${row.module_id}:${row.lesson_id}`);
+    const key = `${row.module_id}:${row.lesson_id}`;
+    if (catalogKeys.has(key)) uniqueLessons.add(key);
   }
 
   const viewedLessons = uniqueLessons.size;

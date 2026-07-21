@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { ArrowRight, Award, Check, Loader2 } from "lucide-react";
 import styles from "./course-area.module.css";
 
 type CompleteLessonButtonProps = {
@@ -48,15 +49,16 @@ export function CompleteLessonButton({
           Aula concluída
         </span>
         {hasNext ? (
-          <button
-            type="button"
-            className={styles.nextBtn}
-            onClick={onGoNext}
-          >
+          <button type="button" className={styles.nextBtn} onClick={onGoNext}>
             Próxima aula
             <ArrowRight className="size-4" aria-hidden />
           </button>
-        ) : null}
+        ) : (
+          <Link href="/certificado" className={styles.nextBtn}>
+            <Award className="size-4" aria-hidden />
+            Ver certificado
+          </Link>
+        )}
         <button
           type="button"
           className={styles.undoBtn}

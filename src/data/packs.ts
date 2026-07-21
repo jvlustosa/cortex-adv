@@ -25,6 +25,9 @@ export type LessonRefItem = {
   name: string;
   description: string;
   status?: PackItemStatus;
+  /** Deep-link pra aula onde a skill aparece nos materiais. */
+  moduleId?: string;
+  lessonId?: string;
 };
 
 export type PackItem = RemoteConnectorItem | LessonRefItem;
@@ -57,30 +60,40 @@ export const PACKS: Pack[] = [
         name: "Triagem de caso",
         description:
           "Classifica a demanda e sugere o encaminhamento no seu formato.",
+        moduleId: "skills",
+        lessonId: "introducao-skills",
       },
       {
         kind: "lesson-ref",
         name: "Minuta",
         description:
           "Rascunha a peça a partir dos fatos, no padrão do escritório.",
+        moduleId: "skills",
+        lessonId: "prompts-vs-skills",
       },
       {
         kind: "lesson-ref",
         name: "Análise de contrato",
         description:
           "Levanta cláusulas de risco e pontos de atenção do contrato.",
+        moduleId: "skills",
+        lessonId: "verificar-seguranca-skills",
       },
       {
         kind: "lesson-ref",
         name: "Follow-up inteligente",
         description: "Roteiros de retorno e pós-venda no WhatsApp do escritório.",
         status: "teaser",
+        moduleId: "skills",
+        lessonId: "navegacao-e-skills",
       },
       {
         kind: "lesson-ref",
         name: "Pesquisa de jurisprudência",
         description: "Busca e sintetiza precedentes no formato do seu caso.",
         status: "teaser",
+        moduleId: "skills",
+        lessonId: "gerenciar-compartilhar-skills",
       },
       {
         kind: "lesson-ref",
@@ -95,14 +108,14 @@ export const PACKS: Pack[] = [
     icon: "conectores",
     title: "Pack de Conectores",
     tagline:
-      "Conectores que ligam o Claude aos sistemas do dia a dia, sem sair da conversa.",
+      "Conectores que ligam o Claude aos sistemas do dia a dia — sem sair da conversa.",
     tags: ["DJEN", "MCP", "Escritório"],
     items: [
       {
         kind: "remote-connector",
         name: "Conector de Publicações do DJEN",
         description:
-          "Consulta publicações e intimações do Diário de Justiça Eletrônico Nacional direto do Claude, por OAB ou nome.",
+          "Consulta publicações e intimações do Diário de Justiça Eletrônico Nacional direto do Claude — por OAB ou nome.",
         connectorUrl: DJEN_CONNECTOR_URL_PLACEHOLDER,
         setupSteps: [
           "No Claude, abra Configurações → Conectores.",
@@ -155,4 +168,9 @@ export function countPackItems(packs: Pack[]): {
     }
   }
   return { total: ready + teasers, ready, teasers };
+}
+
+export function lessonHref(item: LessonRefItem): string | null {
+  if (!item.moduleId || !item.lessonId) return null;
+  return `/aulas/${item.moduleId}/${item.lessonId}`;
 }
