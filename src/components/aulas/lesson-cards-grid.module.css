@@ -302,3 +302,114 @@
     max-width: 36rem;
   }
 }
+
+/* Módulos "em breve": teaser do roteiro que ainda não foi gravado. Bloco
+   visualmente distinto dos módulos reais — sem número, capa esmaecida, borda
+   tracejada — pra o aluno perceber que a trilha cresce. */
+.comingSoon {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.comingSoonHead {
+  margin-bottom: 1.5rem;
+}
+
+.comingSoonKicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--claude);
+}
+
+.comingSoonTitle {
+  margin-top: 0.5rem;
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.comingSoonSub {
+  margin-top: 0.5rem;
+  max-width: 34rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.comingSoonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: 0.9rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.comingSoonCard {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px dashed var(--border);
+  background: var(--surface);
+}
+
+.comingSoonCover {
+  position: relative;
+  flex-shrink: 0;
+  width: 3.5rem;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.comingSoonImage {
+  object-fit: cover;
+  filter: grayscale(0.25) brightness(0.8);
+}
+
+.comingSoonBadge {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--claude) 40%, var(--border));
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--claude);
+  backdrop-filter: blur(4px);
+}
+
+.comingSoonBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 0.1rem;
+}
+
+.comingSoonCardTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--foreground);
+}
+
+.comingSoonCardTeaser {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+}

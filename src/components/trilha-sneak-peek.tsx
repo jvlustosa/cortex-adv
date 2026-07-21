@@ -6,6 +6,7 @@ import {
   TRILHA_PUBLIC_META,
 } from "@/data/curso-trilha-public";
 import { SEASON_COVER_IMAGES } from "@/lib/course/module-covers";
+import { PACKS } from "@/data/packs";
 import { PRICING } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,7 @@ type TrilhaSneakPeekProps = {
 };
 
 export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekProps) {
+  const skillsItems = PACKS.find((p) => p.id === "skills")?.items ?? [];
   return (
     <section
       id="trilha"
@@ -102,10 +104,40 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
             </p>
             <p className="mt-1.5 text-sm leading-relaxed text-[var(--foreground)]/90">
               As skills jurídicas prontas do curso, instaláveis direto no seu
-              Claude: triagem, minuta e análise de contrato no seu formato.
-              Liberado para quem assina, após os {PRICING.guaranteeDays} dias de
-              garantia.
+              Claude, no seu formato. Liberado para quem assina, após os{" "}
+              {PRICING.guaranteeDays} dias de garantia.
             </p>
+            {skillsItems.length > 0 ? (
+              <ul
+                className="mt-3 flex flex-wrap gap-1.5"
+                aria-label="Skills inclusas no pack"
+              >
+                {skillsItems.map((item) => {
+                  const teaser = item.status === "teaser";
+                  return (
+                    <li
+                      key={item.name}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
+                        teaser
+                          ? "border-dashed border-[var(--border)] text-[var(--muted)]"
+                          : "border-[var(--accent)]/30 bg-[var(--background)]/50 text-[var(--foreground)]/90",
+                      )}
+                    >
+                      {teaser ? (
+                        <Lock className="size-3 opacity-70" aria-hidden />
+                      ) : (
+                        <Sparkles
+                          className="size-3 text-[var(--accent)]"
+                          aria-hidden
+                        />
+                      )}
+                      {item.name}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
           </div>
         </div>
 

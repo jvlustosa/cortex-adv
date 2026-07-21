@@ -1,8 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Layers, Lock, Play } from "lucide-react";
+import { ArrowRight, BookOpen, Clock, Layers, Lock, Play } from "lucide-react";
 import type { MergedCourse } from "@/components/members/course-area";
 import { ModuleCover } from "@/components/aulas/module-cover";
 import { getModuleCoverImage } from "@/lib/course/module-covers";
+import { getComingSoonModules } from "@/lib/course/coming-soon";
+import { COURSE_SCOPE } from "@/data/curso-trilha-public";
 import { computeModuleAccess } from "@/lib/course/module-access";
 import {
   findNextLesson,
@@ -39,6 +42,9 @@ export function LessonCardsGrid({
     completedKeys,
   );
   const allDone = totalLessons > 0 && doneTotal >= totalLessons;
+  const comingSoonModules = getComingSoonModules(
+    course.modules.map((mod) => mod.id),
+  );
 
   return (
     <div>
@@ -52,11 +58,11 @@ export function LessonCardsGrid({
         <div className={styles.stats}>
           <span className={styles.stat}>
             <Layers className="size-3.5" aria-hidden />
-            {course.modules.length} módulos
+            {course.modules.length} de {COURSE_SCOPE.modules} módulos
           </span>
           <span className={styles.stat}>
             <BookOpen className="size-3.5" aria-hidden />
-            {doneTotal}/{totalLessons} aulas
+            {doneTotal}/{COURSE_SCOPE.lessons} aulas
           </span>
         </div>
 
@@ -147,6 +153,45 @@ export function LessonCardsGrid({
           </section>
         );
       })}
+
+      {comingSoonModules.length > 0 ? (
+        <section className={styles.comingSoon} aria-labelledby="em-breve-titulo">
+          <div className={styles.comingSoonHead}>
+            <span className={styles.comingSoonKicker}>
+              <Clock className="size-3.5" aria-hidden />
+              Sessões em breve
+            </span>
+            <h2 id="em-breve-titulo" className={styles.comingSoonTitle}>
+              Mais {comingSoonModules.length} módulos a caminho
+            </h2>
+            <p className={styles.comingSoonSub}>
+              A trilha completa tem {COURSE_SCOPE.modules} módulos e{" "}
+              {COURSE_SCOPE.lessons} aulas. Estes estão sendo gravados e liberam
+              pra você sem pagar de novo.
+            </p>
+          </div>
+          <ul className={styles.comingSoonGrid}>
+            {comingSoonModules.map((mod) => (
+              <li key={mod.id} className={styles.comingSoonCard}>
+                <div className={styles.comingSoonCover}>
+                  <Image
+                    src={mod.coverImage}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 40vw, 160px"
+                    className={styles.comingSoonImage}
+                  />
+                  <span className={styles.comingSoonBadge}>Em breve</span>
+                </div>
+                <div className={styles.comingSoonBody}>
+                  <h3 className={styles.comingSoonCardTitle}>{mod.title}</h3>
+                  <p className={styles.comingSoonCardTeaser}>{mod.teaser}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }
