@@ -1,6 +1,5 @@
 import { MembersFooterActions } from "@/components/aulas/members-footer-actions";
 import { MembersShellHeader } from "@/components/aulas/members-shell-header";
-import { PageTransition } from "@/components/aulas/page-transition";
 import { buildCourseSupportWhatsAppUrl } from "@/lib/support";
 import styles from "./aulas-shell.module.css";
 
@@ -29,9 +28,7 @@ export function AulasShell({
         isAdmin={isAdmin}
       />
 
-      <div className={styles.main}>
-        <PageTransition>{children}</PageTransition>
-      </div>
+      <div className={styles.main}>{children}</div>
 
       <footer className={styles.footer}>
         <div className={styles.footerInner}>

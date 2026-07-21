@@ -1,8 +1,7 @@
-import Image from "next/image";
-import Link from "next/link";
 import { ArrowRight, BookOpen, Clock, Layers, Lock, Play } from "lucide-react";
 import type { MergedCourse } from "@/components/members/course-area";
 import { ModuleCover } from "@/components/aulas/module-cover";
+import { RippleLink } from "@/components/aulas/ripple-link";
 import { getModuleCoverImage } from "@/lib/course/module-covers";
 import { getComingSoonModules } from "@/lib/course/coming-soon";
 import { COURSE_SCOPE } from "@/data/curso-trilha-public";
@@ -67,7 +66,7 @@ export function LessonCardsGrid({
         </div>
 
         {nextLesson ? (
-          <Link href={nextLesson.href} className={styles.continueCta}>
+          <RippleLink href={nextLesson.href} className={styles.continueCta}>
             <span className={styles.continueIcon} aria-hidden>
               <Play className="size-4 fill-current" />
             </span>
@@ -78,9 +77,9 @@ export function LessonCardsGrid({
               </span>
             </span>
             <ArrowRight className="size-4 opacity-80" aria-hidden />
-          </Link>
+          </RippleLink>
         ) : allDone ? (
-          <Link href="/certificado" className={styles.continueCta}>
+          <RippleLink href="/certificado" className={styles.continueCta}>
             <span className={styles.continueText}>
               <span className={styles.continueLabel}>Curso concluído</span>
               <span className={styles.continueLesson}>
@@ -88,7 +87,7 @@ export function LessonCardsGrid({
               </span>
             </span>
             <ArrowRight className="size-4 opacity-80" aria-hidden />
-          </Link>
+          </RippleLink>
         ) : null}
       </header>
 
@@ -170,26 +169,30 @@ export function LessonCardsGrid({
               pra você sem pagar de novo.
             </p>
           </div>
-          <ul className={styles.comingSoonGrid}>
-            {comingSoonModules.map((mod) => (
-              <li key={mod.id} className={styles.comingSoonCard}>
-                <div className={styles.comingSoonCover}>
-                  <Image
-                    src={mod.coverImage}
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 40vw, 160px"
-                    className={styles.comingSoonImage}
-                  />
-                  <span className={styles.comingSoonBadge}>Em breve</span>
+          {comingSoonModules.map((mod) => (
+            <section key={mod.id} className={styles.moduleSection}>
+              <div className={styles.moduleHero}>
+                <ModuleCover
+                  src={mod.coverImage}
+                  title={mod.title}
+                  seasonNumber={mod.seasonNumber}
+                  className={styles.comingSoonHeroCover}
+                />
+                <div className={styles.moduleIntro}>
+                  <p className={styles.moduleDescription}>{mod.teaser}</p>
                 </div>
-                <div className={styles.comingSoonBody}>
-                  <h3 className={styles.comingSoonCardTitle}>{mod.title}</h3>
-                  <p className={styles.comingSoonCardTeaser}>{mod.teaser}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+              <div className={styles.lockNotice}>
+                <span className={styles.lockIcon}>
+                  <Lock className="size-4" aria-hidden />
+                </span>
+                <p className={styles.lockText}>
+                  Em breve. Sendo gravado agora e libera pra você sem pagar de
+                  novo.
+                </p>
+              </div>
+            </section>
+          ))}
         </section>
       ) : null}
     </div>

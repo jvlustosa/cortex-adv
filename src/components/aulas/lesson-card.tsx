@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Check, Clock, Play } from "lucide-react";
+import { RippleLink } from "@/components/aulas/ripple-link";
 import { getModuleCoverImage } from "@/lib/course/module-covers";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
 import styles from "./lesson-card.module.css";
@@ -26,7 +26,7 @@ export function LessonCard({
   const indexLabel = (index + 1).toString().padStart(2, "0");
 
   return (
-    <Link
+    <RippleLink
       href={href}
       className={`${styles.card} ${completed ? styles.cardDone : ""}`}
       aria-label={
@@ -79,6 +79,6 @@ export function LessonCard({
           </span>
         </div>
       </div>
-    </Link>
+    </RippleLink>
   );
 }

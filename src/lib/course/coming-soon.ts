@@ -23,6 +23,8 @@ export type ComingSoonModule = {
   title: string;
   teaser: string;
   coverImage: string;
+  /** Índice da temporada (0-based) — vira o rótulo "Módulo XX" na capa hero. */
+  seasonNumber: number;
 };
 
 function toComingSoonModule(n: TrilhaNivelPublic): ComingSoonModule {
@@ -31,6 +33,7 @@ function toComingSoonModule(n: TrilhaNivelPublic): ComingSoonModule {
     title: n.title,
     teaser: n.teaser,
     coverImage: SEASON_COVER_IMAGES[Number(n.level)] ?? SEASON_COVER_IMAGES[0],
+    seasonNumber: Number(n.level),
   };
 }
 
