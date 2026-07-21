@@ -1,4 +1,3 @@
-import { AulasShell } from "@/components/aulas/aulas-shell";
 import { LessonCardsGrid } from "@/components/aulas/lesson-cards-grid";
 import { CertificateProgress } from "@/components/members/certificate-progress";
 import { VipGroupStep } from "@/components/members/vip-group-step";
@@ -22,7 +21,7 @@ export const metadata = {
 };
 
 export default async function AreaDeMembrosPage() {
-  const { authOn, user, demoMode } = await requireCourseAccess("/area-de-membros");
+  const { user, demoMode } = await requireCourseAccess("/area-de-membros");
   const [course, progress, isAdmin] = await Promise.all([
     getMergedCourse(),
     getUserCourseProgress(user?.id),
@@ -34,25 +33,18 @@ export default async function AreaDeMembrosPage() {
   const bypassLock = demoMode || isAdmin;
 
   return (
-    <AulasShell
-      authOn={authOn}
-      userEmail={user?.email}
-      active="catalog"
-      isAdmin={isAdmin}
-    >
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
-        <VipGroupStep />
-        <LessonCardsGrid
-          course={course}
-          enrolledAt={user?.created_at ?? null}
-          bypassLock={bypassLock}
-          completedKeys={progress.completedKeys}
-        />
-        <CertificateProgress
-          progress={progress}
-          userName={user?.email?.split("@")[0] ?? null}
-        />
-      </main>
-    </AulasShell>
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
+      <VipGroupStep />
+      <LessonCardsGrid
+        course={course}
+        enrolledAt={user?.created_at ?? null}
+        bypassLock={bypassLock}
+        completedKeys={progress.completedKeys}
+      />
+      <CertificateProgress
+        progress={progress}
+        userName={user?.email?.split("@")[0] ?? null}
+      />
+    </main>
   );
 }

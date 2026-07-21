@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
-import { AulasShell } from "@/components/aulas/aulas-shell";
 import { CourseArea } from "@/components/members/course-area";
 import { isAdminUser } from "@/lib/admin/require-admin";
 import { computeModuleAccess } from "@/lib/course/module-access";
@@ -51,7 +50,7 @@ export default async function AulaPlayerPage({ params }: PageProps) {
     notFound();
   }
 
-  const { authOn, user, demoMode } = await requireCourseAccess(
+  const { user, demoMode } = await requireCourseAccess(
     `/aulas/${modulo}/${aula}`,
   );
 
@@ -71,24 +70,17 @@ export default async function AulaPlayerPage({ params }: PageProps) {
   }
 
   return (
-    <AulasShell
-      authOn={authOn}
-      userEmail={user?.email}
-      active="player"
-      isAdmin={isAdmin}
-    >
-      <Suspense fallback={<CourseSkeleton />}>
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 md:py-8">
-          <CourseArea
-            course={course}
-            demoMode={demoMode}
-            moduleId={modulo}
-            lessonId={aula}
-            completedKeys={progress.completedKeys}
-            totalLessons={progress.totalLessons}
-          />
-        </div>
-      </Suspense>
-    </AulasShell>
+    <Suspense fallback={<CourseSkeleton />}>
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 md:py-8">
+        <CourseArea
+          course={course}
+          demoMode={demoMode}
+          moduleId={modulo}
+          lessonId={aula}
+          completedKeys={progress.completedKeys}
+          totalLessons={progress.totalLessons}
+        />
+      </div>
+    </Suspense>
   );
 }

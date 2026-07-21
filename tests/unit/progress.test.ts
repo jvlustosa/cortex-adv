@@ -1,6 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { findNextLesson } from "@/lib/course/progress";
+import { findNextLesson, getUserCourseProgress } from "@/lib/course/progress";
+
+// Força o estado "Supabase desligado" (prod misconfig / env ausente). Nesse
+// modo getUserCourseProgress nunca deve tocar o DB nem quebrar — degrada em
+// zeros. isSupabaseEnabled/isServiceRoleConfigured leem env em tempo de chamada,
+// então setar aqui (após os imports) é suficiente e determinístico.
+process.env.NODE_ENV = "test";
+delete process.env.NEXT_PUBLIC_SUPABASE_ENABLED;
+delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+delete process.env.COURSE_SOURCE;
 
 // Catálogo mínimo no shape que findNextLesson consome (só id/title).
 const course = {
@@ -51,4 +60,31 @@ test("chaves concluídas fora do catálogo (aula despublicada) são ignoradas", 
 
 test("curso vazio: null em vez de quebrar", () => {
   assert.equal(findNextLesson({ modules: [] }, []), null);
+});
+
+// --- Fallback: getUserCourseProgress com Supabase desligado ---------------
+// Garante que a dashboard do aluno degrada (0%) em vez de estourar quando o
+// Supabase está off/mal configurado em produção.
+
+test("progresso: sem userId degrada pra zero sem quebrar", async () => {
+  const p = await getUserCourseProgress(null);
+  assert.equal(p.viewedLessons, 0);
+  assert.equal(p.progressPercent, 0);
+  assert.equal(p.isComplete, false);
+  assert.deepEqual(p.completedKeys, []);
+  assert.ok(Number.isInteger(p.totalLessons) && p.totalLessons >= 0);
+});
+
+test("progresso: com userId mas Supabase off ainda degrada (não toca o DB)", async () => {
+  // Se a guarda falhasse, createAdminClient() lançaria — isto blindaria isso.
+  const p = await getUserCourseProgress("user-123");
+  assert.equal(p.viewedLessons, 0);
+  assert.equal(p.progressPercent, 0);
+  assert.equal(p.isComplete, false);
+  assert.deepEqual(p.completedKeys, []);
+});
+
+test("smoke: catálogo estático carrega com aulas (totalLessons > 0)", async () => {
+  const p = await getUserCourseProgress(null);
+  assert.ok(p.totalLessons > 0, "catálogo estático do curso veio vazio");
 });

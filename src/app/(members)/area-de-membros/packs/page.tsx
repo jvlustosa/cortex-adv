@@ -1,7 +1,5 @@
-import { AulasShell } from "@/components/aulas/aulas-shell";
 import { PacksArea } from "@/components/members/packs-area";
 import { PACKS } from "@/data/packs";
-import { isAdminUser } from "@/lib/admin/require-admin";
 import { computePackAccess, type PackAccess } from "@/lib/course/packs-access";
 import { requireCourseAccess } from "@/lib/course/require-access";
 
@@ -15,7 +13,7 @@ export const metadata = {
 };
 
 export default async function PacksPage() {
-  const { authOn, user, demoMode } = await requireCourseAccess(
+  const { user, demoMode } = await requireCourseAccess(
     "/area-de-membros/packs",
   );
 
@@ -25,18 +23,9 @@ export default async function PacksPage() {
     ? { isUnlocked: true, unlockAt: null }
     : computePackAccess(user?.created_at);
 
-  const isAdmin = await isAdminUser(user);
-
   return (
-    <AulasShell
-      authOn={authOn}
-      userEmail={user?.email}
-      active="packs"
-      isAdmin={isAdmin}
-    >
-      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
-        <PacksArea packs={PACKS} access={access} />
-      </main>
-    </AulasShell>
+    <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
+      <PacksArea packs={PACKS} access={access} />
+    </main>
   );
 }

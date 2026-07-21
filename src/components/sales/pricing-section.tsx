@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Lock, ShieldCheck } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { COURSE_SCOPE } from "@/data/curso-trilha-public";
 import {
@@ -8,7 +8,6 @@ import {
   getPricingSummary,
   PRICING,
 } from "@/lib/pricing";
-import { OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
 import { useLaunchPhase } from "@/lib/use-launch-phase";
 import { PricingCta } from "./pricing-cta";
 import { PricingUrgencyNote } from "./pricing-urgency-note";
@@ -52,8 +51,9 @@ export function PricingSection() {
   const { total, upfront, savings, upfrontDiscountPercent } =
     getPricingSummary();
 
-  // Encerrado: some com os cards de preço e mostra um único card convidando
-  // pra comunidade gratuita — é por onde avisamos quando abrir mais vagas.
+  // Encerrado: some com o preço, mas mantém a pilha de valor à vista (o que
+  // entra no curso) e joga todo mundo pra fila de espera. O convite pra
+  // comunidade acontece depois, no sucesso do formulário.
   if (phase === "closed") {
     return (
       <section
@@ -63,32 +63,49 @@ export function PricingSection() {
       >
         <div className={styles.inner}>
           <header className={styles.header}>
+            <span className={styles.closedChip}>
+              <Lock className="size-5" aria-hidden />
+            </span>
             <p className={styles.eyebrow}>Turma encerrada</p>
             <h2 id="pricing-heading" className={styles.title}>
               As vagas dessa turma acabaram
             </h2>
+            <p className={styles.subtitle}>
+              A próxima turma ainda não tem data marcada. Entre na fila de
+              espera e você fica sabendo primeiro, com as condições de
+              lançamento antes de todo mundo.
+            </p>
           </header>
 
-          <div className={styles.closedWrap}>
-            <article className={`${styles.card} ${styles.closedCard}`}>
-              <span className={styles.closedIcon}>
-                <WhatsAppIcon className="size-6" />
-              </span>
-              <p className={styles.closedTitle}>Entre na comunidade gratuita</p>
-              <p className={styles.closedText}>
-                Grupo aberto no WhatsApp, sem custo. É por lá que a gente avisa,
-                em primeira mão, quando abrir mais vagas.
-              </p>
-              <a
-                href={OPEN_WHATSAPP_GROUP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${styles.cta} ${styles.ctaWhatsapp}`}
-              >
-                Entrar na comunidade gratuita
-                <ArrowRight className="size-4 opacity-80" aria-hidden />
-              </a>
-            </article>
+          <p className={styles.benefitsLabel}>O que está incluído no curso</p>
+
+          <ul className={styles.benefitsGrid}>
+            {features.map((feature) => (
+              <li key={feature.text} className={styles.benefitCard}>
+                {feature.icon === "whatsapp" ? (
+                  <WhatsAppIcon
+                    className={`size-4 ${styles.featureIcon} ${styles.featureIconWa}`}
+                  />
+                ) : (
+                  <Check
+                    className={`size-4 ${styles.featureIcon}`}
+                    aria-hidden
+                  />
+                )}
+                <span>{feature.text}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className={styles.closedCtaWrap}>
+            <a href="#lista-espera" className={styles.closedCta}>
+              Entrar na fila de espera
+              <ArrowRight className="size-4 opacity-80" aria-hidden />
+            </a>
+            <p className={styles.closedNote}>
+              Entrar na fila é de graça, sem compromisso. Assim que você entra,
+              a gente te chama pra comunidade gratuita no WhatsApp.
+            </p>
           </div>
         </div>
       </section>

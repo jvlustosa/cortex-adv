@@ -8,6 +8,28 @@
   flex: 1;
 }
 
+/* Fade+slide de entrada do conteúdo a cada navegação (chrome fica parado). */
+.pageEnter {
+  animation: pageEnter 0.28s ease both;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageEnter {
+    animation: none;
+  }
+}
+
 .header {
   position: sticky;
   top: 0;

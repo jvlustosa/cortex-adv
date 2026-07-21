@@ -2,10 +2,14 @@
 
 import { Fragment, useCallback, useEffect, useState } from "react";
 import {
+  ExternalLink,
   GripVertical,
+  Link2,
   Loader2,
   MessageSquare,
   Paperclip,
+  Pencil,
+  Play,
   Trash2,
 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
@@ -202,25 +206,31 @@ function VideoCell({
     <div className={styles.rowActions}>
       <button
         type="button"
-        className={styles.editBtn}
+        className={styles.iconBtn}
         onClick={() => onPreview(lesson)}
+        title={`Preview (${video.label})`}
+        aria-label={`Preview (${video.label})`}
       >
-        Preview ({video.label})
+        <Play className="size-4" aria-hidden />
       </button>
       <button
         type="button"
-        className={styles.editBtn}
+        className={styles.iconBtn}
         onClick={() => onCopy(video.url)}
+        title="Copiar link"
+        aria-label="Copiar link do vídeo"
       >
-        Copiar link
+        <Link2 className="size-4" aria-hidden />
       </button>
       <a
-        className={styles.editBtn}
+        className={styles.iconBtn}
         href={video.url}
         target="_blank"
         rel="noopener noreferrer"
+        title="Abrir vídeo"
+        aria-label="Abrir vídeo em nova aba"
       >
-        Abrir
+        <ExternalLink className="size-4" aria-hidden />
       </a>
     </div>
   );
@@ -351,23 +361,28 @@ function LessonRow({
         <div className={styles.rowActions}>
           <button
             type="button"
-            className={styles.editBtn}
+            className={styles.iconBtn}
             onClick={() => onEdit(lesson)}
+            title="Editar aula"
+            aria-label={`Editar ${lesson.title}`}
           >
-            Editar
+            <Pencil className="size-4" aria-hidden />
           </button>
           <button
             type="button"
-            className={styles.editBtn}
+            className={styles.iconBtn}
             onClick={() => onMaterials(lesson)}
+            title="Materiais"
+            aria-label={`Materiais de ${lesson.title}`}
           >
-            <Paperclip className="size-3.5" aria-hidden /> Materiais
+            <Paperclip className="size-4" aria-hidden />
           </button>
           {lesson.origin === "custom" ? (
             <button
               type="button"
               className={styles.iconDangerBtn}
               onClick={() => onDelete(lesson)}
+              title="Excluir aula"
               aria-label={`Excluir ${lesson.title}`}
             >
               <Trash2 className="size-4" aria-hidden />

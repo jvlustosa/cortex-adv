@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -30,20 +31,29 @@ type MembersShellHeaderProps = {
   supportUrl: string;
   authOn: boolean;
   userEmail?: string | null;
-  active?: "catalog" | "player" | "packs";
   isAdmin?: boolean;
 };
+
+// Deriva a aba ativa da rota atual — o header vive no layout compartilhado e
+// não recebe mais `active` por page.
+function useActiveTab(): "catalog" | "player" | "packs" | undefined {
+  const pathname = usePathname();
+  if (pathname.startsWith("/area-de-membros/packs")) return "packs";
+  if (pathname === "/area-de-membros") return "catalog";
+  if (pathname.startsWith("/aulas")) return "player";
+  return undefined;
+}
 
 export function MembersShellHeader({
   supportUrl,
   authOn,
   userEmail,
-  active,
   isAdmin,
 }: MembersShellHeaderProps) {
   const menuId = useId();
   const [open, setOpen] = useState(false);
   const mounted = useIsClient();
+  const active = useActiveTab();
 
   const closeMenu = useCallback(() => setOpen(false), []);
 
