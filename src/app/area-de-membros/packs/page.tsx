@@ -8,7 +8,7 @@ import { requireCourseAccess } from "@/lib/course/require-access";
 export const metadata = {
   title: "Galeria Premium | Claude Cowork para advogados",
   description:
-    "Skills, conectores e itens premium do curso — exclusivos de alunos da Claude Academy.",
+    "Skills, conectores e itens premium do curso, exclusivos de alunos da Claude Academy.",
   openGraph: {
     images: [{ url: "/og/membros.png", width: 1200, height: 630 }],
   },

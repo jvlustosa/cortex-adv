@@ -80,7 +80,7 @@ export default function CursoSalesPage() {
               {COURSE.title}
             </h1>
             <p className="mt-5 text-base leading-relaxed text-[var(--muted)] sm:text-lg md:text-xl">
-              {COURSE.subtitle}. Domine o Claude Cowork na bancada — peças,
+              {COURSE.subtitle}. Domine o Claude Cowork na bancada: peças,
               rotinas automatizadas e uso ético, sem programar.
             </p>
             <p className="mt-8 font-serif text-[clamp(1.75rem,5vw,2.25rem)] text-[var(--foreground)]">

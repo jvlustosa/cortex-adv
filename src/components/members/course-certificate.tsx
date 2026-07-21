@@ -67,7 +67,10 @@ export function CourseCertificate({
 
       <article
         aria-label={`Certificado de conclusão de ${recipientName}`}
-        className="relative mx-auto aspect-[1.414/1] w-full overflow-hidden rounded-md text-[#2b211b] shadow-2xl"
+        // Aspecto A4 paisagem só a partir de sm: no mobile a altura fixa cortava
+        // texto/assinatura/código (overflow-hidden). Abaixo de sm o card cresce
+        // com o conteúdo. Print (largura >= sm) mantém o formato paisagem.
+        className="relative mx-auto w-full overflow-hidden rounded-md text-[#2b211b] shadow-2xl sm:aspect-[1.414/1]"
         style={{
           background:
             "radial-gradient(120% 120% at 50% 0%, #fdfaf4 0%, #f6efe1 100%)",
@@ -108,7 +111,7 @@ export function CourseCertificate({
         ) : null}
 
         {/* Conteúdo */}
-        <div className="relative flex h-full flex-col items-center justify-between px-[8%] py-[6.5%] text-center">
+        <div className="relative flex h-full flex-col items-center justify-between gap-8 px-[8%] py-[7%] text-center sm:gap-0 sm:py-[6.5%]">
           <header className="flex flex-col items-center gap-2">
             <Image
               src={CLAUDE_ACADEMY_LOGO}
@@ -140,7 +143,7 @@ export function CourseCertificate({
             </p>
           </div>
 
-          <footer className="flex w-full items-end justify-between gap-4">
+          <footer className="flex w-full flex-col items-center gap-8 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
             <div className="flex min-w-0 flex-col items-center">
               <span
                 className="font-signature -mb-1 text-xl leading-none text-[#2b211b] sm:text-[1.45rem]"
@@ -176,7 +179,7 @@ export function CourseCertificate({
               <p className="mt-0.5 font-mono text-xs font-semibold tracking-wide text-[#b3471f]">
                 {code ?? "emitido na conclusão"}
               </p>
-              <p className="mt-1 font-mono text-[0.6rem] text-[#8a7c70]">
+              <p className="mt-1 break-all font-mono text-[0.6rem] text-[#8a7c70]">
                 {verifyHost}/validar
               </p>
             </div>

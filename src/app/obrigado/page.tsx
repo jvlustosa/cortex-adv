@@ -25,7 +25,7 @@ export default function ObrigadoPage() {
 
         <p className="max-w-sm text-base leading-relaxed text-[var(--muted)]">
           Avisamos no WhatsApp assim que as inscrições do Claude Academy abrirem.
-          Enquanto isso, entre no grupo aberto — é grátis.
+          Enquanto isso, entre no grupo aberto. É grátis.
         </p>
 
         <div className="hidden md:block">

@@ -49,7 +49,7 @@ export default async function SignupPage({ searchParams }: PageProps) {
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           {greeting
-            ? "Falta só um clique pra ativar seu acesso — sem senha."
+            ? "Falta só um clique pra ativar seu acesso, sem senha."
             : "Use o link do seu convite pra ativar o acesso."}
         </p>
         <div className="mt-8">

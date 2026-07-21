@@ -31,8 +31,8 @@ export function LessonCard({
       className={`${styles.card} ${completed ? styles.cardDone : ""}`}
       aria-label={
         completed
-          ? `${lesson.title} — assistida`
-          : `${lesson.title} — assistir aula`
+          ? `${lesson.title}, assistida`
+          : `${lesson.title}, assistir aula`
       }
     >
       <div className={styles.visual}>

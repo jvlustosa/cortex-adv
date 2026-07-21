@@ -70,6 +70,6 @@ export const COMMUNITY = {
       "Novas aulas e lives só pra alunos",
       "Templates e playbooks prontos pra copiar",
     ],
-    note: "Grupo VIP na matrícula. O resto está sendo preparado — aluno tem acesso a tudo que for liberado no ano.",
+    note: "Grupo VIP na matrícula. O resto está sendo preparado. O aluno tem acesso a tudo que for liberado no ano.",
   },
 } as const;

@@ -18,7 +18,7 @@ export function CourseEnrollment() {
           Garanta sua vaga
         </h2>
         <p className={styles.subtitle}>
-          Viu o investimento? Entre na fila — avisamos no WhatsApp quando as
+          Viu o investimento? Entre na fila. Avisamos no WhatsApp quando as
           inscrições abrirem. Mentoria com{" "}
           <strong className="text-[var(--foreground)]">
             {COURSE_MENTOR.name}

@@ -160,7 +160,7 @@ export function LoginForm() {
         )}
       </button>
       <p className="text-center text-xs leading-relaxed text-[var(--muted)]">
-        Entre só com o e-mail — enviamos um link de acesso, sem senha.
+        Entre só com o e-mail. Enviamos um link de acesso, sem senha.
       </p>
     </form>
   );

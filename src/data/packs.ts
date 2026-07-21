@@ -95,14 +95,14 @@ export const PACKS: Pack[] = [
     icon: "conectores",
     title: "Pack de Conectores",
     tagline:
-      "Conectores que ligam o Claude aos sistemas do dia a dia — sem sair da conversa.",
+      "Conectores que ligam o Claude aos sistemas do dia a dia, sem sair da conversa.",
     tags: ["DJEN", "MCP", "Escritório"],
     items: [
       {
         kind: "remote-connector",
         name: "Conector de Publicações do DJEN",
         description:
-          "Consulta publicações e intimações do Diário de Justiça Eletrônico Nacional direto do Claude — por OAB ou nome.",
+          "Consulta publicações e intimações do Diário de Justiça Eletrônico Nacional direto do Claude, por OAB ou nome.",
         connectorUrl: DJEN_CONNECTOR_URL_PLACEHOLDER,
         setupSteps: [
           "No Claude, abra Configurações → Conectores.",

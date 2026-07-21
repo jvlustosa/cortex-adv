@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   ArrowRight,
-  Gift,
   Lock,
   Plug,
   Sparkles,
@@ -13,7 +12,12 @@ import type { PackAccess } from "@/lib/course/packs-access";
 import { formatUnlockDate } from "@/lib/course/packs-access";
 import { PRICING } from "@/lib/pricing";
 import { ConnectorUrl } from "./connector-url";
+import { CopyPrompt } from "./copy-prompt";
+import { PackGiftBox } from "./pack-gift-box";
 import styles from "./packs-area.module.css";
+
+const INSTALL_PROMPT =
+  "Instale esta skill: extraia o zip anexado e coloque a pasta em ~/.claude/skills/.";
 
 type PacksAreaProps = {
   packs: Pack[];
@@ -43,7 +47,7 @@ export function PacksArea({ packs, access }: PacksAreaProps) {
           Galeria Premium
         </p>
         <h1 id="packs-titulo" className={styles.title}>
-          Skills, conectores e mais —{" "}
+          Skills, conectores e mais,{" "}
           <span className={styles.titleAccent}>exclusivo de alunos</span>
         </h1>
         <p className={styles.subtitle}>
@@ -69,15 +73,15 @@ export function PacksArea({ packs, access }: PacksAreaProps) {
 
       {/* Pack completo — hero box estilo CJ */}
       <article className={`${styles.box} ${styles.boxHero}`}>
-        <span className={`${styles.boxIcon} ${styles.boxIconLg}`} aria-hidden>
-          <Gift className="size-8" />
+        <span className={styles.heroIcon3d} aria-hidden>
+          <PackGiftBox />
         </span>
         <div className={styles.boxBody}>
           <h2 className={styles.boxTitle}>Pack Completo Academy</h2>
           <span className={styles.boxMeta}>{total} itens na galeria</span>
           <p className={styles.boxDesc}>
             Skills + conectores do curso. O que já está pronto libera na data; o
-            resto aparece aqui assim que for preparado — sem pagar de novo.
+            resto aparece aqui assim que for preparado, sem pagar de novo.
           </p>
           <div className={styles.boxTags}>
             {[...new Set(packs.flatMap((p) => p.tags))].map((tag) => (
@@ -93,6 +97,49 @@ export function PacksArea({ packs, access }: PacksAreaProps) {
           )}
         </span>
       </article>
+
+      {/* Como instalar — passos compactos (estilo página pública) */}
+      <section className={styles.install} aria-labelledby="install-titulo">
+        <h2 id="install-titulo" className={styles.installTitle}>
+          Como instalar uma skill
+        </h2>
+        <ol className={styles.installSteps}>
+          <li className={styles.installStep}>
+            <span className={styles.stepNum} aria-hidden>
+              1
+            </span>
+            <div className={styles.stepBody}>
+              <strong className={styles.stepHeading}>Baixe o arquivo</strong>
+              <p className={styles.stepDesc}>
+                Pegue o .zip da skill nos materiais da aula.
+              </p>
+            </div>
+          </li>
+          <li className={styles.installStep}>
+            <span className={styles.stepNum} aria-hidden>
+              2
+            </span>
+            <div className={styles.stepBody}>
+              <strong className={styles.stepHeading}>Anexe no Claude</strong>
+              <p className={styles.stepDesc}>
+                Arraste o <strong>.zip</strong> para a conversa.
+              </p>
+            </div>
+          </li>
+          <li className={styles.installStep}>
+            <span className={styles.stepNum} aria-hidden>
+              3
+            </span>
+            <div className={styles.stepBody}>
+              <strong className={styles.stepHeading}>Cole o prompt</strong>
+              <div className={styles.stepPrompt}>
+                <code className={styles.promptCode}>{INSTALL_PROMPT}</code>
+                <CopyPrompt text={INSTALL_PROMPT} />
+              </div>
+            </div>
+          </li>
+        </ol>
+      </section>
 
       {skillsPack ? (
         <GalleryGroup

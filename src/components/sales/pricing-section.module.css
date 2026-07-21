@@ -194,6 +194,49 @@
   border-color: rgba(217, 119, 87, 0.35);
 }
 
+.closedWrap {
+  max-width: 30rem;
+  margin: 0 auto;
+}
+
+.closedCard {
+  align-items: center;
+  gap: 1rem;
+  padding-block: 2.25rem;
+  text-align: center;
+}
+
+.closedIcon {
+  display: inline-flex;
+  padding: 0.875rem;
+  border-radius: 9999px;
+  background: rgba(37, 211, 102, 0.12);
+  color: #25d366;
+}
+
+.closedTitle {
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.closedText {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.ctaWhatsapp {
+  margin-top: 0.5rem;
+  background: #25d366;
+  color: #06251a;
+}
+
+.ctaWhatsapp:hover {
+  background: #20bd5c;
+}
+
 .guarantee {
   margin-top: 2rem;
   display: flex;

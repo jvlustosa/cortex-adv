@@ -30,7 +30,7 @@ export function CommunityTiers({
           </h2>
           <p className={styles.subtitle}>
             A <strong className="text-[var(--foreground)]">Comunidade VIP</strong>{" "}
-            é fechada, só para alunos — é isso que garante uma troca de alto
+            é fechada, só para alunos. É isso que garante uma troca de alto
             nível. Prefere só conhecer o movimento primeiro? O{" "}
             <strong className="text-[var(--foreground)]">grupo aberto</strong> é
             gratuito e recebe qualquer advogado.

@@ -159,7 +159,7 @@ export function CursoCurriculum({ compact = false, className }: CursoCurriculumP
       {!compact && (
         <section className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-overlay)] p-5 md:p-6">
           <h3 className="font-serif text-lg text-[var(--foreground)]">
-            Formato de cada aula — 5 batidas
+            Formato de cada aula: 5 batidas
           </h3>
           <p className="mt-1 text-sm text-[var(--muted)]">
             Microaulas de {CURSO_META.lessonDuration}. Estrutura fixa que o aluno
@@ -175,7 +175,7 @@ export function CursoCurriculum({ compact = false, className }: CursoCurriculumP
                   <span className="font-medium text-[var(--foreground)]">
                     {b.label}
                   </span>
-                  <span className="text-[var(--muted)]"> — {b.desc}</span>
+                  <span className="text-[var(--muted)]">: {b.desc}</span>
                 </div>
               </li>
             ))}

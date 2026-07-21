@@ -43,7 +43,7 @@ export function CourseHero() {
             </h1>
             <p className={styles.lead}>
               {COURSE.subtitle}. O curso completo do Chat Jurídico para dominar
-              o Claude Cowork na bancada — peças, automação e uso ético, sem
+              o Claude Cowork na bancada: peças, automação e uso ético, sem
               programar. Inclui Comunidade VIP exclusiva de alunos e mentoria
               com{" "}
               <strong className="text-[var(--foreground)]">

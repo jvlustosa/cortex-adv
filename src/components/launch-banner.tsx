@@ -19,6 +19,12 @@ import styles from "./launch-banner.module.css";
 
 export function LaunchBanner() {
   const { now, phase } = useLaunchState();
+
+  // Encerrado: o banner some por completo — sem faixa "encerrado" grudada no
+  // topo depois da hora. A captação de lead segue na seção #lista-espera,
+  // mais abaixo na página. (PreviewIndicator segue pra alternar fases no ?preview.)
+  if (phase === "closed") return <PreviewIndicator />;
+
   const remaining =
     now && phase === "live" ? formatRemaining(now, LAUNCH_CLOSES_AT) : "";
   const opensIn =
@@ -36,7 +42,7 @@ export function LaunchBanner() {
       badge = "Vagas abertas";
       message = (
         <>
-          Preço de lançamento no ar — {spots}, encerra{" "}
+          Preço de lançamento no ar. {spots}, encerra{" "}
           <strong>{LAUNCH_CLOSES_LABEL}</strong>
           {remaining ? ` · faltam ${remaining}` : ""}
         </>
@@ -44,18 +50,12 @@ export function LaunchBanner() {
       ctaHref = "#precos";
       ctaLabel = "Garantir vaga";
       break;
-    case "closed":
-      badge = "Encerrado";
-      message = <>Inscrições encerradas — entre na lista de espera</>;
-      ctaHref = "#lista-espera";
-      ctaLabel = "Lista de espera";
-      break;
     case "before":
       badge = "É hoje";
       message = (
         <>
           Abre {opensIn ? <>em <strong>{opensIn}</strong> · </> : ""}
-          <strong>{LAUNCH_OPENS_LABEL}</strong> — {spots} no preço de
+          <strong>{LAUNCH_OPENS_LABEL}</strong>, {spots} no preço de
           lançamento
         </>
       );

@@ -25,21 +25,21 @@ export type CursoNivel = {
 export const CURSO_META = {
   title: "Claude para Advogados",
   tagline:
-    "Claude para a advocacia brasileira — com skills, padrões de peça e disciplina ética.",
+    "Claude para a advocacia brasileira, com skills, padrões de peça e disciplina ética.",
   aulas: 35,
   duration: "2h45–3h",
   format: "Vídeo gravado (screencast)",
   lessonDuration: "4–5 min por aula",
-  depth: "Do básico ao avançado — teto em Skills",
+  depth: "Do básico ao avançado, teto em Skills",
   philosophy:
     "Organizado por tarefa jurídica, não por recurso. Cada ferramenta aparece quando resolve uma dor real do escritório.",
   threads: [
-    "Disciplina antialucinação — exigir fonte, mandar verificar, não invente.",
-    "Sigilo, LGPD e ética — o advogado assina e responde; revisão humana inegociável.",
+    "Disciplina antialucinação: exigir fonte, mandar verificar, não invente.",
+    "Sigilo, LGPD e ética: o advogado assina e responde; revisão humana inegociável.",
   ],
   tracks: {
-    rapida: "Níveis 0–3 — produtividade imediata",
-    completa: "Até Nível 5 — Skills como diferencial e certificado",
+    rapida: "Níveis 0–3, produtividade imediata",
+    completa: "Até Nível 5, Skills como diferencial e certificado",
   },
 } as const;
 
@@ -90,7 +90,7 @@ export const CURSO_NIVEIS: CursoNivel[] = [
     id: "n1",
     level: 1,
     title: "Prompting Jurídico",
-    subtitle: "O coração do curso — ≈ 80% do valor",
+    subtitle: "O coração do curso: ≈ 80% do valor",
     aulas: [
       {
         id: "1.1",
@@ -299,7 +299,7 @@ export const CURSO_NIVEIS: CursoNivel[] = [
   {
     id: "bonus",
     level: "bonus",
-    title: "Bônus — O que vem depois",
+    title: "Bônus: O que vem depois",
     aulas: [
       {
         id: "B.1",
@@ -316,7 +316,7 @@ export const AULA_FORMATO = [
   { step: 2, label: "Conceito (1 min)", desc: "A ideia mínima, sem teoria gratuita" },
   { step: 3, label: "Demonstração (2 min)", desc: "Tela gravada com tarefa jurídica real" },
   { step: 4, label: "Mão na massa (45s)", desc: "Desafio + prompt/template para baixar" },
-  { step: 5, label: "Armadilha (15s)", desc: "Erro a evitar — antialucinação ou sigilo" },
+  { step: 5, label: "Armadilha (15s)", desc: "Erro a evitar: antialucinação ou sigilo" },
 ] as const;
 
 export function totalAulas(): number {

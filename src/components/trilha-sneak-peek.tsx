@@ -102,7 +102,7 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
             </p>
             <p className="mt-1.5 text-sm leading-relaxed text-[var(--foreground)]/90">
               As skills jurídicas prontas do curso, instaláveis direto no seu
-              Claude — triagem, minuta e análise de contrato no seu formato.
+              Claude: triagem, minuta e análise de contrato no seu formato.
               Liberado para quem assina, após os {PRICING.guaranteeDays} dias de
               garantia.
             </p>
@@ -118,7 +118,7 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
               Pack de Conectores incluso
             </p>
             <p className="mt-1.5 text-sm leading-relaxed text-[var(--foreground)]/90">
-              Conectores que ligam o Claude aos sistemas do dia a dia — inclui o
+              Conectores que ligam o Claude aos sistemas do dia a dia. Inclui o
               Conector de Publicações do DJEN, para puxar intimações direto na
               conversa. Liberado junto com as skills, após os{" "}
               {PRICING.guaranteeDays} dias de garantia.
@@ -129,7 +129,7 @@ export function TrilhaSneakPeek({ className, showCta = true }: TrilhaSneakPeekPr
         {showCta ? (
           <div className="mt-10 rounded-[var(--radius)] border border-[var(--accent)]/20 bg-[var(--accent-dim)] px-5 py-5 text-center">
             <p className="text-sm font-medium text-[var(--foreground)]">
-              Roteiro completo, aulas e materiais — só na área de membros
+              Roteiro completo, aulas e materiais: só na área de membros
             </p>
             <p className="mt-1 text-sm text-[var(--muted)]">
               Quem entra na turma acessa cada microaula com vídeo, prompts e entregáveis.

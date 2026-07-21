@@ -56,7 +56,7 @@ const faqItems: FaqItem[] = [
   {
     question: "O que é a Comunidade VIP?",
     answer:
-      `Grupo exclusivo no WhatsApp só para alunos matriculados — fechado de propósito, pra garantir uma troca de alto nível entre quem realmente aplica. Incluído na compra do curso. Na matrícula você já entra no grupo (acesso por 1 ano), tira dúvidas das aulas e troca com quem já usa Claude no escritório. Em preparação — e vem mais: skills premium, conectores, materiais extras, lives e templates. Tudo que for liberado no ano entra sem pagar de novo.`,
+      `Grupo exclusivo no WhatsApp só para alunos matriculados. Fechado de propósito, pra garantir uma troca de alto nível entre quem realmente aplica. Incluído na compra do curso. Na matrícula você já entra no grupo (acesso por 1 ano), tira dúvidas das aulas e troca com quem já usa Claude no escritório. Em preparação, e vem mais: skills premium, conectores, materiais extras, lives e templates. Tudo que for liberado no ano entra sem pagar de novo.`,
   },
   {
     question: "Quanto custa o curso?",
@@ -190,7 +190,7 @@ export default function Home() {
             </h2>
             <p className="mt-3 text-[var(--muted)]">
               8 perguntas, 2 minutos. Descubra se você já usa IA no escritório
-              de verdade — ou se ainda está no modo “pergunta e copia”.
+              de verdade, ou se ainda está no modo “pergunta e copia”.
             </p>
             <Link
               href="/quiz"
