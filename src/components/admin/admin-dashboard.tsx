@@ -2,6 +2,8 @@
 
 import { Fragment, useCallback, useEffect, useState } from "react";
 import {
+  ChevronDown,
+  ChevronUp,
   ExternalLink,
   GripVertical,
   Link2,
@@ -13,8 +15,18 @@ import {
   Trash2,
 } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
+import {
+  defaultSeasonCover,
+  SEASON_COVER_IMAGES,
+} from "@/lib/course/module-covers";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
 import type { LessonMaterialAdmin } from "@/lib/lessons/materials";
+import {
+  adjacentModuleId,
+  buildLessonGroups,
+  insertLessonAt,
+  lessonIdsForModule,
+} from "@/lib/lessons/admin-grouping";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
 import { InviteWizard } from "./invite-wizard";
 import styles from "./admin-dashboard.module.css";
@@ -158,37 +170,85 @@ function groupByModule(lessons: LessonAdminRow[]): LessonGroup[] {
   return groups;
 }
 
-/** Move uma aula dentro do seu módulo, retornando a lista achatada nova. */
-function moveWithinModule(
-  lessons: LessonAdminRow[],
-  moduleId: string,
-  fromKey: string,
-  toKey: string,
-): LessonAdminRow[] {
-  const modKeys = lessons
-    .filter((l) => l.moduleId === moduleId)
-    .map((l) => `${l.moduleId}:${l.lessonId}`);
-  const from = modKeys.indexOf(fromKey);
-  const to = modKeys.indexOf(toKey);
-  if (from < 0 || to < 0 || from === to) return lessons;
-  modKeys.splice(to, 0, modKeys.splice(from, 1)[0]);
-  // reconstrói a lista achatada preservando ordem dos módulos
-  const byKey = new Map(
-    lessons.map((l) => [`${l.moduleId}:${l.lessonId}`, l]),
+function CoverImagePicker({
+  value,
+  onChange,
+  seasonIndex,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  seasonIndex: number;
+}) {
+  return (
+    <div className={styles.coverPicker}>
+      <div className={styles.coverPreviewWrap}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={value || defaultSeasonCover(seasonIndex)}
+          alt=""
+          className={styles.coverPreview}
+        />
+      </div>
+      <input
+        className={styles.input}
+        value={value}
+        placeholder={defaultSeasonCover(seasonIndex)}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <div className={styles.coverGrid} role="listbox" aria-label="Capas disponíveis">
+        {SEASON_COVER_IMAGES.map((src) => (
+          <button
+            key={src}
+            type="button"
+            role="option"
+            aria-selected={value === src}
+            className={`${styles.coverThumb} ${value === src ? styles.coverThumbActive : ""}`}
+            onClick={() => onChange(src)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt="" />
+          </button>
+        ))}
+      </div>
+    </div>
   );
-  const result: LessonAdminRow[] = [];
-  const seenModule = new Set<string>();
-  for (const l of lessons) {
-    if (l.moduleId === moduleId) {
-      if (!seenModule.has(moduleId)) {
-        seenModule.add(moduleId);
-        for (const k of modKeys) result.push(byKey.get(k)!);
-      }
-    } else {
-      result.push(l);
-    }
-  }
-  return result;
+}
+
+function ReorderButtons({
+  onUp,
+  onDown,
+  upDisabled,
+  downDisabled,
+  label,
+}: {
+  onUp: () => void;
+  onDown: () => void;
+  upDisabled?: boolean;
+  downDisabled?: boolean;
+  label: string;
+}) {
+  return (
+    <div className={styles.reorderBtns}>
+      <button
+        type="button"
+        className={styles.reorderBtn}
+        aria-label={`${label}: mover para cima`}
+        disabled={upDisabled}
+        onClick={onUp}
+      >
+        <ChevronUp className="size-4" aria-hidden />
+      </button>
+      <button
+        type="button"
+        className={styles.reorderBtn}
+        aria-label={`${label}: mover para baixo`}
+        disabled={downDisabled}
+        onClick={onDown}
+      >
+        <ChevronDown className="size-4" aria-hidden />
+      </button>
+    </div>
+  );
 }
 
 function VideoCell({
@@ -241,6 +301,9 @@ function LessonRow({
   lesson,
   selectMode,
   selected,
+  dbMode,
+  canMoveUp,
+  canMoveDown,
   onToggle,
   onCopy,
   onEdit,
@@ -251,11 +314,16 @@ function LessonRow({
   onDragStart,
   onDragEnd,
   onDrop,
+  onMoveUp,
+  onMoveDown,
   onKeyMove,
 }: {
   lesson: LessonAdminRow;
   selectMode: boolean;
   selected: Set<string>;
+  dbMode: boolean;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
   onToggle: (key: string) => void;
   onCopy: (text: string) => void;
   onEdit: (l: LessonAdminRow) => void;
@@ -266,6 +334,8 @@ function LessonRow({
   onDragStart: (key: string) => void;
   onDragEnd: () => void;
   onDrop: (moduleId: string, targetKey: string) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
   onKeyMove: (l: LessonAdminRow, dir: -1 | 1) => void;
 }) {
   const key = `${lesson.moduleId}:${lesson.lessonId}`;
@@ -294,23 +364,32 @@ function LessonRow({
       </td>
       <td>
         <div className={styles.aulaCell}>
-          <button
-            type="button"
-            className={styles.dragHandle}
-            aria-label={`Reordenar ${lesson.title}. Use as setas para cima e para baixo.`}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowUp") {
-                e.preventDefault();
-                onKeyMove(lesson, -1);
-              }
-              if (e.key === "ArrowDown") {
-                e.preventDefault();
-                onKeyMove(lesson, 1);
-              }
-            }}
-          >
-            <GripVertical className="size-4" aria-hidden />
-          </button>
+          <div className={styles.dragCluster}>
+            <button
+              type="button"
+              className={styles.dragHandle}
+              aria-label={`Reordenar ${lesson.title}. Use as setas para cima e para baixo.`}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  onKeyMove(lesson, -1);
+                }
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  onKeyMove(lesson, 1);
+                }
+              }}
+            >
+              <GripVertical className="size-4" aria-hidden />
+            </button>
+            <ReorderButtons
+              label={lesson.title}
+              upDisabled={!canMoveUp}
+              downDisabled={!canMoveDown}
+              onUp={onMoveUp}
+              onDown={onMoveDown}
+            />
+          </div>
           <div>
             <strong>{lesson.title}</strong>
             <br />
@@ -378,7 +457,7 @@ function LessonRow({
           >
             <Paperclip className="size-4" aria-hidden />
           </button>
-          {lesson.origin === "custom" ? (
+          {lesson.origin === "custom" || dbMode ? (
             <button
               type="button"
               className={styles.iconDangerBtn}
@@ -983,11 +1062,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   }
 
   function openCreateSection() {
+    const nextIndex = sections.length;
     setSectionForm({
       title: "",
       description: "",
       thumbnailGradient: "",
-      coverImage: "",
+      coverImage: defaultSeasonCover(nextIndex),
       unlockAfterDays: 0,
       published: true,
       comingSoon: false,
@@ -1254,9 +1334,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   }
 
   async function persistOrder(moduleId: string, ordered: LessonAdminRow[]) {
-    const lessonIds = ordered
-      .filter((l) => l.moduleId === moduleId)
-      .map((l) => l.lessonId);
+    const lessonIds = lessonIdsForModule(ordered, moduleId);
     const snapshot = lessons;
     try {
       const res = await fetch("/api/admin/lessons/reorder", {
@@ -1266,24 +1344,105 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       });
       if (!res.ok) throw new Error("reorder falhou");
     } catch {
-      setLessons(snapshot); // rollback otimista
+      setLessons(snapshot);
       setError("Não consegui salvar a nova ordem. Revertido.");
     }
   }
 
-  function handleDrop(moduleId: string, targetKey: string) {
+  async function persistMove(
+    fromModuleId: string,
+    lessonId: string,
+    toModuleId: string,
+    beforeLessonId: string | null,
+    optimistic: LessonAdminRow[],
+  ) {
+    const snapshot = lessons;
+    setLessons(optimistic);
+    try {
+      const res = await fetch("/api/admin/lessons/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fromModuleId,
+          lessonId,
+          toModuleId,
+          beforeLessonId,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Erro ao mover aula."));
+      }
+    } catch (err) {
+      setLessons(snapshot);
+      setError(
+        err instanceof Error ? err.message : "Não consegui mover a aula.",
+      );
+    }
+  }
+
+  function moduleTitleFor(moduleId: string): string {
+    return (
+      sections.find((s) => s.moduleId === moduleId)?.title ??
+      lessons.find((l) => l.moduleId === moduleId)?.moduleTitle ??
+      moduleId
+    );
+  }
+
+  function applyLessonMove(
+    lesson: LessonAdminRow,
+    toModuleId: string,
+    targetKey: string | null,
+  ) {
+    const optimistic = insertLessonAt(
+      lessons,
+      lesson,
+      toModuleId,
+      targetKey,
+      moduleTitleFor(toModuleId),
+    );
+    if (lesson.moduleId === toModuleId) {
+      setLessons(optimistic);
+      void persistOrder(toModuleId, optimistic);
+      return;
+    }
+    if (!dbMode) {
+      setError("Mover entre módulos exige COURSE_SOURCE=db.");
+      return;
+    }
+    const beforeLessonId = targetKey ? targetKey.split(":")[1] : null;
+    void persistMove(
+      lesson.moduleId,
+      lesson.lessonId,
+      toModuleId,
+      beforeLessonId,
+      optimistic,
+    );
+  }
+
+  function handleDrop(targetModuleId: string, targetKey: string) {
     if (!dragKey) return;
     const dragged = lessons.find(
       (l) => `${l.moduleId}:${l.lessonId}` === dragKey,
     );
-    if (!dragged || dragged.moduleId !== moduleId) {
+    if (!dragged) {
       setDragKey(null);
       return;
-    } // só dentro do módulo
-    const next = moveWithinModule(lessons, moduleId, dragKey, targetKey);
-    setLessons(next);
+    }
+    applyLessonMove(dragged, targetModuleId, targetKey);
     setDragKey(null);
-    void persistOrder(moduleId, next);
+  }
+
+  function handleModuleHeaderDrop(targetModuleId: string) {
+    if (!dragKey || !dbMode) return;
+    const dragged = lessons.find(
+      (l) => `${l.moduleId}:${l.lessonId}` === dragKey,
+    );
+    if (!dragged || dragged.moduleId === targetModuleId) {
+      setDragKey(null);
+      return;
+    }
+    applyLessonMove(dragged, targetModuleId, null);
+    setDragKey(null);
   }
 
   function moveByKeyboard(lesson: LessonAdminRow, dir: -1 | 1) {
@@ -1292,12 +1451,43 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     const idx = modLessons.findIndex(
       (l) => `${l.moduleId}:${l.lessonId}` === key,
     );
+
+    if (dir === -1 && idx === 0 && dbMode) {
+      const prevModule = adjacentModuleId(lessons, lesson.moduleId, -1);
+      if (prevModule) {
+        applyLessonMove(lesson, prevModule, null);
+        return;
+      }
+    }
+    if (dir === 1 && idx === modLessons.length - 1 && dbMode) {
+      const nextModule = adjacentModuleId(lessons, lesson.moduleId, 1);
+      if (nextModule) {
+        const first = lessons.find((l) => l.moduleId === nextModule);
+        const targetKey = first
+          ? `${first.moduleId}:${first.lessonId}`
+          : null;
+        applyLessonMove(lesson, nextModule, targetKey);
+        return;
+      }
+    }
+
     const targetIdx = idx + dir;
     if (targetIdx < 0 || targetIdx >= modLessons.length) return;
     const targetKey = `${modLessons[targetIdx].moduleId}:${modLessons[targetIdx].lessonId}`;
-    const next = moveWithinModule(lessons, lesson.moduleId, key, targetKey);
-    setLessons(next);
-    void persistOrder(lesson.moduleId, next);
+    applyLessonMove(lesson, lesson.moduleId, targetKey);
+  }
+
+  function lessonMoveBounds(lesson: LessonAdminRow) {
+    const modLessons = lessons.filter((l) => l.moduleId === lesson.moduleId);
+    const idx = modLessons.findIndex(
+      (l) => l.lessonId === lesson.lessonId,
+    );
+    const canMoveUp =
+      idx > 0 || (dbMode && adjacentModuleId(lessons, lesson.moduleId, -1) !== null);
+    const canMoveDown =
+      idx < modLessons.length - 1 ||
+      (dbMode && adjacentModuleId(lessons, lesson.moduleId, 1) !== null);
+    return { canMoveUp, canMoveDown };
   }
 
   async function resendInvite(invite: InviteItem) {
@@ -1466,8 +1656,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 </div>
               </div>
               <p className={styles.feedbackMeta}>
-                Arraste pela alça (ou usa ↑/↓ com ela focada) para reordenar as
-                seções.
+                Arraste pela alça (ou usa ↑/↓) para reordenar as seções.
               </p>
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
@@ -1486,7 +1675,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                         <td colSpan={5}>Nenhuma seção ainda.</td>
                       </tr>
                     ) : (
-                      sections.map((s) => (
+                      sections.map((s, sIdx) => (
                         <tr
                           key={s.moduleId}
                           className={styles.lessonRow}
@@ -1501,25 +1690,46 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                           onDrop={() => handleSectionDrop(s.moduleId)}
                         >
                           <td>
-                            <button
-                              type="button"
-                              className={styles.dragHandle}
-                              aria-label={`Reordenar ${s.title}. Use as setas para cima e para baixo.`}
-                              onKeyDown={(e) => {
-                                if (e.key === "ArrowUp") {
-                                  e.preventDefault();
-                                  moveSectionByKeyboard(s, -1);
-                                }
-                                if (e.key === "ArrowDown") {
-                                  e.preventDefault();
-                                  moveSectionByKeyboard(s, 1);
-                                }
-                              }}
-                            >
-                              <GripVertical className="size-4" aria-hidden />
-                            </button>
+                            <div className={styles.dragCluster}>
+                              <button
+                                type="button"
+                                className={styles.dragHandle}
+                                aria-label={`Reordenar ${s.title}. Use as setas para cima e para baixo.`}
+                                onKeyDown={(e) => {
+                                  if (e.key === "ArrowUp") {
+                                    e.preventDefault();
+                                    moveSectionByKeyboard(s, -1);
+                                  }
+                                  if (e.key === "ArrowDown") {
+                                    e.preventDefault();
+                                    moveSectionByKeyboard(s, 1);
+                                  }
+                                }}
+                              >
+                                <GripVertical className="size-4" aria-hidden />
+                              </button>
+                              <ReorderButtons
+                                label={s.title}
+                                upDisabled={sIdx === 0}
+                                downDisabled={sIdx === sections.length - 1}
+                                onUp={() => moveSectionByKeyboard(s, -1)}
+                                onDown={() => moveSectionByKeyboard(s, 1)}
+                              />
+                            </div>
                           </td>
-                          <td>{s.title}</td>
+                          <td>
+                            <div className={styles.sectionTitleCell}>
+                              {s.coverImage ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={s.coverImage}
+                                  alt=""
+                                  className={styles.sectionCoverThumb}
+                                />
+                              ) : null}
+                              <span>{s.title}</span>
+                            </div>
+                          </td>
                           <td>{s.lessonCount}</td>
                           <td>
                             {s.comingSoon ? (
@@ -1619,6 +1829,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 </button>
               </div>
             ) : null}
+            {dbMode ? (
+              <p className={styles.feedbackMeta}>
+                Arraste aulas entre módulos (solte na linha da aula ou no
+                cabeçalho do módulo). Use ↑/↓ para reordenar ou pular de seção.
+              </p>
+            ) : null}
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
@@ -1633,9 +1849,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {groupByModule(lessons).map((group) => (
+                  {buildLessonGroups(lessons, sections, dbMode).map((group) => (
                     <Fragment key={group.moduleId}>
-                      <tr className={styles.moduleRow}>
+                      <tr
+                        className={`${styles.moduleRow} ${dragKey && dbMode ? styles.moduleDropTarget : ""}`}
+                        onDragOver={(e) => {
+                          if (dbMode && dragKey) e.preventDefault();
+                        }}
+                        onDrop={() => handleModuleHeaderDrop(group.moduleId)}
+                      >
                         <td>
                           {selectMode ? (
                             <input
@@ -1657,25 +1879,34 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                         </td>
                         <td colSpan={6}>{group.moduleTitle}</td>
                       </tr>
-                      {group.lessons.map((lesson) => (
-                        <LessonRow
-                          key={`${lesson.moduleId}:${lesson.lessonId}`}
-                          lesson={lesson}
-                          selectMode={selectMode}
-                          selected={selected}
-                          onToggle={toggleSelected}
-                          onCopy={copyText}
-                          onEdit={openEdit}
-                          onPreview={setPreviewLesson}
-                          onFeedback={openFeedback}
-                          onMaterials={openMaterials}
-                          onDelete={deleteLesson}
-                          onDragStart={setDragKey}
-                          onDragEnd={() => setDragKey(null)}
-                          onDrop={handleDrop}
-                          onKeyMove={moveByKeyboard}
-                        />
-                      ))}
+                      {group.lessons.map((lesson) => {
+                        const bounds = lessonMoveBounds(lesson);
+                        const key = `${lesson.moduleId}:${lesson.lessonId}`;
+                        return (
+                          <LessonRow
+                            key={key}
+                            lesson={lesson}
+                            dbMode={dbMode}
+                            selectMode={selectMode}
+                            selected={selected}
+                            canMoveUp={bounds.canMoveUp}
+                            canMoveDown={bounds.canMoveDown}
+                            onToggle={toggleSelected}
+                            onCopy={copyText}
+                            onEdit={openEdit}
+                            onPreview={setPreviewLesson}
+                            onFeedback={openFeedback}
+                            onMaterials={openMaterials}
+                            onDelete={deleteLesson}
+                            onDragStart={setDragKey}
+                            onDragEnd={() => setDragKey(null)}
+                            onDrop={handleDrop}
+                            onMoveUp={() => moveByKeyboard(lesson, -1)}
+                            onMoveDown={() => moveByKeyboard(lesson, 1)}
+                            onKeyMove={moveByKeyboard}
+                          />
+                        );
+                      })}
                     </Fragment>
                   ))}
                 </tbody>
@@ -2288,12 +2519,16 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             </label>
 
             <label className={styles.field}>
-              <span className={styles.label}>Capa (URL da imagem) — opcional</span>
-              <input
-                className={styles.input}
+              <span className={styles.label}>Capa do módulo</span>
+              <CoverImagePicker
                 value={sectionForm.coverImage}
-                onChange={(e) =>
-                  setSectionForm((f) => ({ ...f, coverImage: e.target.value }))
+                seasonIndex={
+                  editingSectionId
+                    ? sections.findIndex((s) => s.moduleId === editingSectionId)
+                    : sections.length
+                }
+                onChange={(coverImage) =>
+                  setSectionForm((f) => ({ ...f, coverImage }))
                 }
               />
             </label>

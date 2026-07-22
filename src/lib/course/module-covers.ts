@@ -13,6 +13,11 @@ export const SEASON_COVER_IMAGES = [
   "/assets/images/temporadas/temporada-7-encerramento.png",
 ] as const;
 
+/** Capa padrão pelo índice do módulo (sort_order ou posição no seed). */
+export function defaultSeasonCover(index: number): string {
+  return SEASON_COVER_IMAGES[index % SEASON_COVER_IMAGES.length];
+}
+
 const MODULE_COVER_BY_ID: Record<string, string> = {
   cowork: SEASON_COVER_IMAGES[4],
   automacao: SEASON_COVER_IMAGES[5],
