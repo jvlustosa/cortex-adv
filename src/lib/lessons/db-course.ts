@@ -1,4 +1,5 @@
 import type { Course, CourseLesson, CourseModule } from "@/data/course-content";
+import { getModuleCoverImage } from "@/lib/course/module-covers";
 
 // Mapeamento puro de linhas do DB (courses/modules/lessons) → shape de runtime
 // (Course/CourseModule/CourseLesson). Sem Supabase aqui: fica testável isolado.
@@ -20,6 +21,8 @@ export type ModuleRow = {
   unlock_after_days: number | null;
   sort_order: number;
   published: boolean;
+  /** true = módulo "em breve" (card travado nos membros). Ausente = false. */
+  coming_soon?: boolean | null;
 };
 
 export type LessonRow = {
@@ -38,10 +41,23 @@ export type LessonRow = {
 export type PublishedCourseLesson = CourseLesson & { published: boolean };
 export type MappedModule = CourseModule & {
   published: boolean;
+  comingSoon?: boolean;
   lessons: PublishedCourseLesson[];
 };
+
+/** Card "em breve" — mesmo shape do fallback de roteiro (coming-soon.ts). */
+export type ComingSoonModuleView = {
+  id: string;
+  title: string;
+  teaser: string;
+  coverImage: string;
+  seasonNumber: number;
+};
+
 export type MappedCourse = Pick<Course, "title" | "subtitle"> & {
   modules: MappedModule[];
+  /** Módulos marcados "em breve" no DB. Vazio → o grid cai no roteiro. */
+  comingSoonModules?: ComingSoonModuleView[];
 };
 
 function toLesson(row: LessonRow): PublishedCourseLesson {
@@ -65,7 +81,22 @@ function toModule(row: ModuleRow, lessons: PublishedCourseLesson[]): MappedModul
     coverImage: row.cover_image ?? undefined,
     unlockAfterDays: row.unlock_after_days ?? undefined,
     published: row.published,
+    comingSoon: row.coming_soon ?? false,
     lessons,
+  };
+}
+
+function toComingSoonView(row: ModuleRow): ComingSoonModuleView {
+  return {
+    id: `em-breve-${row.slug}`,
+    title: row.title,
+    teaser: row.description ?? "",
+    coverImage: getModuleCoverImage(
+      row.slug,
+      row.sort_order,
+      row.cover_image ?? undefined,
+    ),
+    seasonNumber: row.sort_order,
   };
 }
 
@@ -85,8 +116,15 @@ export function mapDbToCourse(
   const subtitle = course.subtitle ?? "";
 
   if (!includeUnpublished && !course.published) {
-    return { title, subtitle, modules: [] };
+    return { title, subtitle, modules: [], comingSoonModules: [] };
   }
+
+  // Módulos "em breve" saem da grade ao vivo e viram cards travados na seção
+  // "Sessões em breve" — independente de published ou de terem aulas.
+  const comingSoonModules = modules
+    .filter((mod) => mod.coming_soon === true)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map(toComingSoonView);
 
   const lessonsByModule = new Map<string, LessonRow[]>();
   for (const lesson of lessons) {
@@ -95,7 +133,8 @@ export function mapDbToCourse(
     else lessonsByModule.set(lesson.module_slug, [lesson]);
   }
 
-  const mapped = [...modules]
+  const mapped = modules
+    .filter((mod) => mod.coming_soon !== true)
     .filter((mod) => includeUnpublished || mod.published)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((mod) => {
@@ -107,5 +146,5 @@ export function mapDbToCourse(
     })
     .filter((mod) => mod.lessons.length > 0); // dropa módulo vazio (protege o player)
 
-  return { title, subtitle, modules: mapped };
+  return { title, subtitle, modules: mapped, comingSoonModules };
 }

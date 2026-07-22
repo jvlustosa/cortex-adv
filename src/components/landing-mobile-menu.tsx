@@ -119,6 +119,9 @@ export function LandingMobileMenu() {
                 <a href="#precos" onClick={close} className={linkClass}>
                   Preços
                 </a>
+                <Link href="/simulador-custo-claude" onClick={close} className={linkClass}>
+                  Simulador
+                </Link>
                 <Link href="/quiz" onClick={close} className={linkClass}>
                   Quiz
                 </Link>

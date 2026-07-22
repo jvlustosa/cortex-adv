@@ -10,7 +10,8 @@
  *   npm run db:seed -- --apply     # escreve no Supabase (service-role)
  *
  * Requer p/ --apply: NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (.env.local).
- * Aplique a migração 014_course_native_runtime.sql ANTES. Idempotente (upsert por slug).
+ * Aplique as migrações 014_course_native_runtime.sql E 015_module_coming_soon.sql
+ * ANTES (o upsert grava a coluna coming_soon). Idempotente (upsert por slug).
  */
 import { createClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync } from "fs";
@@ -61,6 +62,7 @@ function buildPlan() {
     unlock_after_days: m.unlockAfterDays ?? 0,
     sort_order: i,
     published: true,
+    coming_soon: m.comingSoon ?? false,
   }));
   const lessons = [];
   raw.modules.forEach((m) => {

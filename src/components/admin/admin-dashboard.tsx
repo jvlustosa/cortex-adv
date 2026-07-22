@@ -30,6 +30,7 @@ type SectionAdminRow = {
   unlockAfterDays: number;
   sortOrder: number;
   published: boolean;
+  comingSoon: boolean;
   lessonCount: number;
 };
 
@@ -707,8 +708,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     coverImage: "",
     unlockAfterDays: 0,
     published: true,
+    comingSoon: false,
   });
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [sectionDragKey, setSectionDragKey] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     duration: "",
@@ -987,6 +990,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       coverImage: "",
       unlockAfterDays: 0,
       published: true,
+      comingSoon: false,
     });
     setEditingSectionId(null);
     setCreatingSection(true);
@@ -1000,6 +1004,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       coverImage: section.coverImage ?? "",
       unlockAfterDays: section.unlockAfterDays,
       published: section.published,
+      comingSoon: section.comingSoon,
     });
     setEditingSectionId(section.moduleId);
     setCreatingSection(true);
@@ -1023,6 +1028,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
           coverImage: sectionForm.coverImage.trim() || null,
           unlockAfterDays: sectionForm.unlockAfterDays || 0,
           published: sectionForm.published,
+          comingSoon: sectionForm.comingSoon,
         }),
       });
       if (!res.ok) {
@@ -1056,6 +1062,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
           coverImage: sectionForm.coverImage.trim() || null,
           unlockAfterDays: sectionForm.unlockAfterDays || 0,
           published: sectionForm.published,
+          comingSoon: sectionForm.comingSoon,
         }),
       });
       if (!res.ok) {
@@ -1093,6 +1100,55 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao excluir seção.");
     }
+  }
+
+  async function persistSectionOrder(ordered: SectionAdminRow[]) {
+    const snapshot = sections;
+    try {
+      const res = await fetch("/api/admin/modules/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: ordered.map((s) => s.moduleId) }),
+      });
+      if (!res.ok) throw new Error("reorder falhou");
+    } catch {
+      setSections(snapshot); // rollback otimista
+      setError("Não consegui salvar a nova ordem das seções. Revertido.");
+      return;
+    }
+    // Ordem salva: ressincroniza "Aulas do curso" + dropdown de criar aula, que
+    // também agrupam por módulo na ordem do backend. Falha aqui não desfaz a
+    // ordem (já persistida) — a próxima navegação reconcilia.
+    try {
+      await loadLessons();
+    } catch {
+      /* ordem já salva no banco; segue com o estado otimista */
+    }
+  }
+
+  function reorderSections(fromSlug: string, toSlug: string) {
+    const from = sections.findIndex((s) => s.moduleId === fromSlug);
+    const to = sections.findIndex((s) => s.moduleId === toSlug);
+    if (from < 0 || to < 0 || from === to) return;
+    const next = sections.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setSections(next);
+    void persistSectionOrder(next);
+  }
+
+  function handleSectionDrop(targetSlug: string) {
+    if (!sectionDragKey) return;
+    const from = sectionDragKey;
+    setSectionDragKey(null);
+    reorderSections(from, targetSlug);
+  }
+
+  function moveSectionByKeyboard(section: SectionAdminRow, dir: -1 | 1) {
+    const idx = sections.findIndex((s) => s.moduleId === section.moduleId);
+    const targetIdx = idx + dir;
+    if (targetIdx < 0 || targetIdx >= sections.length) return;
+    reorderSections(section.moduleId, sections[targetIdx].moduleId);
   }
 
   async function saveNewLesson() {
@@ -1409,10 +1465,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                   </button>
                 </div>
               </div>
+              <p className={styles.feedbackMeta}>
+                Arraste pela alça (ou usa ↑/↓ com ela focada) para reordenar as
+                seções.
+              </p>
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead>
                     <tr>
+                      <th />
                       <th>Seção</th>
                       <th>Aulas</th>
                       <th>Status</th>
@@ -1422,14 +1483,65 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                   <tbody>
                     {sections.length === 0 ? (
                       <tr>
-                        <td colSpan={4}>Nenhuma seção ainda.</td>
+                        <td colSpan={5}>Nenhuma seção ainda.</td>
                       </tr>
                     ) : (
                       sections.map((s) => (
-                        <tr key={s.moduleId}>
+                        <tr
+                          key={s.moduleId}
+                          className={styles.lessonRow}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("text/plain", s.moduleId);
+                            e.dataTransfer.effectAllowed = "move";
+                            setSectionDragKey(s.moduleId);
+                          }}
+                          onDragEnd={() => setSectionDragKey(null)}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={() => handleSectionDrop(s.moduleId)}
+                        >
+                          <td>
+                            <button
+                              type="button"
+                              className={styles.dragHandle}
+                              aria-label={`Reordenar ${s.title}. Use as setas para cima e para baixo.`}
+                              onKeyDown={(e) => {
+                                if (e.key === "ArrowUp") {
+                                  e.preventDefault();
+                                  moveSectionByKeyboard(s, -1);
+                                }
+                                if (e.key === "ArrowDown") {
+                                  e.preventDefault();
+                                  moveSectionByKeyboard(s, 1);
+                                }
+                              }}
+                            >
+                              <GripVertical className="size-4" aria-hidden />
+                            </button>
+                          </td>
                           <td>{s.title}</td>
                           <td>{s.lessonCount}</td>
-                          <td>{s.published ? "Publicada" : "Rascunho"}</td>
+                          <td>
+                            {s.comingSoon ? (
+                              <span
+                                className={`${styles.badge} ${styles.badgeOff}`}
+                              >
+                                Em breve
+                              </span>
+                            ) : s.published ? (
+                              <span
+                                className={`${styles.badge} ${styles.badgeOn}`}
+                              >
+                                Publicada
+                              </span>
+                            ) : (
+                              <span
+                                className={`${styles.badge} ${styles.badgeOff}`}
+                              >
+                                Rascunho
+                              </span>
+                            )}
+                          </td>
                           <td>
                             <button
                               type="button"
@@ -2213,6 +2325,18 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 }
               />
               Publicar já (senão fica como rascunho)
+            </label>
+
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={sectionForm.comingSoon}
+                onChange={(e) =>
+                  setSectionForm((f) => ({ ...f, comingSoon: e.target.checked }))
+                }
+              />
+              Em breve (mostra travado em &quot;Sessões em breve&quot; para o
+              aluno)
             </label>
 
             <div className={styles.actions}>

@@ -78,6 +78,37 @@ npm run admin:create
 npm run admin:create -- --provision
 ```
 
+## Cutover: curso no DB + materiais + "em breve" (`COURSE_SOURCE=db`)
+
+Estas migrações **não** estão no `setup-completo.sql` nem na tabela numerada acima —
+aplique à mão no **SQL Editor** (todas idempotentes):
+
+| Migração | O que faz |
+|----------|-----------|
+| `010_lesson_materials.sql` | Tabela `lesson_materials` + bucket **privado** `lesson-materials`. Sem ela, "Materiais da aula" não renderiza (é isto que "ativar o storage" resolve). |
+| `014_course_native_runtime.sql` | Alinha `modules/lessons` ao runtime (colunas de apresentação, `tella`, `duration`, etc.). |
+| `015_module_coming_soon.sql` | Coluna `modules.coming_soon` — módulo "em breve" gerido pelo painel. |
+
+Ordem do cutover:
+
+1. SQL Editor: rode `010`, `014`, `015`.
+2. Seed do conteúdo atual (lê `src/data/course.yml`, upsert por slug — curso `claude-cowork-advogados`):
+   ```bash
+   npm run db:seed            # dry-run: mostra o plano, não escreve
+   npm run db:seed -- --apply # grava no Supabase (usa SUPABASE_SERVICE_ROLE_KEY do .env.local)
+   ```
+3. Confira em **Table editor** que `courses/modules/lessons` têm o conteúdo.
+4. **Vercel** → projeto `claude-academy` → Settings → Environment Variables:
+   `COURSE_SOURCE=db` → **Redeploy** (o env é inlined no build; sem redeploy não vale).
+5. Verifique `/admin` — o bloco **Seções** aparece (criar / editar / reordenar / marcar "Em breve").
+
+**Rollback:** remova `COURSE_SOURCE` (ou deixe `!= db`) no Vercel e redeploy — volta pro
+`course.yml` na hora. O YAML continua no repo como fonte de fallback.
+
+**Materiais:** com a `010` aplicada, suba arquivos por aula no `/admin` (ícone de clipe na
+linha da aula). O aluno baixa via URL assinada de curta duração; o bucket é privado, sem
+exposição pública.
+
 ## Regenerar seed do roteiro
 
 Quando `src/data/curso-roteiro.ts` mudar, atualize também `scripts/curso-roteiro-data.mjs` e rode:

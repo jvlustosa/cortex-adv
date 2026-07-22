@@ -42,6 +42,7 @@ type PostBody = {
   coverImage?: string | null;
   unlockAfterDays?: number | null;
   published?: boolean;
+  comingSoon?: boolean;
 };
 
 export async function POST(request: Request) {
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
       coverImage: body.coverImage ?? null,
       unlockAfterDays: body.unlockAfterDays ?? 0,
       published: body.published ?? true,
+      comingSoon: body.comingSoon ?? false,
     });
     return NextResponse.json({ ok: true, module: section });
   } catch (err) {
@@ -84,6 +86,7 @@ type PatchBody = {
   coverImage?: string | null;
   unlockAfterDays?: number | null;
   published?: boolean;
+  comingSoon?: boolean;
 };
 
 export async function PATCH(request: Request) {
@@ -110,6 +113,7 @@ export async function PATCH(request: Request) {
       coverImage: body.coverImage,
       unlockAfterDays: body.unlockAfterDays,
       published: body.published,
+      comingSoon: body.comingSoon,
     });
     return NextResponse.json({ ok: true });
   } catch (err) {

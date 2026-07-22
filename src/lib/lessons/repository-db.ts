@@ -311,6 +311,7 @@ export type ModuleAdminRow = {
   unlockAfterDays: number;
   sortOrder: number;
   published: boolean;
+  comingSoon: boolean;
   lessonCount: number;
 };
 
@@ -324,6 +325,7 @@ type ModuleRowFull = {
   unlock_after_days: number | null;
   sort_order: number;
   published: boolean;
+  coming_soon: boolean | null;
 };
 
 export async function listModulesForAdmin(): Promise<ModuleAdminRow[]> {
@@ -334,7 +336,7 @@ export async function listModulesForAdmin(): Promise<ModuleAdminRow[]> {
   const { data, error } = await admin
     .from("modules")
     .select(
-      "id, slug, title, description, thumbnail_gradient, cover_image, unlock_after_days, sort_order, published",
+      "id, slug, title, description, thumbnail_gradient, cover_image, unlock_after_days, sort_order, published, coming_soon",
     )
     .eq("course_id", courseId)
     .order("sort_order", { ascending: true });
@@ -363,6 +365,7 @@ export async function listModulesForAdmin(): Promise<ModuleAdminRow[]> {
     unlockAfterDays: m.unlock_after_days ?? 0,
     sortOrder: m.sort_order,
     published: m.published,
+    comingSoon: m.coming_soon ?? false,
     lessonCount: countByModule.get(m.id) ?? 0,
   }));
 }
@@ -374,6 +377,7 @@ export async function createModule(input: {
   coverImage?: string | null;
   unlockAfterDays?: number | null;
   published?: boolean;
+  comingSoon?: boolean;
 }): Promise<ModuleAdminRow> {
   const admin = createAdminClient();
   const courseId = await resolveCourseId(admin);
@@ -395,6 +399,7 @@ export async function createModule(input: {
   const sortOrder =
     rows.reduce((max, r) => Math.max(max, r.sort_order ?? -1), -1) + 1;
   const published = input.published ?? true;
+  const comingSoon = input.comingSoon ?? false;
 
   const { error } = await admin.from("modules").insert({
     course_id: courseId,
@@ -406,6 +411,7 @@ export async function createModule(input: {
     unlock_after_days: input.unlockAfterDays ?? 0,
     sort_order: sortOrder,
     published,
+    coming_soon: comingSoon,
   });
   if (error) throw error;
 
@@ -418,6 +424,7 @@ export async function createModule(input: {
     unlockAfterDays: input.unlockAfterDays ?? 0,
     sortOrder,
     published,
+    comingSoon,
     lessonCount: 0,
   };
 }
@@ -431,6 +438,7 @@ export async function updateModule(
     coverImage?: string | null;
     unlockAfterDays?: number | null;
     published?: boolean;
+    comingSoon?: boolean;
   },
 ): Promise<void> {
   const admin = createAdminClient();
@@ -446,6 +454,7 @@ export async function updateModule(
   if (patch.unlockAfterDays !== undefined)
     set.unlock_after_days = patch.unlockAfterDays;
   if (patch.published !== undefined) set.published = patch.published;
+  if (patch.comingSoon !== undefined) set.coming_soon = patch.comingSoon;
   if (Object.keys(set).length === 0) return;
 
   const { error } = await admin

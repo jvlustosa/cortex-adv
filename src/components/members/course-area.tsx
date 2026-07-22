@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock, Download, PlayCircle } from "lucide-react";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
+import type { ComingSoonModuleView } from "@/lib/lessons/db-course";
 import type { LessonMaterial } from "@/lib/lessons/materials";
 import { CourseMenu } from "./course-menu";
 import { CompleteLessonButton } from "./complete-lesson-button";
@@ -24,6 +25,8 @@ export type MergedCourse = {
   modules: (CourseModule & {
     lessons: (CourseLesson & { published: boolean })[];
   })[];
+  /** Módulos "em breve" (DB). Vazio/ausente → o grid cai no roteiro público. */
+  comingSoonModules?: ComingSoonModuleView[];
 };
 
 type CourseAreaProps = {

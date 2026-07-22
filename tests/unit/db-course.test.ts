@@ -123,3 +123,34 @@ test("curso não-publicado esconde tudo do aluno", () => {
     mapDbToCourse(unpub, modules, lessons, { includeUnpublished: true }).modules.length > 0,
   );
 });
+
+test("módulo coming_soon sai da grade e vira card em comingSoonModules", () => {
+  const mods: ModuleRow[] = [
+    modules[1], // m1 ao vivo (tem aulas a, b)
+    {
+      slug: "m3",
+      title: "M3 em breve",
+      description: "teaser 3",
+      thumbnail_gradient: null,
+      cover_image: null,
+      unlock_after_days: null,
+      sort_order: 5,
+      published: false,
+      coming_soon: true,
+    },
+  ];
+  const mapped = mapDbToCourse(course, mods, lessons);
+  assert.equal(
+    mapped.modules.some((m) => m.id === "m3"),
+    false,
+  );
+  assert.equal(
+    mapped.modules.some((m) => m.id === "m1"),
+    true,
+  );
+  assert.deepEqual(
+    (mapped.comingSoonModules ?? []).map((c) => c.title),
+    ["M3 em breve"],
+  );
+  assert.equal(mapped.comingSoonModules?.[0].teaser, "teaser 3");
+});

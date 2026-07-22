@@ -23,6 +23,9 @@ export function HeaderMarketingNav() {
       <a href="#precos" className={linkClass}>
         Preços
       </a>
+      <Link href="/simulador-custo-claude" className={linkClass}>
+        Simulador
+      </Link>
       <Link href="/quiz" className={linkClass}>
         Quiz
       </Link>

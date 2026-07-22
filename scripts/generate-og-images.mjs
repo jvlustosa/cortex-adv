@@ -32,9 +32,13 @@ const T = {
 const W = 1200;
 const H = 630;
 
-// Marca do Claude (Bootstrap Icons bi-claude, 16×16) — mesma usada no app.
-const CLAUDE_MARK_PATH =
-  "m3.127 10.604 3.135-1.76.053-.153-.053-.085H6.11l-.525-.032-1.791-.048-1.554-.065-1.505-.08-.38-.081L0 7.832l.036-.234.32-.214.455.04 1.009.069 1.513.105 1.097.064 1.626.17h.259l.036-.105-.089-.065-.068-.064-1.566-1.062-1.695-1.121-.887-.646-.48-.327-.243-.306-.104-.67.435-.48.585.04.15.04.593.456 1.267.981 1.654 1.218.242.202.097-.068.012-.049-.109-.181-.9-1.626-.96-1.655-.428-.686-.113-.411a2 2 0 0 1-.068-.484l.496-.674L4.446 0l.662.089.279.242.411.94.666 1.48 1.033 2.014.302.597.162.553.06.17h.105v-.097l.085-1.134.157-1.392.154-1.792.052-.504.25-.605.497-.327.387.186.319.456-.045.294-.19 1.23-.37 1.93-.243 1.29h.142l.161-.16.654-.868 1.097-1.372.484-.545.565-.601.363-.287h.686l.505.751-.226.775-.707.895-.585.759-.839 1.13-.524.904.048.072.125-.012 1.897-.403 1.024-.186 1.223-.21.553.258.06.263-.218.536-1.307.323-1.533.307-2.284.54-.028.02.032.04 1.029.098.44.024h1.077l2.005.15.525.346.315.424-.053.323-.807.411-3.631-.863-.872-.218h-.12v.073l.726.71 1.331 1.202 1.667 1.55.084.383-.214.302-.226-.032-1.464-1.101-.565-.497-1.28-1.077h-.084v.113l.295.432 1.557 2.34.08.718-.112.234-.404.141-.444-.08-.911-1.28-.94-1.44-.759-1.291-.093.053-.448 4.821-.21.246-.484.186-.403-.307-.214-.496.214-.98.258-1.28.21-1.016.19-1.263.112-.42-.008-.028-.092.012-.953 1.307-1.448 1.957-1.146 1.227-.274.109-.477-.247.045-.44.266-.39 1.586-2.018.956-1.25.617-.723-.004-.105h-.036l-4.212 2.736-.75.096-.324-.302.04-.496.154-.162 1.267-.871z";
+const LOGO_SRC = resolve(
+  root,
+  "public/assets/images/claude-hub/claude-para-advogados-academy.png",
+);
+
+// Preenchido em main() antes da renderização.
+let LOGO_URI = "";
 
 // ─── Font loading ────────────────────────────────────────────────
 
@@ -58,6 +62,14 @@ async function coverDataUri(file) {
   const src = resolve(root, "public/assets/images/temporadas", file);
   const buf = await sharp(readFileSync(src))
     .resize(W, H, { fit: "cover", position: "centre" })
+    .png()
+    .toBuffer();
+  return `data:image/png;base64,${buf.toString("base64")}`;
+}
+
+async function logoDataUri(size = 512) {
+  const buf = await sharp(readFileSync(LOGO_SRC))
+    .resize(size, size, { fit: "cover", position: "centre" })
     .png()
     .toBuffer();
   return `data:image/png;base64,${buf.toString("base64")}`;
@@ -90,17 +102,17 @@ function tag(text) {
     type: "div",
     props: {
       style: {
-        fontSize: "18px",
+        fontSize: "22px",
         color: T.accent,
         letterSpacing: "0.05em",
-        fontWeight: 500,
+        fontWeight: 600,
       },
       children: text,
     },
   };
 }
 
-function title(text, fontSize = 56) {
+function title(text, fontSize = 70) {
   return {
     type: "div",
     props: {
@@ -109,8 +121,8 @@ function title(text, fontSize = 56) {
         fontSize: `${fontSize}px`,
         fontWeight: 700,
         color: T.text,
-        lineHeight: 1.1,
-        maxWidth: "900px",
+        lineHeight: 1.08,
+        maxWidth: "920px",
       },
       children: text,
     },
@@ -122,11 +134,11 @@ function subtitle(text) {
     type: "div",
     props: {
       style: {
-        marginTop: "20px",
-        fontSize: "26px",
+        marginTop: "22px",
+        fontSize: "32px",
         color: T.muted,
-        lineHeight: 1.4,
-        maxWidth: "700px",
+        lineHeight: 1.35,
+        maxWidth: "760px",
       },
       children: text,
     },
@@ -143,13 +155,13 @@ function pills(items) {
         type: "div",
         props: {
           style: {
-            padding: "8px 20px",
+            padding: "10px 22px",
             borderRadius: "100px",
             border: `1px solid ${T.border}`,
             background: T.surface,
             color: T.accent,
-            fontSize: "16px",
-            fontWeight: 500,
+            fontSize: "19px",
+            fontWeight: 600,
           },
           children: s,
         },
@@ -168,27 +180,24 @@ function footer() {
         left: "80px",
         display: "flex",
         alignItems: "center",
-        gap: "12px",
-        fontSize: "20px",
+        gap: "14px",
+        fontSize: "24px",
         color: T.muted,
       },
       children: [
         {
-          type: "div",
+          type: "img",
           props: {
+            src: LOGO_URI,
+            width: 44,
+            height: 44,
             style: {
-              width: "32px",
-              height: "32px",
-              borderRadius: "50%",
-              background: T.accent,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: T.bg,
-              fontWeight: 700,
-              fontSize: "16px",
+              width: "44px",
+              height: "44px",
+              borderRadius: "12px",
+              objectFit: "cover",
+              boxShadow: "0 8px 24px rgba(217, 119, 87, 0.28)",
             },
-            children: "C",
           },
         },
         { type: "span", props: { children: "claudeacademy.chatjuridico.com.br" } },
@@ -197,32 +206,36 @@ function footer() {
   };
 }
 
-function orbDots() {
+function floatingLogo(size = 132, top = 44, right = 64) {
   return {
     type: "div",
     props: {
       style: {
         position: "absolute",
-        top: "60px",
-        right: "80px",
+        top: `${top}px`,
+        right: `${right}px`,
+        width: `${size}px`,
+        height: `${size}px`,
         display: "flex",
-        flexWrap: "wrap",
-        width: "180px",
-        height: "180px",
-        gap: "8px",
-        opacity: 0.6,
+        borderRadius: "28px",
+        overflow: "hidden",
+        border: "2px solid rgba(217, 119, 87, 0.42)",
+        boxShadow:
+          "0 22px 56px rgba(217, 119, 87, 0.34), 0 8px 24px rgba(0, 0, 0, 0.45)",
       },
-      children: Array.from({ length: 36 }, (_, i) => ({
-        type: "div",
+      children: {
+        type: "img",
         props: {
+          src: LOGO_URI,
+          width: size,
+          height: size,
           style: {
-            width: `${6 + (i % 5) * 2}px`,
-            height: `${6 + (i % 5) * 2}px`,
-            borderRadius: "50%",
-            background: `hsla(${28 + (i % 8) * 2}, ${50 + (i % 6) * 5}%, ${45 + (i % 7) * 4}%, ${0.3 + (i % 5) * 0.15})`,
+            width: `${size}px`,
+            height: `${size}px`,
+            objectFit: "cover",
           },
         },
-      })),
+      },
     },
   };
 }
@@ -248,41 +261,7 @@ function container(children) {
         position: "relative",
         overflow: "hidden",
       },
-      children: children.filter(Boolean),
-    },
-  };
-}
-
-// ─── Minimal brand card (default OG) ─────────────────────────────
-
-function claudeMark(size, color) {
-  return {
-    type: "svg",
-    props: {
-      width: size,
-      height: size,
-      viewBox: "0 0 16 16",
-      children: { type: "path", props: { d: CLAUDE_MARK_PATH, fill: color } },
-    },
-  };
-}
-
-function markTile() {
-  return {
-    type: "div",
-    props: {
-      style: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "176px",
-        height: "176px",
-        borderRadius: "38px",
-        background: "rgba(217, 119, 87, 0.10)",
-        border: "1px solid rgba(217, 119, 87, 0.35)",
-        boxShadow: "0 24px 80px rgba(217, 119, 87, 0.18)",
-      },
-      children: claudeMark(96, T.accent),
+      children: [...children.filter(Boolean), floatingLogo()],
     },
   };
 }
@@ -366,6 +345,7 @@ function coverCard(coverUri, children) {
           },
         },
         ...children.filter(Boolean),
+        floatingLogo(148, 40, 56),
       ],
     },
   };
@@ -380,25 +360,25 @@ const pages = [
       coverCard(COVERS.default, [
         centeredText("Claude Academy", {
           fontFamily: "Instrument Serif, Georgia, serif",
-          fontSize: "96px",
+          fontSize: "108px",
           color: T.text,
           lineHeight: 1,
         }),
         centeredText("by Chat Jurídico", {
-          marginTop: "12px",
-          fontSize: "30px",
+          marginTop: "14px",
+          fontSize: "34px",
           color: T.muted,
           letterSpacing: "0.01em",
         }),
         centeredText("Claude para advogados — do primeiro prompt à peça pronta", {
-          marginTop: "26px",
-          fontSize: "26px",
+          marginTop: "28px",
+          fontSize: "30px",
           color: T.accent,
-          fontWeight: 500,
+          fontWeight: 600,
         }),
         centeredText("claudeacademy.chatjuridico.com.br", {
-          marginTop: "22px",
-          fontSize: "22px",
+          marginTop: "24px",
+          fontSize: "26px",
           color: "rgba(228, 228, 231, 0.75)",
         }),
       ]),
@@ -408,9 +388,8 @@ const pages = [
     build: () =>
       container([
         glow(-120, -80, 500, 0.15),
-        orbDots(),
         tag("Curso Claude Cowork + Comunidade no WhatsApp"),
-        title("IA generativa para advogados", 64),
+        title("IA generativa para advogados", 76),
         subtitle(
           "Aprenda a usar o Claude no seu escritório — prompts, automações e fluxos completos"
         ),
@@ -439,6 +418,20 @@ const pages = [
       ]),
   },
   {
+    name: "simulador-custo-claude",
+    build: () =>
+      container([
+        glow(-100, -60, 420, 0.14),
+        tag("Simulador gratuito · Claude para advogados"),
+        title("Quanto custa essa peça?"),
+        subtitle(
+          "Calcule custo por requisição e projeção mensal — Haiku, Sonnet 5, Opus 4.8 e Fable 5 com Batch API e cache."
+        ),
+        pills(["MTok", "Tokens", "Petição", "Parecer", "Autos", "Batch API"]),
+        footer(),
+      ]),
+  },
+  {
     name: "login",
     build: () =>
       container([
@@ -456,7 +449,6 @@ const pages = [
     build: () =>
       container([
         glow(-100, -60, 400, 0.12),
-        orbDots(),
         tag("Claude Academy · Convite de acesso"),
         title("Seu convite para o curso de Claude"),
         subtitle(
@@ -498,7 +490,8 @@ async function main() {
     { name: "Instrument Serif", data: instrumentSerif, weight: 400, style: "normal" },
   ];
 
-  console.log("Loading season cover…");
+  console.log("Loading brand assets…");
+  LOGO_URI = await logoDataUri();
   COVERS.default = await coverDataUri("temporada-1-fundacao-pratica.png");
 
   console.log(`Generating ${pages.length} OG images…\n`);

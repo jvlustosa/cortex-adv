@@ -180,25 +180,46 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="border-t border-[var(--border)] px-4 py-12 text-center sm:px-6 sm:py-16">
-          <div className="mx-auto max-w-xl">
-            <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">
-              Quiz · 2 minutos
-            </p>
-            <h2 className="mt-4 font-serif text-2xl tracking-tight text-[var(--foreground)] md:text-3xl">
-              Você ainda usa Claude só pra fazer perguntas?
-            </h2>
-            <p className="mt-3 text-[var(--muted)]">
-              8 perguntas, 2 minutos. Descubra se você já usa IA no escritório
-              de verdade, ou se ainda está no modo “pergunta e copia”.
-            </p>
-            <Link
-              href="/quiz"
-              className="mt-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-8 py-4 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
-            >
-              Ver meu nível
-              <ArrowRight className="size-4 opacity-80 text-[var(--accent)]" aria-hidden />
-            </Link>
+        <section className="border-t border-[var(--border)] px-4 py-12 sm:px-6 sm:py-16">
+          <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center md:text-left">
+              <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">
+                Simulador · gratuito
+              </p>
+              <h2 className="mt-4 font-serif text-2xl tracking-tight text-[var(--foreground)]">
+                Quanto custa essa peça no Claude?
+              </h2>
+              <p className="mt-3 text-[var(--muted)]">
+                Compare Haiku, Sonnet 5, Opus e Fable por requisição — com
+                cenários de petição, parecer e autos.
+              </p>
+              <Link
+                href="/simulador-custo-claude"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-8 py-4 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
+              >
+                Simular custo
+                <ArrowRight className="size-4 opacity-90" aria-hidden />
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center md:text-left">
+              <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">
+                Quiz · 2 minutos
+              </p>
+              <h2 className="mt-4 font-serif text-2xl tracking-tight text-[var(--foreground)]">
+                Você ainda usa Claude só pra fazer perguntas?
+              </h2>
+              <p className="mt-3 text-[var(--muted)]">
+                8 perguntas, 2 minutos. Descubra se você já usa IA no escritório
+                de verdade, ou se ainda está no modo “pergunta e copia”.
+              </p>
+              <Link
+                href="/quiz"
+                className="mt-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--background)] px-8 py-4 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              >
+                Ver meu nível
+                <ArrowRight className="size-4 opacity-80 text-[var(--accent)]" aria-hidden />
+              </Link>
+            </div>
           </div>
         </section>
 

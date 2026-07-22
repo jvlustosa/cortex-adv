@@ -41,9 +41,13 @@ export function LessonCardsGrid({
     completedKeys,
   );
   const allDone = totalLessons > 0 && doneTotal >= totalLessons;
-  const comingSoonModules = getComingSoonModules(
-    course.modules.map((mod) => mod.id),
-  );
+  // "Em breve": módulos marcados no DB têm prioridade; sem eles, cai no roteiro
+  // público (comportamento antigo, sem regressão).
+  const dbComingSoon = course.comingSoonModules ?? [];
+  const comingSoonModules =
+    dbComingSoon.length > 0
+      ? dbComingSoon
+      : getComingSoonModules(course.modules.map((mod) => mod.id));
 
   return (
     <div>

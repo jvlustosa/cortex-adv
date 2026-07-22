@@ -113,7 +113,13 @@ export function mergeCourseWithOverrides(
     })
     .filter((mod) => mod.lessons.length > 0); // dropa módulo vazio (protege o player)
 
-  return { title: course.title, subtitle: course.subtitle, modules };
+  // Modo YAML não tem "em breve" nativo: o grid cai no roteiro (coming-soon.ts).
+  return {
+    title: course.title,
+    subtitle: course.subtitle,
+    modules,
+    comingSoonModules: [],
+  };
 }
 
 /**
@@ -142,7 +148,7 @@ export async function fetchDbCourse(options?: {
     const { data: modules, error: mErr } = await admin
       .from("modules")
       .select(
-        "id, slug, title, description, thumbnail_gradient, cover_image, unlock_after_days, sort_order, published",
+        "id, slug, title, description, thumbnail_gradient, cover_image, unlock_after_days, sort_order, published, coming_soon",
       )
       .eq("course_id", course.id);
     if (mErr) throw mErr;
@@ -184,6 +190,7 @@ export async function fetchDbCourse(options?: {
       unlock_after_days: m.unlock_after_days as number | null,
       sort_order: m.sort_order as number,
       published: m.published as boolean,
+      coming_soon: m.coming_soon as boolean | null,
     }));
 
     return mapDbToCourse(
