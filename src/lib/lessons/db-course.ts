@@ -119,13 +119,6 @@ export function mapDbToCourse(
     return { title, subtitle, modules: [], comingSoonModules: [] };
   }
 
-  // Módulos "em breve" saem da grade ao vivo e viram cards travados na seção
-  // "Sessões em breve" — independente de published ou de terem aulas.
-  const comingSoonModules = modules
-    .filter((mod) => mod.coming_soon === true)
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map(toComingSoonView);
-
   const lessonsByModule = new Map<string, LessonRow[]>();
   for (const lesson of lessons) {
     const bucket = lessonsByModule.get(lesson.module_slug);
@@ -133,18 +126,33 @@ export function mapDbToCourse(
     else lessonsByModule.set(lesson.module_slug, [lesson]);
   }
 
-  const mapped = modules
-    .filter((mod) => mod.coming_soon !== true)
-    .filter((mod) => includeUnpublished || mod.published)
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map((mod) => {
-      const lessonRows = (lessonsByModule.get(mod.slug) ?? [])
-        .filter((l) => includeUnpublished || l.published)
-        .sort((a, b) => a.sort_order - b.sort_order)
-        .map(toLesson);
-      return toModule(mod, lessonRows);
-    })
-    .filter((mod) => mod.lessons.length > 0); // dropa módulo vazio (protege o player)
+  const liveModules: MappedModule[] = [];
+  const comingSoonModules: ComingSoonModuleView[] = [];
 
-  return { title, subtitle, modules: mapped, comingSoonModules };
+  const sorted = [...modules].sort((a, b) => a.sort_order - b.sort_order);
+
+  for (const mod of sorted) {
+    // coming_soon explícito aparece mesmo despublicado; o resto respeita published.
+    if (
+      !includeUnpublished &&
+      !mod.published &&
+      mod.coming_soon !== true
+    ) {
+      continue;
+    }
+
+    const lessonRows = (lessonsByModule.get(mod.slug) ?? [])
+      .filter((l) => includeUnpublished || l.published)
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map(toLesson);
+
+    if (mod.coming_soon === true || lessonRows.length === 0) {
+      comingSoonModules.push(toComingSoonView(mod));
+      continue;
+    }
+
+    liveModules.push(toModule(mod, lessonRows));
+  }
+
+  return { title, subtitle, modules: liveModules, comingSoonModules };
 }

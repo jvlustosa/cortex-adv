@@ -25,7 +25,7 @@ export type MergedCourse = {
   modules: (CourseModule & {
     lessons: (CourseLesson & { published: boolean })[];
   })[];
-  /** Módulos "em breve" (DB). Vazio/ausente → o grid cai no roteiro público. */
+  /** Módulos "em breve" (DB). Ausente → o grid cai no roteiro público (YAML). */
   comingSoonModules?: ComingSoonModuleView[];
 };
 

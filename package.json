@@ -27,7 +27,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test": "npm run test:security && npm run test:auth",
-    "test:unit": "tsx --test tests/unit/slug.test.ts tests/unit/ordering.test.ts tests/unit/merge.test.ts tests/unit/module-access.test.ts tests/unit/db-course.test.ts tests/unit/progress.test.ts tests/unit/packs.test.ts tests/unit/certificates.test.ts tests/unit/coming-soon.test.ts tests/unit/lesson-move.test.ts"
+    "test:unit": "tsx --test tests/unit/slug.test.ts tests/unit/ordering.test.ts tests/unit/merge.test.ts tests/unit/module-access.test.ts tests/unit/db-course.test.ts tests/unit/progress.test.ts tests/unit/packs.test.ts tests/unit/certificates.test.ts tests/unit/coming-soon.test.ts tests/unit/lesson-move.test.ts tests/unit/admin-dnd.test.ts tests/unit/admin-grouping.test.ts tests/unit/admin-lesson-move-bounds.test.ts tests/unit/admin-format.test.ts"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",

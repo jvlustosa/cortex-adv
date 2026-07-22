@@ -178,20 +178,56 @@
 }
 
 .dragHandle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: 0;
   cursor: grab;
   color: var(--muted);
   padding: 0.15rem;
   margin-top: 0.1rem;
+  border-radius: 6px;
+  opacity: 0.35;
+  touch-action: none;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.lessonRow:hover .dragHandle,
+.modulePanelHead:hover .dragHandle,
+.dragHandle:focus-visible {
+  opacity: 1;
+}
+
+.dragHandle:hover {
+  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .dragHandle:active {
   cursor: grabbing;
+  opacity: 1;
 }
 
-.lessonRow[draggable="true"] {
-  user-select: none;
+.lessonRow {
+  transition:
+    opacity 0.15s ease,
+    background 0.12s ease;
+}
+
+.lessonRowDragging {
+  opacity: 0.38;
+}
+
+.lessonRowDropBefore td {
+  box-shadow: inset 0 2px 0 rgba(217, 119, 87, 0.75);
+}
+
+.lessonRowDropAfter td {
+  box-shadow: inset 0 -2px 0 rgba(217, 119, 87, 0.75);
 }
 
 .badge {
@@ -549,8 +585,105 @@
 
 .tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.15rem;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionLoading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 2rem 1rem;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border: 1px dashed var(--border);
+  border-radius: 0.85rem;
+}
+
+.sectionLoadingSpinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--claude);
+  border-radius: 50%;
+  animation: adminSpin 0.7s linear infinite;
+}
+
+@keyframes adminSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.feedbackDetails {
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.feedbackSummary {
+  cursor: pointer;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  list-style: none;
+  border-bottom: 1px solid transparent;
+}
+
+.feedbackSummary::-webkit-details-marker {
+  display: none;
+}
+
+.feedbackDetails[open] .feedbackSummary {
+  border-bottom-color: var(--border);
+}
+
+.feedbackDetails .feedbackList,
+.feedbackDetails .empty {
+  padding: 0.85rem 1.1rem 1.1rem;
+}
+
+.feedbackBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0.15rem;
+  border-radius: 6px;
+  opacity: 0.7;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+
+.feedbackBtn:hover,
+.feedbackBtn:focus-visible {
+  opacity: 1;
+  color: var(--foreground);
+}
+
+.lessonRow:hover .feedbackBtn {
+  opacity: 1;
 }
 
 .tab {
@@ -823,11 +956,6 @@
   cursor: not-allowed;
 }
 
-.moduleDropTarget {
-  outline: 1px dashed rgba(217, 119, 87, 0.45);
-  outline-offset: -2px;
-}
-
 .sectionTitleCell {
   display: flex;
   align-items: center;
@@ -925,6 +1053,27 @@
   border-radius: 0.85rem;
   background: var(--surface);
   overflow: hidden;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.modulePanelDragging {
+  opacity: 0.55;
+}
+
+.modulePanelDropHover {
+  border-color: rgba(217, 119, 87, 0.28);
+  background: rgba(217, 119, 87, 0.03);
+}
+
+.modulePanelHeadDropHint {
+  box-shadow: inset 0 2px 0 rgba(217, 119, 87, 0.65);
+}
+
+.modulePanelHeadDropActive {
+  background: rgba(217, 119, 87, 0.06);
 }
 
 .modulePanelHead {
@@ -983,10 +1132,60 @@
   padding: 1rem 1.1rem;
   font-size: 0.82rem;
   color: var(--muted);
+  transition: background 0.15s ease;
+}
+
+.moduleEmptyDropHover {
+  background: rgba(217, 119, 87, 0.05);
+  color: var(--foreground);
 }
 
 .modulePanel .tableWrap {
   border-radius: 0;
+}
+
+.lessonsTableHead {
+  margin-bottom: 0;
+}
+
+.lessonsTableHead .table tr:last-child td,
+.lessonsTableHead .table tr:last-child th {
+  border-bottom-width: 1px;
+}
+
+.lessonsAdminTable {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.lessonsAdminTable th:nth-child(1),
+.lessonsAdminTable td:nth-child(1) {
+  width: 4.75rem;
+}
+
+.lessonsAdminTable th:nth-child(3),
+.lessonsAdminTable td:nth-child(3) {
+  width: 4.25rem;
+}
+
+.lessonsAdminTable th:nth-child(4),
+.lessonsAdminTable td:nth-child(4) {
+  width: 8.5rem;
+}
+
+.lessonsAdminTable th:nth-child(5),
+.lessonsAdminTable td:nth-child(5) {
+  width: 6.75rem;
+}
+
+.lessonsAdminTable th:nth-child(6),
+.lessonsAdminTable td:nth-child(6) {
+  width: 7rem;
+}
+
+.lessonsAdminTable th:nth-child(7),
+.lessonsAdminTable td:nth-child(7) {
+  width: 7.5rem;
 }
 
 .modulePanel .table th {

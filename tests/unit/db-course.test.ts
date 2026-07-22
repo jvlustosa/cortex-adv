@@ -81,7 +81,7 @@ test("null vira string vazia em duration/description", () => {
   assert.equal(c.description, "");
 });
 
-test("filtra aula não-publicada e dropa módulo vazio", () => {
+test("filtra aula não-publicada e módulo sem aulas vira em breve", () => {
   const withUnpub: LessonRow[] = [
     { ...lessons[2], published: false }, // m2/c despublicada → m2 fica vazio
     lessons[0],
@@ -90,6 +90,10 @@ test("filtra aula não-publicada e dropa módulo vazio", () => {
   const mapped = mapDbToCourse(course, modules, withUnpub);
   assert.equal(mapped.modules.some((m) => m.id === "m2"), false);
   assert.equal(mapped.modules.some((m) => m.id === "m1"), true);
+  assert.equal(
+    (mapped.comingSoonModules ?? []).some((c) => c.title === "M2"),
+    true,
+  );
 });
 
 test("includeUnpublished mantém aula/módulo não-publicados", () => {
@@ -122,6 +126,30 @@ test("curso não-publicado esconde tudo do aluno", () => {
   assert.ok(
     mapDbToCourse(unpub, modules, lessons, { includeUnpublished: true }).modules.length > 0,
   );
+});
+
+test("módulo publicado sem aulas aparece em comingSoonModules", () => {
+  const mods: ModuleRow[] = [
+    modules[1],
+    {
+      slug: "m-empty",
+      title: "Projects",
+      description: "Em preparação",
+      thumbnail_gradient: null,
+      cover_image: null,
+      unlock_after_days: null,
+      sort_order: 2,
+      published: true,
+      coming_soon: false,
+    },
+  ];
+  const mapped = mapDbToCourse(course, mods, lessons);
+  assert.equal(mapped.modules.some((m) => m.id === "m-empty"), false);
+  assert.deepEqual(
+    (mapped.comingSoonModules ?? []).map((c) => c.title),
+    ["Projects"],
+  );
+  assert.equal(mapped.comingSoonModules?.[0].teaser, "Em preparação");
 });
 
 test("módulo coming_soon sai da grade e vira card em comingSoonModules", () => {

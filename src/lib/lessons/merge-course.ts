@@ -113,12 +113,11 @@ export function mergeCourseWithOverrides(
     })
     .filter((mod) => mod.lessons.length > 0); // dropa módulo vazio (protege o player)
 
-  // Modo YAML não tem "em breve" nativo: o grid cai no roteiro (coming-soon.ts).
+  // Modo YAML: comingSoonModules ausente → o grid cai no roteiro (coming-soon.ts).
   return {
     title: course.title,
     subtitle: course.subtitle,
     modules,
-    comingSoonModules: [],
   };
 }
 

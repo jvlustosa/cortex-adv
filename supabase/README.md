@@ -88,10 +88,11 @@ aplique à mão no **SQL Editor** (todas idempotentes):
 | `010_lesson_materials.sql` | Tabela `lesson_materials` + bucket **privado** `lesson-materials`. Sem ela, "Materiais da aula" não renderiza (é isto que "ativar o storage" resolve). |
 | `014_course_native_runtime.sql` | Alinha `modules/lessons` ao runtime (colunas de apresentação, `tella`, `duration`, etc.). |
 | `015_module_coming_soon.sql` | Coluna `modules.coming_soon` — módulo "em breve" gerido pelo painel. |
+| `016_seed_trilha_coming_soon_modules.sql` | Insere os 6 módulos da trilha (Economia → Encerramento) com `coming_soon=true`. |
 
 Ordem do cutover:
 
-1. SQL Editor: rode `010`, `014`, `015`.
+1. SQL Editor: rode `010`, `014`, `015`, depois `016` (ou `016` após o seed do curso).
 2. Seed do conteúdo atual (lê `src/data/course.yml`, upsert por slug — curso `claude-cowork-advogados`):
    ```bash
    npm run db:seed            # dry-run: mostra o plano, não escreve

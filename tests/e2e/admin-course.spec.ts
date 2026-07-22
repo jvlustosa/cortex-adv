@@ -51,10 +51,8 @@ test.describe("Admin — curso vindo do banco (não hard-coded)", () => {
     await page.goto("/admin");
     await expect(page.getByRole("heading", { name: "Painel admin" })).toBeVisible();
 
-    // O bloco "Seções" + botão "Criar seção" SÓ existem em COURSE_SOURCE=db.
-    // Se falhar aqui, o servidor está em modo estático (course.yml) — é o bug.
-    // Timeout folgado: o conteúdo espera o fetch admin (round-trip ao banco).
-    await expect(page.getByText("Seções", { exact: true })).toBeVisible({
+    // Bloco "Módulos e aulas" + botão "Criar seção" só existem em COURSE_SOURCE=db.
+    await expect(page.getByText("Módulos e aulas", { exact: true })).toBeVisible({
       timeout: 15_000,
     });
     await expect(

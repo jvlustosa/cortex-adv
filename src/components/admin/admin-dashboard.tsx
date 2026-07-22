@@ -1,51 +1,51 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useState, type ReactNode } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  GripVertical,
-  Link2,
-  Loader2,
-  MessageSquare,
-  Paperclip,
-  Pencil,
-  Play,
-  Trash2,
-} from "lucide-react";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { Loader2, Trash2 } from "lucide-react";
+import { useToast } from "@/components/toast";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import {
   defaultSeasonCover,
   SEASON_COVER_IMAGES,
 } from "@/lib/course/module-covers";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
+import { formatAdminDate, formatBytes } from "@/lib/admin/format";
+import {
+  resolveDropTarget,
+  type DropPosition,
+} from "@/lib/admin/dnd";
+import { lessonMoveBounds } from "@/lib/admin/lesson-move-bounds";
+import {
+  normalizeSection,
+  type SectionAdminRow,
+} from "@/lib/admin/normalize-section";
 import type { LessonMaterialAdmin } from "@/lib/lessons/materials";
 import {
   adjacentModuleId,
   buildLessonGroups,
+  groupByModule,
   insertLessonAt,
   lessonIdsForModule,
 } from "@/lib/lessons/admin-grouping";
+import { lessonEmbedUrl } from "@/lib/lessons/video-urls";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
+import { DragHandle, ReorderButtons } from "./admin-dnd";
+import {
+  AdminTabPanel,
+  AdminTabs,
+  BulkActionBar,
+  FormUndoBar,
+  LessonsTableHead,
+  ModalFormUndoKeys,
+  ProgressBar,
+  SectionLoading,
+  Stars,
+  type AdminTab,
+} from "./admin-ui";
+import { LessonRow } from "./lessons-table";
 import { InviteWizard } from "./invite-wizard";
 import { useUndoForm } from "./use-undo-form";
 import styles from "./admin-dashboard.module.css";
-
-type Tab = "aulas" | "membros" | "convites";
-
-type SectionAdminRow = {
-  moduleId: string;
-  title: string;
-  description: string;
-  thumbnailGradient: string;
-  coverImage: string | null;
-  unlockAfterDays: number;
-  sortOrder: number;
-  published: boolean;
-  comingSoon: boolean;
-  lessonCount: number;
-};
 
 type FeedbackItem = {
   id: string;
@@ -133,138 +133,6 @@ const EMPTY_SECTION_FORM: SectionFormState = {
   comingSoon: false,
 };
 
-function ModalFormUndoKeys({
-  active,
-  onUndo,
-}: {
-  active: boolean;
-  onUndo: () => void;
-}) {
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
-      if (e.shiftKey) return;
-      e.preventDefault();
-      onUndo();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [active, onUndo]);
-  return null;
-}
-
-function FormUndoBar({
-  onDesfazer,
-  canUndo,
-  isDirty,
-  children,
-}: {
-  onDesfazer: () => void;
-  canUndo: boolean;
-  isDirty: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <div className={styles.actionsBar}>
-      <button
-        type="button"
-        className={styles.btnGhost}
-        disabled={!canUndo && !isDirty}
-        title="Desfazer (Ctrl+Z)"
-        onClick={onDesfazer}
-      >
-        Desfazer
-      </button>
-      <div className={styles.actionsMain}>{children}</div>
-    </div>
-  );
-}
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: "aulas", label: "Gestão de aulas" },
-  { id: "membros", label: "Gestão de membros" },
-  { id: "convites", label: "Emissão de convites" },
-];
-
-function Stars({ rating }: { rating: number }) {
-  return (
-    <span className={styles.stars} aria-label={`Nota ${rating} de 5`}>
-      {"★".repeat(rating)}
-      {"☆".repeat(5 - rating)}
-    </span>
-  );
-}
-
-function formatDate(iso: string | null) {
-  if (!iso) return "-";
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function ProgressBar({ value }: { value: number }) {
-  return (
-    <div className={styles.progressTrack} aria-hidden>
-      <div className={styles.progressFill} style={{ width: `${value}%` }} />
-    </div>
-  );
-}
-
-/** URL pública do vídeo da aula. Tella tem prioridade (regra do player). */
-function lessonVideo(
-  lesson: LessonAdminRow,
-): { url: string; label: string } | null {
-  if (lesson.tella) {
-    return { url: `https://www.tella.tv/video/${lesson.tella}`, label: "Tella" };
-  }
-  if (lesson.youtubeId) {
-    return {
-      url: `https://www.youtube.com/watch?v=${lesson.youtubeId}`,
-      label: "YouTube",
-    };
-  }
-  return null;
-}
-
-/** URL de embed pro player inline (mesma regra do lado membro). */
-function lessonEmbedUrl(lesson: LessonAdminRow): string | null {
-  if (lesson.tella) {
-    return `https://www.tella.tv/video/${lesson.tella}/embed?b=0&title=0&a=0`;
-  }
-  if (lesson.youtubeId) {
-    return `https://www.youtube-nocookie.com/embed/${lesson.youtubeId}`;
-  }
-  return null;
-}
-
-type LessonGroup = {
-  moduleId: string;
-  moduleTitle: string;
-  lessons: LessonAdminRow[];
-};
-
-/** Agrupa aulas por módulo preservando a ordem que o backend já entregou. */
-function groupByModule(lessons: LessonAdminRow[]): LessonGroup[] {
-  const groups: LessonGroup[] = [];
-  for (const lesson of lessons) {
-    let g = groups.find((x) => x.moduleId === lesson.moduleId);
-    if (!g) {
-      g = {
-        moduleId: lesson.moduleId,
-        moduleTitle: lesson.moduleTitle,
-        lessons: [],
-      };
-      groups.push(g);
-    }
-    g.lessons.push(lesson);
-  }
-  return groups;
-}
-
 function CoverImagePicker({
   value,
   onChange,
@@ -306,266 +174,6 @@ function CoverImagePicker({
         ))}
       </div>
     </div>
-  );
-}
-
-function ReorderButtons({
-  onUp,
-  onDown,
-  upDisabled,
-  downDisabled,
-  label,
-}: {
-  onUp: () => void;
-  onDown: () => void;
-  upDisabled?: boolean;
-  downDisabled?: boolean;
-  label: string;
-}) {
-  return (
-    <div className={styles.reorderBtns}>
-      <button
-        type="button"
-        className={styles.reorderBtn}
-        aria-label={`${label}: mover para cima`}
-        disabled={upDisabled}
-        onClick={onUp}
-      >
-        <ChevronUp className="size-4" aria-hidden />
-      </button>
-      <button
-        type="button"
-        className={styles.reorderBtn}
-        aria-label={`${label}: mover para baixo`}
-        disabled={downDisabled}
-        onClick={onDown}
-      >
-        <ChevronDown className="size-4" aria-hidden />
-      </button>
-    </div>
-  );
-}
-
-function VideoCell({
-  lesson,
-  onCopy,
-  onPreview,
-}: {
-  lesson: LessonAdminRow;
-  onCopy: (text: string) => void;
-  onPreview: (l: LessonAdminRow) => void;
-}) {
-  const video = lessonVideo(lesson);
-  if (!video) return <span className={styles.feedbackMeta}>Sem vídeo</span>;
-
-  return (
-    <div className={styles.rowActions}>
-      <button
-        type="button"
-        className={styles.iconBtn}
-        onClick={() => onPreview(lesson)}
-        title={`Preview (${video.label})`}
-        aria-label={`Preview (${video.label})`}
-      >
-        <Play className="size-4" aria-hidden />
-      </button>
-      <button
-        type="button"
-        className={styles.iconBtn}
-        onClick={() => onCopy(video.url)}
-        title="Copiar link"
-        aria-label="Copiar link do vídeo"
-      >
-        <Link2 className="size-4" aria-hidden />
-      </button>
-      <a
-        className={styles.iconBtn}
-        href={video.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Abrir vídeo"
-        aria-label="Abrir vídeo em nova aba"
-      >
-        <ExternalLink className="size-4" aria-hidden />
-      </a>
-    </div>
-  );
-}
-
-function LessonRow({
-  lesson,
-  selectMode,
-  selected,
-  dbMode,
-  canMoveUp,
-  canMoveDown,
-  onToggle,
-  onCopy,
-  onEdit,
-  onPreview,
-  onFeedback,
-  onMaterials,
-  onDelete,
-  onDragStart,
-  onDragEnd,
-  onDrop,
-  onMoveUp,
-  onMoveDown,
-  onKeyMove,
-}: {
-  lesson: LessonAdminRow;
-  selectMode: boolean;
-  selected: Set<string>;
-  dbMode: boolean;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  onToggle: (key: string) => void;
-  onCopy: (text: string) => void;
-  onEdit: (l: LessonAdminRow) => void;
-  onPreview: (l: LessonAdminRow) => void;
-  onFeedback: (l: LessonAdminRow) => void;
-  onMaterials: (l: LessonAdminRow) => void;
-  onDelete: (l: LessonAdminRow) => void;
-  onDragStart: (key: string) => void;
-  onDragEnd: () => void;
-  onDrop: (moduleId: string, targetKey: string) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onKeyMove: (l: LessonAdminRow, dir: -1 | 1) => void;
-}) {
-  const key = `${lesson.moduleId}:${lesson.lessonId}`;
-  return (
-    <tr
-      className={styles.lessonRow}
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", key);
-        e.dataTransfer.effectAllowed = "move";
-        onDragStart(key);
-      }}
-      onDragEnd={() => onDragEnd()}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={() => onDrop(lesson.moduleId, key)}
-    >
-      <td>
-        {selectMode ? (
-          <input
-            type="checkbox"
-            checked={selected.has(key)}
-            onChange={() => onToggle(key)}
-            aria-label={`Selecionar ${lesson.title}`}
-          />
-        ) : null}
-      </td>
-      <td>
-        <div className={styles.aulaCell}>
-          <div className={styles.dragCluster}>
-            <button
-              type="button"
-              className={styles.dragHandle}
-              aria-label={`Reordenar ${lesson.title}. Use as setas para cima e para baixo.`}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowUp") {
-                  e.preventDefault();
-                  onKeyMove(lesson, -1);
-                }
-                if (e.key === "ArrowDown") {
-                  e.preventDefault();
-                  onKeyMove(lesson, 1);
-                }
-              }}
-            >
-              <GripVertical className="size-4" aria-hidden />
-            </button>
-            <ReorderButtons
-              label={lesson.title}
-              upDisabled={!canMoveUp}
-              downDisabled={!canMoveDown}
-              onUp={onMoveUp}
-              onDown={onMoveDown}
-            />
-          </div>
-          <div>
-            <strong>{lesson.title}</strong>
-            <br />
-            <span className={styles.feedbackMeta}>
-              {lesson.moduleTitle} · {lesson.lessonId}
-            </span>
-            {lesson.origin === "custom" ? (
-              <span className={styles.customBadge}>criada no painel</span>
-            ) : null}
-          </div>
-        </div>
-      </td>
-      <td>{lesson.viewCount}</td>
-      <td>
-        <div className={styles.notaCell}>
-          <span>
-            {lesson.avgRating !== null ? (
-              <>
-                <Stars rating={Math.round(lesson.avgRating)} />{" "}
-                <span className={styles.feedbackMeta}>
-                  {lesson.avgRating} ({lesson.feedbackCount})
-                </span>
-              </>
-            ) : (
-              <span className={styles.feedbackMeta}>-</span>
-            )}
-          </span>
-          <button
-            type="button"
-            className={styles.hoverIcon}
-            onClick={() => onFeedback(lesson)}
-            aria-label={`Ver avaliações de ${lesson.title}`}
-          >
-            <MessageSquare className="size-4" aria-hidden />
-          </button>
-        </div>
-      </td>
-      <td>
-        <span
-          className={`${styles.badge} ${lesson.published ? styles.badgeOn : styles.badgeOff}`}
-        >
-          {lesson.published ? "Publicada" : "Rascunho"}
-        </span>
-      </td>
-      <td>
-        <VideoCell lesson={lesson} onCopy={onCopy} onPreview={onPreview} />
-      </td>
-      <td>
-        <div className={styles.rowActions}>
-          <button
-            type="button"
-            className={styles.iconBtn}
-            onClick={() => onEdit(lesson)}
-            title="Editar aula"
-            aria-label={`Editar ${lesson.title}`}
-          >
-            <Pencil className="size-4" aria-hidden />
-          </button>
-          <button
-            type="button"
-            className={styles.iconBtn}
-            onClick={() => onMaterials(lesson)}
-            title="Materiais"
-            aria-label={`Materiais de ${lesson.title}`}
-          >
-            <Paperclip className="size-4" aria-hidden />
-          </button>
-          {lesson.origin === "custom" || dbMode ? (
-            <button
-              type="button"
-              className={styles.iconDangerBtn}
-              onClick={() => onDelete(lesson)}
-              title="Excluir aula"
-              aria-label={`Excluir ${lesson.title}`}
-            >
-              <Trash2 className="size-4" aria-hidden />
-            </button>
-          ) : null}
-        </div>
-      </td>
-    </tr>
   );
 }
 
@@ -674,7 +282,7 @@ function FeedbackModal({
                 <article key={i} className={styles.feedbackItem}>
                   <div className={styles.feedbackTop}>
                     <span className={styles.feedbackMeta}>
-                      {it.userEmail ?? "anônimo"} · {formatDate(it.createdAt)}
+                      {it.userEmail ?? "anônimo"} · {formatAdminDate(it.createdAt)}
                     </span>
                     <Stars rating={it.rating} />
                   </div>
@@ -691,13 +299,6 @@ function FeedbackModal({
       </div>
     </div>
   );
-}
-
-function formatBytes(bytes: number | null): string {
-  if (bytes === null) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function MaterialsModal({
@@ -840,24 +441,9 @@ function MaterialsModal({
   );
 }
 
-function normalizeSection(raw: Partial<SectionAdminRow> & { slug?: string }): SectionAdminRow {
-  const moduleId = raw.moduleId ?? raw.slug ?? "";
-  return {
-    moduleId,
-    title: raw.title ?? moduleId,
-    description: raw.description ?? "",
-    thumbnailGradient: raw.thumbnailGradient ?? "",
-    coverImage: raw.coverImage ?? null,
-    unlockAfterDays: raw.unlockAfterDays ?? 0,
-    sortOrder: raw.sortOrder ?? 0,
-    published: raw.published ?? true,
-    comingSoon: raw.comingSoon ?? false,
-    lessonCount: raw.lessonCount ?? 0,
-  };
-}
-
 export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
-  const [tab, setTab] = useState<Tab>("aulas");
+  const toast = useToast();
+  const [tab, setTab] = useState<AdminTab>("aulas");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -896,10 +482,16 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   const sectionFormCtrl = useUndoForm(EMPTY_SECTION_FORM);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [sectionDragKey, setSectionDragKey] = useState<string | null>(null);
+  const [sectionDropHint, setSectionDropHint] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [dragKey, setDragKey] = useState<string | null>(null);
+  const [lessonDropHint, setLessonDropHint] = useState<{
+    key: string;
+    position: DropPosition;
+  } | null>(null);
+  const [moduleDropHover, setModuleDropHover] = useState<string | null>(null);
 
   const [members, setMembers] = useState<MemberAdminRow[]>([]);
   const [memberTotals, setMemberTotals] = useState<MemberTotals | null>(null);
@@ -1312,7 +904,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   function handleSectionDrop(targetSlug: string) {
     if (!sectionDragKey) return;
     const from = sectionDragKey;
-    setSectionDragKey(null);
+    clearSectionDrag();
     reorderSections(from, targetSlug);
   }
 
@@ -1512,17 +1104,47 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     );
   }
 
-  function handleDrop(targetModuleId: string, targetKey: string) {
+  function clearLessonDrag() {
+    setDragKey(null);
+    setLessonDropHint(null);
+    setModuleDropHover(null);
+  }
+
+  function clearSectionDrag() {
+    setSectionDragKey(null);
+    setSectionDropHint(null);
+  }
+
+  function handleDrop(
+    targetModuleId: string,
+    targetKey: string,
+    position: DropPosition = "before",
+  ) {
     if (!dragKey) return;
+    if (dragKey === targetKey) {
+      clearLessonDrag();
+      return;
+    }
     const dragged = lessons.find(
       (l) => `${l.moduleId}:${l.lessonId}` === dragKey,
     );
     if (!dragged) {
-      setDragKey(null);
+      clearLessonDrag();
       return;
     }
-    applyLessonMove(dragged, targetModuleId, targetKey);
-    setDragKey(null);
+    applyLessonMove(
+      dragged,
+      targetModuleId,
+      resolveDropTarget(lessonGroups, targetModuleId, targetKey, position),
+    );
+    clearLessonDrag();
+  }
+
+  function handleLessonDragOver(key: string, position: DropPosition) {
+    if (!dragKey || dragKey === key) return;
+    setLessonDropHint((prev) =>
+      prev?.key === key && prev.position === position ? prev : { key, position },
+    );
   }
 
   function handleModuleHeaderDrop(targetModuleId: string) {
@@ -1531,11 +1153,11 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       (l) => `${l.moduleId}:${l.lessonId}` === dragKey,
     );
     if (!dragged || dragged.moduleId === targetModuleId) {
-      setDragKey(null);
+      clearLessonDrag();
       return;
     }
     applyLessonMove(dragged, targetModuleId, null);
-    setDragKey(null);
+    clearLessonDrag();
   }
 
   function moveByKeyboard(lesson: LessonAdminRow, dir: -1 | 1) {
@@ -1568,19 +1190,6 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     if (targetIdx < 0 || targetIdx >= modLessons.length) return;
     const targetKey = `${modLessons[targetIdx].moduleId}:${modLessons[targetIdx].lessonId}`;
     applyLessonMove(lesson, lesson.moduleId, targetKey);
-  }
-
-  function lessonMoveBounds(lesson: LessonAdminRow) {
-    const modLessons = lessons.filter((l) => l.moduleId === lesson.moduleId);
-    const idx = modLessons.findIndex(
-      (l) => l.lessonId === lesson.lessonId,
-    );
-    const canMoveUp =
-      idx > 0 || (dbMode && adjacentModuleId(lessons, lesson.moduleId, -1) !== null);
-    const canMoveDown =
-      idx < modLessons.length - 1 ||
-      (dbMode && adjacentModuleId(lessons, lesson.moduleId, 1) !== null);
-    return { canMoveUp, canMoveDown };
   }
 
   async function resendInvite(invite: InviteItem) {
@@ -1679,12 +1288,14 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   async function copyText(text: string) {
     try {
       await navigator.clipboard.writeText(text);
+      toast.success("Copiado.");
     } catch {
-      /* ignore */
+      toast.error("Não consegui copiar.");
     }
   }
 
   const lessonGroups = buildLessonGroups(lessons, sections, dbMode);
+  const hasLessonRows = lessonGroups.some((g) => g.lessons.length > 0);
 
   return (
     <div className={styles.page}>
@@ -1695,27 +1306,14 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
         </div>
       </header>
 
-      <nav className={styles.tabs} aria-label="Seções do admin">
-        {TABS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`${styles.tab} ${tab === item.id ? styles.tabActive : ""}`}
-            onClick={() => setTab(item.id)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
+      <AdminTabs tab={tab} onChange={setTab} />
 
       {error ? <p className={styles.error}>{error}</p> : null}
 
-      {loading ? (
-        <p className={styles.loading}>
-          <Loader2 className="size-4 animate-spin" aria-hidden />
-          Carregando…
-        </p>
-      ) : tab === "aulas" ? (
+      <AdminTabPanel tabId="aulas" activeTab={tab}>
+        {loading ? (
+          <SectionLoading label="Carregando aulas…" />
+        ) : (
         <>
           {lessonTotals ? (
             <div className={styles.stats}>
@@ -1771,35 +1369,18 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 </div>
               </div>
               {selectMode && selected.size > 0 ? (
-                <div className={styles.bulkBar}>
-                  <span>{selected.size} selecionada(s)</span>
-                  <button
-                    type="button"
-                    className={styles.editBtn}
-                    onClick={() => void bulkPublish(true)}
-                  >
-                    Publicar
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.editBtn}
-                    onClick={() => void bulkPublish(false)}
-                  >
-                    Despublicar
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.btnGhost}
-                    onClick={() => setSelected(new Set())}
-                  >
-                    Limpar
-                  </button>
-                </div>
+                <BulkActionBar
+                  count={selected.size}
+                  onPublish={() => void bulkPublish(true)}
+                  onUnpublish={() => void bulkPublish(false)}
+                  onClear={() => setSelected(new Set())}
+                />
               ) : null}
               <p className={styles.hint}>
-                Arraste seções ou aulas para reordenar. Solte a aula no cabeçalho
-                de outro módulo para mover.
+                Segure ⋮⋮ para arrastar. Solte entre aulas para reordenar ou no
+                cabeçalho de outro módulo para mover.
               </p>
+              {hasLessonRows ? <LessonsTableHead /> : null}
               <div className={styles.moduleList}>
                 {lessonGroups.length === 0 ? (
                   <p className={styles.empty}>
@@ -1823,33 +1404,77 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                     return (
                       <article
                         key={group.moduleId}
-                        className={`${styles.modulePanel} ${dragKey ? styles.moduleDropTarget : ""}`}
+                        className={`${styles.modulePanel}${
+                          moduleDropHover === group.moduleId && dragKey
+                            ? ` ${styles.modulePanelDropHover}`
+                            : ""
+                        }${
+                          sectionDragKey === section?.moduleId
+                            ? ` ${styles.modulePanelDragging}`
+                            : ""
+                        }`}
                         onDragOver={(e) => {
-                          if (dragKey) e.preventDefault();
+                          if (!dragKey) return;
+                          e.preventDefault();
+                          setModuleDropHover(group.moduleId);
+                        }}
+                        onDragLeave={(e) => {
+                          if (
+                            !e.currentTarget.contains(e.relatedTarget as Node) &&
+                            moduleDropHover === group.moduleId
+                          ) {
+                            setModuleDropHover(null);
+                          }
                         }}
                         onDrop={() => handleModuleHeaderDrop(group.moduleId)}
                       >
                         <header
-                          className={styles.modulePanelHead}
-                          draggable={Boolean(section)}
-                          onDragStart={(e) => {
-                            if (!section) return;
-                            e.dataTransfer.setData("text/plain", section.moduleId);
-                            e.dataTransfer.effectAllowed = "move";
-                            setSectionDragKey(section.moduleId);
+                          className={`${styles.modulePanelHead}${
+                            sectionDropHint === section?.moduleId
+                              ? ` ${styles.modulePanelHeadDropHint}`
+                              : ""
+                          }${
+                            moduleDropHover === group.moduleId && dragKey
+                              ? ` ${styles.modulePanelHeadDropActive}`
+                              : ""
+                          }`}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            if (dragKey) {
+                              setModuleDropHover(group.moduleId);
+                              return;
+                            }
+                            if (
+                              sectionDragKey &&
+                              section &&
+                              sectionDragKey !== section.moduleId
+                            ) {
+                              setSectionDropHint(section.moduleId);
+                            }
                           }}
-                          onDragEnd={() => setSectionDragKey(null)}
-                          onDragOver={(e) => e.preventDefault()}
+                          onDragLeave={(e) => {
+                            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                              if (sectionDropHint === section?.moduleId) {
+                                setSectionDropHint(null);
+                              }
+                            }
+                          }}
                           onDrop={() =>
                             section && handleSectionDrop(section.moduleId)
                           }
                         >
                           {section ? (
                             <div className={styles.dragCluster}>
-                              <button
-                                type="button"
-                                className={styles.dragHandle}
-                                aria-label={`Reordenar ${section.title}`}
+                              <DragHandle
+                                label={`Reordenar ${section.title}`}
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData(
+                                    "text/plain",
+                                    section.moduleId,
+                                  );
+                                  setSectionDragKey(section.moduleId);
+                                }}
+                                onDragEnd={clearSectionDrag}
                                 onKeyDown={(e) => {
                                   if (e.key === "ArrowUp") {
                                     e.preventDefault();
@@ -1860,9 +1485,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                                     moveSectionByKeyboard(section, 1);
                                   }
                                 }}
-                              >
-                                <GripVertical className="size-4" aria-hidden />
-                              </button>
+                              />
                               <ReorderButtons
                                 label={section.title}
                                 upDisabled={gIdx === 0}
@@ -1940,7 +1563,19 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                           </div>
                         </header>
                         {group.lessons.length === 0 ? (
-                          <div className={styles.moduleEmpty}>
+                          <div
+                            className={`${styles.moduleEmpty}${
+                              moduleDropHover === group.moduleId && dragKey
+                                ? ` ${styles.moduleEmptyDropHover}`
+                                : ""
+                            }`}
+                            onDragOver={(e) => {
+                              if (!dragKey) return;
+                              e.preventDefault();
+                              setModuleDropHover(group.moduleId);
+                            }}
+                            onDrop={() => handleModuleHeaderDrop(group.moduleId)}
+                          >
                             <span>Nenhuma aula nesta seção.</span>
                             <button
                               type="button"
@@ -1952,21 +1587,16 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                           </div>
                         ) : (
                           <div className={styles.tableWrap}>
-                            <table className={styles.table}>
-                              <thead>
-                                <tr>
-                                  <th />
-                                  <th>Aula</th>
-                                  <th>Views</th>
-                                  <th>Nota</th>
-                                  <th>Status</th>
-                                  <th>Vídeo</th>
-                                  <th />
-                                </tr>
-                              </thead>
+                            <table
+                              className={`${styles.table} ${styles.lessonsAdminTable}`}
+                            >
                               <tbody>
                                 {group.lessons.map((lesson) => {
-                                  const bounds = lessonMoveBounds(lesson);
+                                  const bounds = lessonMoveBounds(
+                                    lessons,
+                                    lesson,
+                                    dbMode,
+                                  );
                                   const key = `${lesson.moduleId}:${lesson.lessonId}`;
                                   return (
                                     <LessonRow
@@ -1977,6 +1607,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                                       selected={selected}
                                       canMoveUp={bounds.canMoveUp}
                                       canMoveDown={bounds.canMoveDown}
+                                      dragging={dragKey === key}
+                                      dropPosition={
+                                        lessonDropHint?.key === key
+                                          ? lessonDropHint.position
+                                          : null
+                                      }
                                       onToggle={toggleSelected}
                                       onCopy={copyText}
                                       onEdit={openEdit}
@@ -1985,7 +1621,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                                       onMaterials={openMaterials}
                                       onDelete={deleteLesson}
                                       onDragStart={setDragKey}
-                                      onDragEnd={() => setDragKey(null)}
+                                      onDragEnd={clearLessonDrag}
+                                      onDragOverRow={handleLessonDragOver}
+                                      onDragLeaveRow={() => setLessonDropHint(null)}
                                       onDrop={handleDrop}
                                       onMoveUp={() => moveByKeyboard(lesson, -1)}
                                       onMoveDown={() => moveByKeyboard(lesson, 1)}
@@ -2031,30 +1669,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 </div>
               </div>
               {selectMode && selected.size > 0 ? (
-                <div className={styles.bulkBar}>
-                  <span>{selected.size} selecionada(s)</span>
-                  <button
-                    type="button"
-                    className={styles.editBtn}
-                    onClick={() => void bulkPublish(true)}
-                  >
-                    Publicar
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.editBtn}
-                    onClick={() => void bulkPublish(false)}
-                  >
-                    Despublicar
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.btnGhost}
-                    onClick={() => setSelected(new Set())}
-                  >
-                    Limpar
-                  </button>
-                </div>
+                <BulkActionBar
+                  count={selected.size}
+                  onPublish={() => void bulkPublish(true)}
+                  onUnpublish={() => void bulkPublish(false)}
+                  onClear={() => setSelected(new Set())}
+                />
               ) : null}
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
@@ -2095,7 +1715,11 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                           <td colSpan={6}>{group.moduleTitle}</td>
                         </tr>
                         {group.lessons.map((lesson) => {
-                          const bounds = lessonMoveBounds(lesson);
+                          const bounds = lessonMoveBounds(
+                            lessons,
+                            lesson,
+                            dbMode,
+                          );
                           const key = `${lesson.moduleId}:${lesson.lessonId}`;
                           return (
                             <LessonRow
@@ -2106,6 +1730,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                               selected={selected}
                               canMoveUp={bounds.canMoveUp}
                               canMoveDown={bounds.canMoveDown}
+                              dragging={dragKey === key}
+                              dropPosition={
+                                lessonDropHint?.key === key
+                                  ? lessonDropHint.position
+                                  : null
+                              }
                               onToggle={toggleSelected}
                               onCopy={copyText}
                               onEdit={openEdit}
@@ -2114,7 +1744,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                               onMaterials={openMaterials}
                               onDelete={deleteLesson}
                               onDragStart={setDragKey}
-                              onDragEnd={() => setDragKey(null)}
+                              onDragEnd={clearLessonDrag}
+                              onDragOverRow={handleLessonDragOver}
+                              onDragLeaveRow={() => setLessonDropHint(null)}
                               onDrop={handleDrop}
                               onMoveUp={() => moveByKeyboard(lesson, -1)}
                               onMoveDown={() => moveByKeyboard(lesson, 1)}
@@ -2130,8 +1762,11 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             </section>
           )}
 
-          <section className={styles.section}>
-            <div className={styles.sectionHead}>Feedbacks recentes</div>
+          <details className={styles.feedbackDetails}>
+            <summary className={styles.feedbackSummary}>
+              Feedbacks recentes
+              {feedback.length > 0 ? ` (${feedback.length})` : ""}
+            </summary>
             {feedback.length === 0 ? (
               <p className={styles.empty}>Nenhum feedback ainda.</p>
             ) : (
@@ -2144,7 +1779,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                         <p className={styles.feedbackMeta}>
                           {item.moduleTitle}
                           {item.userEmail ? ` · ${item.userEmail}` : ""} ·{" "}
-                          {formatDate(item.created_at)}
+                          {formatAdminDate(item.created_at)}
                         </p>
                       </div>
                       <Stars rating={item.rating} />
@@ -2156,9 +1791,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 ))}
               </div>
             )}
-          </section>
+          </details>
         </>
-      ) : tab === "membros" ? (
+        )}
+      </AdminTabPanel>
+
+      <AdminTabPanel tabId="membros" activeTab={tab}>
+        {loading ? (
+          <SectionLoading label="Carregando membros…" />
+        ) : (
         <>
           {memberTotals ? (
             <div className={styles.stats}>
@@ -2235,7 +1876,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                           ) : null}
                           <br />
                           <span className={styles.feedbackMeta}>
-                            Cadastro · {formatDate(member.createdAt)}
+                            Cadastro · {formatAdminDate(member.createdAt)}
                           </span>
                         </td>
                         <td>
@@ -2243,7 +1884,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                             <span className={styles.progressValue}>
                               {member.progressPercent}%
                             </span>
-                            <ProgressBar value={member.progressPercent} />
+                            <ProgressBar
+                              value={member.progressPercent}
+                              label={`Progresso de ${member.email}`}
+                            />
                           </div>
                         </td>
                         <td>{member.uniqueLessonsViewed}</td>
@@ -2263,7 +1907,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                             "-"
                           )}
                         </td>
-                        <td>{formatDate(member.lastActiveAt)}</td>
+                        <td>{formatAdminDate(member.lastActiveAt)}</td>
                         <td>
                           <div className={styles.rowActions}>
                             <button
@@ -2296,7 +1940,13 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             )}
           </section>
         </>
-      ) : (
+        )}
+      </AdminTabPanel>
+
+      <AdminTabPanel tabId="convites" activeTab={tab}>
+        {loading ? (
+          <SectionLoading label="Carregando convites…" />
+        ) : (
         <>
           <section className={styles.section}>
             <div className={styles.sectionHead}>Novo convite</div>
@@ -2330,13 +1980,13 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                               ? `${invite.recipientName} · `
                               : ""}
                             {invite.label ?? "Sem rótulo"} ·{" "}
-                            {formatDate(invite.createdAt)}
+                            {formatAdminDate(invite.createdAt)}
                           </span>
                         </td>
                         <td>
                           {invite.usedCount}/{invite.maxUses}
                         </td>
-                        <td>{formatDate(invite.expiresAt)}</td>
+                        <td>{formatAdminDate(invite.expiresAt)}</td>
                         <td>
                           <span
                             className={`${styles.badge} ${invite.active ? styles.badgeOn : styles.badgeOff}`}
@@ -2405,7 +2055,8 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             )}
           </section>
         </>
-      )}
+        )}
+      </AdminTabPanel>
 
       {editing ? (
         <div

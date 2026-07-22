@@ -52,6 +52,23 @@ checks as (
   select 'seed', 'módulos semeados (>=1)',(select count(*) from public.modules) >= 1, (select count(*)::text from public.modules) union all
   select 'seed', 'aulas semeadas (>=1)',  (select count(*) from public.lessons) >= 1, (select count(*)::text from public.lessons) union all
 
+  -- ── módulos "em breve" da trilha (016) ───────────────────────────────────
+  select '016', 'módulos em breve da trilha (6)',
+         (select count(*) from public.modules m
+            join public.courses c on c.id = m.course_id
+          where c.slug = 'claude-cowork-advogados'
+            and m.slug in (
+              'economia-claude','projects','cowork',
+              'escritorio-automatico','artefatos','encerramento'
+            )) >= 6,
+         (select count(*)::text from public.modules m
+            join public.courses c on c.id = m.course_id
+          where c.slug = 'claude-cowork-advogados'
+            and m.slug in (
+              'economia-claude','projects','cowork',
+              'escritorio-automatico','artefatos','encerramento'
+            )) || ' de 6' union all
+
   -- ── capa dos módulos (cover_image explícita, não só fallback por posição) ──
   -- ❌ aqui não quebra o aluno (há fallback), mas indica módulo sem capa no DB.
   -- Popule com supabase/seed-module-covers.sql ou pelo seletor de capa no admin.

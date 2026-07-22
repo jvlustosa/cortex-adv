@@ -41,13 +41,13 @@ export function LessonCardsGrid({
     completedKeys,
   );
   const allDone = totalLessons > 0 && doneTotal >= totalLessons;
-  // "Em breve": módulos marcados no DB têm prioridade; sem eles, cai no roteiro
-  // público (comportamento antigo, sem regressão).
-  const dbComingSoon = course.comingSoonModules ?? [];
-  const comingSoonModules =
-    dbComingSoon.length > 0
-      ? dbComingSoon
-      : getComingSoonModules(course.modules.map((mod) => mod.id));
+  const usesDbComingSoon = course.comingSoonModules !== undefined;
+  const comingSoonModules = usesDbComingSoon
+    ? course.comingSoonModules!
+    : getComingSoonModules(course.modules.map((mod) => mod.id));
+  const totalModules = usesDbComingSoon
+    ? course.modules.length + comingSoonModules.length
+    : COURSE_SCOPE.modules;
 
   return (
     <div>
@@ -61,7 +61,7 @@ export function LessonCardsGrid({
         <div className={styles.stats}>
           <span className={styles.stat}>
             <Layers className="size-3.5" aria-hidden />
-            {course.modules.length} de {COURSE_SCOPE.modules} módulos
+            {course.modules.length} de {totalModules} módulos
           </span>
           <span className={styles.stat}>
             <BookOpen className="size-3.5" aria-hidden />
@@ -168,9 +168,9 @@ export function LessonCardsGrid({
               Mais {comingSoonModules.length} módulos a caminho
             </h2>
             <p className={styles.comingSoonSub}>
-              A trilha completa tem {COURSE_SCOPE.modules} módulos e{" "}
-              {COURSE_SCOPE.lessons} aulas. Estes estão sendo gravados e liberam
-              pra você sem pagar de novo.
+              {usesDbComingSoon
+                ? "Estes módulos ainda estão sendo preparados e liberam pra você sem pagar de novo."
+                : `A trilha completa tem ${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas. Estes estão sendo gravados e liberam pra você sem pagar de novo.`}
             </p>
           </div>
           {comingSoonModules.map((mod) => (
@@ -191,8 +191,7 @@ export function LessonCardsGrid({
                   <Lock className="size-4" aria-hidden />
                 </span>
                 <p className={styles.lockText}>
-                  Em breve. Sendo gravado agora e libera pra você sem pagar de
-                  novo.
+                  Será em breve. Libera pra você sem pagar de novo.
                 </p>
               </div>
             </section>
