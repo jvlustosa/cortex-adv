@@ -880,3 +880,133 @@
 .coverThumbActive {
   border-color: var(--accent);
 }
+
+.hint {
+  margin: 0 0 1rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--claude);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.moduleList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modulePanel {
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.modulePanelHead {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+
+.modulePanelSpacer {
+  width: 2rem;
+}
+
+.modulePanelCover {
+  width: 2.5rem;
+  height: 3.35rem;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modulePanelMeta {
+  min-width: 0;
+}
+
+.modulePanelTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.modulePanelBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.modulePanelActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.moduleEmpty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.modulePanel .tableWrap {
+  border-radius: 0;
+}
+
+.modulePanel .table th {
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .modulePanelHead {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "drag cover"
+      "meta meta"
+      "badges badges"
+      "actions actions";
+  }
+
+  .modulePanelHead .dragCluster {
+    grid-area: drag;
+  }
+
+  .modulePanelCover {
+    grid-area: cover;
+    justify-self: end;
+  }
+
+  .modulePanelMeta {
+    grid-area: meta;
+  }
+
+  .modulePanelBadges {
+    grid-area: badges;
+  }
+
+  .modulePanelActions {
+    grid-area: actions;
+    justify-content: flex-start;
+  }
+}

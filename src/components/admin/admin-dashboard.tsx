@@ -745,6 +745,22 @@ function MaterialsModal({
   );
 }
 
+function normalizeSection(raw: Partial<SectionAdminRow> & { slug?: string }): SectionAdminRow {
+  const moduleId = raw.moduleId ?? raw.slug ?? "";
+  return {
+    moduleId,
+    title: raw.title ?? moduleId,
+    description: raw.description ?? "",
+    thumbnailGradient: raw.thumbnailGradient ?? "",
+    coverImage: raw.coverImage ?? null,
+    unlockAfterDays: raw.unlockAfterDays ?? 0,
+    sortOrder: raw.sortOrder ?? 0,
+    published: raw.published ?? true,
+    comingSoon: raw.comingSoon ?? false,
+    lessonCount: raw.lessonCount ?? 0,
+  };
+}
+
 export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   const [tab, setTab] = useState<Tab>("aulas");
   const [loading, setLoading] = useState(true);
@@ -853,12 +869,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setSelected(new Set());
 
     if (lessonsData.modules?.length) {
-      setSections(lessonsData.modules);
+      setSections(lessonsData.modules.map(normalizeSection));
     } else if (dbMode) {
       const modulesRes = await fetch("/api/admin/modules");
       if (modulesRes.ok) {
         const data = (await modulesRes.json()) as { modules: SectionAdminRow[] };
-        setSections(data.modules);
+        setSections(data.modules.map(normalizeSection));
       }
     }
   }, [dbMode]);
@@ -1050,6 +1066,19 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       title: g.moduleTitle,
     }));
   })();
+
+  function openCreateInModule(moduleId: string) {
+    setCreateForm({
+      moduleId,
+      title: "",
+      duration: "",
+      description: "",
+      youtubeId: "",
+      tella: "",
+      published: false,
+    });
+    setCreating(true);
+  }
 
   function openCreate() {
     setCreateForm({
@@ -1594,6 +1623,8 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     }
   }
 
+  const lessonGroups = buildLessonGroups(lessons, sections, dbMode);
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -1647,8 +1678,28 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
           {dbMode ? (
             <section className={styles.section}>
               <div className={styles.sectionHead}>
-                <span>Seções</span>
+                <span>Módulos e aulas</span>
                 <div className={styles.headActions}>
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    aria-pressed={selectMode}
+                    onClick={() => {
+                      setSelectMode((on) => {
+                        if (on) setSelected(new Set());
+                        return !on;
+                      });
+                    }}
+                  >
+                    {selectMode ? "Sair da seleção" : "Selecionar"}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.btnPrimary}
+                    onClick={openCreate}
+                  >
+                    Adicionar aula
+                  </button>
                   <button
                     type="button"
                     className={styles.btnPrimary}
@@ -1658,264 +1709,365 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                   </button>
                 </div>
               </div>
-              <p className={styles.feedbackMeta}>
-                Arraste pela alça (ou usa ↑/↓) para reordenar as seções.
+              {selectMode && selected.size > 0 ? (
+                <div className={styles.bulkBar}>
+                  <span>{selected.size} selecionada(s)</span>
+                  <button
+                    type="button"
+                    className={styles.editBtn}
+                    onClick={() => void bulkPublish(true)}
+                  >
+                    Publicar
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.editBtn}
+                    onClick={() => void bulkPublish(false)}
+                  >
+                    Despublicar
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    onClick={() => setSelected(new Set())}
+                  >
+                    Limpar
+                  </button>
+                </div>
+              ) : null}
+              <p className={styles.hint}>
+                Arraste seções ou aulas para reordenar. Solte a aula no cabeçalho
+                de outro módulo para mover.
               </p>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th />
-                      <th>Seção</th>
-                      <th>Aulas</th>
-                      <th>Status</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sections.length === 0 ? (
-                      <tr>
-                        <td colSpan={5}>Nenhuma seção ainda.</td>
-                      </tr>
-                    ) : (
-                      sections.map((s, sIdx) => (
-                        <tr
-                          key={s.moduleId}
-                          className={styles.lessonRow}
-                          draggable
+              <div className={styles.moduleList}>
+                {lessonGroups.length === 0 ? (
+                  <p className={styles.empty}>
+                    Nenhum módulo ainda.{" "}
+                    <button
+                      type="button"
+                      className={styles.linkBtn}
+                      onClick={openCreateSection}
+                    >
+                      Criar seção
+                    </button>
+                  </p>
+                ) : (
+                  lessonGroups.map((group, gIdx) => {
+                    const section = sections.find(
+                      (s) => s.moduleId === group.moduleId,
+                    );
+                    const coverSrc =
+                      section?.coverImage ??
+                      defaultSeasonCover(section?.sortOrder ?? gIdx);
+                    return (
+                      <article
+                        key={group.moduleId}
+                        className={`${styles.modulePanel} ${dragKey ? styles.moduleDropTarget : ""}`}
+                        onDragOver={(e) => {
+                          if (dragKey) e.preventDefault();
+                        }}
+                        onDrop={() => handleModuleHeaderDrop(group.moduleId)}
+                      >
+                        <header
+                          className={styles.modulePanelHead}
+                          draggable={Boolean(section)}
                           onDragStart={(e) => {
-                            e.dataTransfer.setData("text/plain", s.moduleId);
+                            if (!section) return;
+                            e.dataTransfer.setData("text/plain", section.moduleId);
                             e.dataTransfer.effectAllowed = "move";
-                            setSectionDragKey(s.moduleId);
+                            setSectionDragKey(section.moduleId);
                           }}
                           onDragEnd={() => setSectionDragKey(null)}
                           onDragOver={(e) => e.preventDefault()}
-                          onDrop={() => handleSectionDrop(s.moduleId)}
+                          onDrop={() =>
+                            section && handleSectionDrop(section.moduleId)
+                          }
                         >
-                          <td>
+                          {section ? (
                             <div className={styles.dragCluster}>
                               <button
                                 type="button"
                                 className={styles.dragHandle}
-                                aria-label={`Reordenar ${s.title}. Use as setas para cima e para baixo.`}
+                                aria-label={`Reordenar ${section.title}`}
                                 onKeyDown={(e) => {
                                   if (e.key === "ArrowUp") {
                                     e.preventDefault();
-                                    moveSectionByKeyboard(s, -1);
+                                    moveSectionByKeyboard(section, -1);
                                   }
                                   if (e.key === "ArrowDown") {
                                     e.preventDefault();
-                                    moveSectionByKeyboard(s, 1);
+                                    moveSectionByKeyboard(section, 1);
                                   }
                                 }}
                               >
                                 <GripVertical className="size-4" aria-hidden />
                               </button>
                               <ReorderButtons
-                                label={s.title}
-                                upDisabled={sIdx === 0}
-                                downDisabled={sIdx === sections.length - 1}
-                                onUp={() => moveSectionByKeyboard(s, -1)}
-                                onDown={() => moveSectionByKeyboard(s, 1)}
+                                label={section.title}
+                                upDisabled={gIdx === 0}
+                                downDisabled={gIdx === lessonGroups.length - 1}
+                                onUp={() => moveSectionByKeyboard(section, -1)}
+                                onDown={() => moveSectionByKeyboard(section, 1)}
                               />
                             </div>
-                          </td>
-                          <td>
-                            <div className={styles.sectionTitleCell}>
-                              {s.coverImage ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                  src={s.coverImage}
-                                  alt=""
-                                  className={styles.sectionCoverThumb}
-                                />
-                              ) : null}
-                              <span>{s.title}</span>
-                            </div>
-                          </td>
-                          <td>{s.lessonCount}</td>
-                          <td>
-                            {s.comingSoon ? (
+                          ) : (
+                            <span className={styles.modulePanelSpacer} />
+                          )}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={coverSrc}
+                            alt=""
+                            className={styles.modulePanelCover}
+                          />
+                          <div className={styles.modulePanelMeta}>
+                            <h3 className={styles.modulePanelTitle}>
+                              {group.moduleTitle}
+                            </h3>
+                            <p className={styles.feedbackMeta}>
+                              {group.lessons.length} aula
+                              {group.lessons.length === 1 ? "" : "s"}
+                              {section?.comingSoon ? " · Em breve" : null}
+                            </p>
+                          </div>
+                          <div className={styles.modulePanelBadges}>
+                            {section?.comingSoon ? (
                               <span
                                 className={`${styles.badge} ${styles.badgeOff}`}
                               >
                                 Em breve
                               </span>
-                            ) : s.published ? (
-                              <span
-                                className={`${styles.badge} ${styles.badgeOn}`}
-                              >
-                                Publicada
-                              </span>
-                            ) : (
+                            ) : section?.published === false ? (
                               <span
                                 className={`${styles.badge} ${styles.badgeOff}`}
                               >
                                 Rascunho
                               </span>
+                            ) : (
+                              <span
+                                className={`${styles.badge} ${styles.badgeOn}`}
+                              >
+                                Publicada
+                              </span>
                             )}
-                          </td>
+                          </div>
+                          <div className={styles.modulePanelActions}>
+                            <button
+                              type="button"
+                              className={styles.editBtn}
+                              onClick={() => openCreateInModule(group.moduleId)}
+                            >
+                              + Aula
+                            </button>
+                            {section ? (
+                              <>
+                                <button
+                                  type="button"
+                                  className={styles.editBtn}
+                                  onClick={() => openEditSection(section)}
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.editBtn}
+                                  onClick={() => void deleteSection(section)}
+                                >
+                                  Excluir
+                                </button>
+                              </>
+                            ) : null}
+                          </div>
+                        </header>
+                        {group.lessons.length === 0 ? (
+                          <div className={styles.moduleEmpty}>
+                            <span>Nenhuma aula nesta seção.</span>
+                            <button
+                              type="button"
+                              className={styles.editBtn}
+                              onClick={() => openCreateInModule(group.moduleId)}
+                            >
+                              Adicionar aula
+                            </button>
+                          </div>
+                        ) : (
+                          <div className={styles.tableWrap}>
+                            <table className={styles.table}>
+                              <thead>
+                                <tr>
+                                  <th />
+                                  <th>Aula</th>
+                                  <th>Views</th>
+                                  <th>Nota</th>
+                                  <th>Status</th>
+                                  <th>Vídeo</th>
+                                  <th />
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {group.lessons.map((lesson) => {
+                                  const bounds = lessonMoveBounds(lesson);
+                                  const key = `${lesson.moduleId}:${lesson.lessonId}`;
+                                  return (
+                                    <LessonRow
+                                      key={key}
+                                      lesson={lesson}
+                                      dbMode={dbMode}
+                                      selectMode={selectMode}
+                                      selected={selected}
+                                      canMoveUp={bounds.canMoveUp}
+                                      canMoveDown={bounds.canMoveDown}
+                                      onToggle={toggleSelected}
+                                      onCopy={copyText}
+                                      onEdit={openEdit}
+                                      onPreview={setPreviewLesson}
+                                      onFeedback={openFeedback}
+                                      onMaterials={openMaterials}
+                                      onDelete={deleteLesson}
+                                      onDragStart={setDragKey}
+                                      onDragEnd={() => setDragKey(null)}
+                                      onDrop={handleDrop}
+                                      onMoveUp={() => moveByKeyboard(lesson, -1)}
+                                      onMoveDown={() => moveByKeyboard(lesson, 1)}
+                                      onKeyMove={moveByKeyboard}
+                                    />
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          ) : (
+            <section className={styles.section}>
+              <div className={styles.sectionHead}>
+                <span>Aulas do curso</span>
+                <div className={styles.headActions}>
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    aria-pressed={selectMode}
+                    onClick={() => {
+                      setSelectMode((on) => {
+                        if (on) setSelected(new Set());
+                        return !on;
+                      });
+                    }}
+                  >
+                    {selectMode ? "Sair da seleção" : "Selecionar"}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.btnPrimary}
+                    onClick={openCreate}
+                  >
+                    Adicionar aula
+                  </button>
+                </div>
+              </div>
+              {selectMode && selected.size > 0 ? (
+                <div className={styles.bulkBar}>
+                  <span>{selected.size} selecionada(s)</span>
+                  <button
+                    type="button"
+                    className={styles.editBtn}
+                    onClick={() => void bulkPublish(true)}
+                  >
+                    Publicar
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.editBtn}
+                    onClick={() => void bulkPublish(false)}
+                  >
+                    Despublicar
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    onClick={() => setSelected(new Set())}
+                  >
+                    Limpar
+                  </button>
+                </div>
+              ) : null}
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th />
+                      <th>Aula</th>
+                      <th>Views</th>
+                      <th>Nota</th>
+                      <th>Status</th>
+                      <th>Vídeo</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lessonGroups.map((group) => (
+                      <Fragment key={group.moduleId}>
+                        <tr className={styles.moduleRow}>
                           <td>
-                            <button
-                              type="button"
-                              className={styles.editBtn}
-                              onClick={() => openEditSection(s)}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.editBtn}
-                              onClick={() => void deleteSection(s)}
-                            >
-                              Excluir
-                            </button>
+                            {selectMode ? (
+                              <input
+                                type="checkbox"
+                                aria-label={`Selecionar todas de ${group.moduleTitle}`}
+                                checked={group.lessons.every((l) =>
+                                  selected.has(`${l.moduleId}:${l.lessonId}`),
+                                )}
+                                onChange={(e) =>
+                                  toggleModuleSelected(
+                                    group.lessons.map(
+                                      (l) => `${l.moduleId}:${l.lessonId}`,
+                                    ),
+                                    e.target.checked,
+                                  )
+                                }
+                              />
+                            ) : null}
                           </td>
+                          <td colSpan={6}>{group.moduleTitle}</td>
                         </tr>
-                      ))
-                    )}
+                        {group.lessons.map((lesson) => {
+                          const bounds = lessonMoveBounds(lesson);
+                          const key = `${lesson.moduleId}:${lesson.lessonId}`;
+                          return (
+                            <LessonRow
+                              key={key}
+                              lesson={lesson}
+                              dbMode={false}
+                              selectMode={selectMode}
+                              selected={selected}
+                              canMoveUp={bounds.canMoveUp}
+                              canMoveDown={bounds.canMoveDown}
+                              onToggle={toggleSelected}
+                              onCopy={copyText}
+                              onEdit={openEdit}
+                              onPreview={setPreviewLesson}
+                              onFeedback={openFeedback}
+                              onMaterials={openMaterials}
+                              onDelete={deleteLesson}
+                              onDragStart={setDragKey}
+                              onDragEnd={() => setDragKey(null)}
+                              onDrop={handleDrop}
+                              onMoveUp={() => moveByKeyboard(lesson, -1)}
+                              onMoveDown={() => moveByKeyboard(lesson, 1)}
+                              onKeyMove={moveByKeyboard}
+                            />
+                          );
+                        })}
+                      </Fragment>
+                    ))}
                   </tbody>
                 </table>
               </div>
             </section>
-          ) : null}
-
-          <section className={styles.section}>
-            <div className={styles.sectionHead}>
-              <span>Aulas do curso</span>
-              <div className={styles.headActions}>
-                <button
-                  type="button"
-                  className={styles.btnGhost}
-                  aria-pressed={selectMode}
-                  onClick={() => {
-                    setSelectMode((on) => {
-                      if (on) setSelected(new Set());
-                      return !on;
-                    });
-                  }}
-                >
-                  {selectMode ? "Sair da seleção" : "Selecionar"}
-                </button>
-                <button
-                  type="button"
-                  className={styles.btnPrimary}
-                  onClick={openCreate}
-                >
-                  Adicionar aula
-                </button>
-              </div>
-            </div>
-            {selectMode && selected.size > 0 ? (
-              <div className={styles.bulkBar}>
-                <span>{selected.size} selecionada(s)</span>
-                <button
-                  type="button"
-                  className={styles.editBtn}
-                  onClick={() => void bulkPublish(true)}
-                >
-                  Publicar
-                </button>
-                <button
-                  type="button"
-                  className={styles.editBtn}
-                  onClick={() => void bulkPublish(false)}
-                >
-                  Despublicar
-                </button>
-                <button
-                  type="button"
-                  className={styles.btnGhost}
-                  onClick={() => setSelected(new Set())}
-                >
-                  Limpar
-                </button>
-              </div>
-            ) : null}
-            {dbMode ? (
-              <p className={styles.feedbackMeta}>
-                Arraste aulas entre módulos (solte na linha da aula ou no
-                cabeçalho do módulo). Use ↑/↓ para reordenar ou pular de seção.
-              </p>
-            ) : null}
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th />
-                    <th>Aula</th>
-                    <th>Views</th>
-                    <th>Nota</th>
-                    <th>Status</th>
-                    <th>Vídeo</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {buildLessonGroups(lessons, sections, dbMode).map((group) => (
-                    <Fragment key={group.moduleId}>
-                      <tr
-                        className={`${styles.moduleRow} ${dragKey && dbMode ? styles.moduleDropTarget : ""}`}
-                        onDragOver={(e) => {
-                          if (dbMode && dragKey) e.preventDefault();
-                        }}
-                        onDrop={() => handleModuleHeaderDrop(group.moduleId)}
-                      >
-                        <td>
-                          {selectMode ? (
-                            <input
-                              type="checkbox"
-                              aria-label={`Selecionar todas de ${group.moduleTitle}`}
-                              checked={group.lessons.every((l) =>
-                                selected.has(`${l.moduleId}:${l.lessonId}`),
-                              )}
-                              onChange={(e) =>
-                                toggleModuleSelected(
-                                  group.lessons.map(
-                                    (l) => `${l.moduleId}:${l.lessonId}`,
-                                  ),
-                                  e.target.checked,
-                                )
-                              }
-                            />
-                          ) : null}
-                        </td>
-                        <td colSpan={6}>{group.moduleTitle}</td>
-                      </tr>
-                      {group.lessons.map((lesson) => {
-                        const bounds = lessonMoveBounds(lesson);
-                        const key = `${lesson.moduleId}:${lesson.lessonId}`;
-                        return (
-                          <LessonRow
-                            key={key}
-                            lesson={lesson}
-                            dbMode={dbMode}
-                            selectMode={selectMode}
-                            selected={selected}
-                            canMoveUp={bounds.canMoveUp}
-                            canMoveDown={bounds.canMoveDown}
-                            onToggle={toggleSelected}
-                            onCopy={copyText}
-                            onEdit={openEdit}
-                            onPreview={setPreviewLesson}
-                            onFeedback={openFeedback}
-                            onMaterials={openMaterials}
-                            onDelete={deleteLesson}
-                            onDragStart={setDragKey}
-                            onDragEnd={() => setDragKey(null)}
-                            onDrop={handleDrop}
-                            onMoveUp={() => moveByKeyboard(lesson, -1)}
-                            onMoveDown={() => moveByKeyboard(lesson, 1)}
-                            onKeyMove={moveByKeyboard}
-                          />
-                        );
-                      })}
-                    </Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+          )}
 
           <section className={styles.section}>
             <div className={styles.sectionHead}>Feedbacks recentes</div>
