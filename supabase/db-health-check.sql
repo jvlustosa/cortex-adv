@@ -52,6 +52,13 @@ checks as (
   select 'seed', 'módulos semeados (>=1)',(select count(*) from public.modules) >= 1, (select count(*)::text from public.modules) union all
   select 'seed', 'aulas semeadas (>=1)',  (select count(*) from public.lessons) >= 1, (select count(*)::text from public.lessons) union all
 
+  -- ── capa dos módulos (cover_image explícita, não só fallback por posição) ──
+  -- ❌ aqui não quebra o aluno (há fallback), mas indica módulo sem capa no DB.
+  -- Popule com supabase/seed-module-covers.sql ou pelo seletor de capa no admin.
+  select 'capa', 'todos os módulos com capa (cover_image)',
+         not exists(select 1 from public.modules where cover_image is null or cover_image = ''),
+         (select count(*)::text from public.modules where cover_image is null or cover_image = '') || ' sem capa' union all
+
   -- ── drift catálogo estático ↔ DB ─────────────────────────────────────────
   -- aulas no overlay estático (lesson_overrides) sem par nas tabelas nativas.
   -- 0 = seed em dia. >0 = rode `npm run db:seed -- --apply` antes do modo DB.
