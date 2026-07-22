@@ -15,13 +15,17 @@ import {
   adminContentFromDb,
   createLessonDb,
   deleteLessonDb,
+  listModulesForAdmin,
   reorderModuleDb,
   moveLessonDb,
   setPublishedBatchDb,
   updateLessonDb,
   type AdminContentLesson,
   type AdminContentModule,
+  type ModuleAdminRow,
 } from "./repository-db";
+
+export type { ModuleAdminRow };
 
 export class CatalogLessonError extends Error {}
 
@@ -185,21 +189,39 @@ function assembleAdminRows(
   };
 }
 
+function catalogModulesForAdmin(): ModuleAdminRow[] {
+  return COURSE.modules.map((m, i) => ({
+    moduleId: m.id,
+    title: m.title,
+    description: m.description ?? "",
+    thumbnailGradient: m.thumbnailGradient ?? "",
+    coverImage: m.coverImage ?? null,
+    unlockAfterDays: m.unlockAfterDays ?? 0,
+    sortOrder: i,
+    published: true,
+    comingSoon: false,
+    lessonCount: m.lessons.length,
+  }));
+}
+
 export async function listLessonsForAdmin(): Promise<{
   lessons: LessonAdminRow[];
   totals: AdminTotals;
+  modules: ModuleAdminRow[];
 }> {
-  const contentPromise = isDbCourseSource()
+  const dbMode = isDbCourseSource();
+  const contentPromise = dbMode
     ? adminContentFromDb()
     : fetchLessonOverrides().then(adminContentFromCatalog);
 
-  const [content, viewMap, feedbackMap] = await Promise.all([
+  const [content, viewMap, feedbackMap, modules] = await Promise.all([
     contentPromise,
     aggregateViews(),
     aggregateFeedback(),
+    dbMode ? listModulesForAdmin() : Promise.resolve(catalogModulesForAdmin()),
   ]);
 
-  return assembleAdminRows(content, viewMap, feedbackMap);
+  return { ...assembleAdminRows(content, viewMap, feedbackMap), modules };
 }
 
 export async function upsertLessonOverride(input: {

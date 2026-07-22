@@ -841,6 +841,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     const lessonsData = (await lessonsRes.json()) as {
       lessons: LessonAdminRow[];
       totals: AdminTotals;
+      modules?: SectionAdminRow[];
     };
     const feedbackData = (await feedbackRes.json()) as {
       feedback: FeedbackItem[];
@@ -851,7 +852,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setFeedback(feedbackData.feedback);
     setSelected(new Set());
 
-    if (dbMode) {
+    if (lessonsData.modules?.length) {
+      setSections(lessonsData.modules);
+    } else if (dbMode) {
       const modulesRes = await fetch("/api/admin/modules");
       if (modulesRes.ok) {
         const data = (await modulesRes.json()) as { modules: SectionAdminRow[] };
@@ -1037,15 +1040,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   }
 
   const moduleOptions = (() => {
-    const opts = new Map<string, { id: string; title: string }>();
-    for (const g of groupByModule(lessons)) {
-      opts.set(g.moduleId, { id: g.moduleId, title: g.moduleTitle });
+    if (sections.length > 0) {
+      return [...sections]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((s) => ({ id: s.moduleId, title: s.title }));
     }
-    // Seções do DB (inclui as vazias/novas) entram no dropdown de criar aula.
-    for (const s of sections) {
-      if (!opts.has(s.moduleId)) opts.set(s.moduleId, { id: s.moduleId, title: s.title });
-    }
-    return Array.from(opts.values());
+    return groupByModule(lessons).map((g) => ({
+      id: g.moduleId,
+      title: g.moduleTitle,
+    }));
   })();
 
   function openCreate() {
@@ -2355,17 +2358,22 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             <label className={styles.field}>
               <span className={styles.label}>Módulo</span>
               <select
-                className={styles.input}
+                className={`${styles.input} ${styles.select}`}
                 value={createForm.moduleId}
+                disabled={moduleOptions.length === 0}
                 onChange={(e) =>
                   setCreateForm((f) => ({ ...f, moduleId: e.target.value }))
                 }
               >
-                {moduleOptions.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.title}
-                  </option>
-                ))}
+                {moduleOptions.length === 0 ? (
+                  <option value="">Nenhum módulo — crie uma seção primeiro</option>
+                ) : (
+                  moduleOptions.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.title}
+                    </option>
+                  ))
+                )}
               </select>
             </label>
 
