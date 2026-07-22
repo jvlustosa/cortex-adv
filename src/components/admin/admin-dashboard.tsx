@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -29,6 +29,7 @@ import {
 } from "@/lib/lessons/admin-grouping";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
 import { InviteWizard } from "./invite-wizard";
+import { useUndoForm } from "./use-undo-form";
 import styles from "./admin-dashboard.module.css";
 
 type Tab = "aulas" | "membros" | "convites";
@@ -85,6 +86,100 @@ type LessonFeedbackDetail = {
     createdAt: string;
   }[];
 };
+
+type LessonFormState = {
+  title: string;
+  duration: string;
+  description: string;
+  youtubeId: string;
+  tella: string;
+  published: boolean;
+};
+
+type CreateLessonFormState = LessonFormState & { moduleId: string };
+
+type SectionFormState = {
+  title: string;
+  description: string;
+  thumbnailGradient: string;
+  coverImage: string;
+  unlockAfterDays: number;
+  published: boolean;
+  comingSoon: boolean;
+};
+
+const EMPTY_LESSON_FORM: LessonFormState = {
+  title: "",
+  duration: "",
+  description: "",
+  youtubeId: "",
+  tella: "",
+  published: true,
+};
+
+const EMPTY_CREATE_FORM: CreateLessonFormState = {
+  ...EMPTY_LESSON_FORM,
+  moduleId: "",
+  published: false,
+};
+
+const EMPTY_SECTION_FORM: SectionFormState = {
+  title: "",
+  description: "",
+  thumbnailGradient: "",
+  coverImage: "",
+  unlockAfterDays: 0,
+  published: true,
+  comingSoon: false,
+};
+
+function ModalFormUndoKeys({
+  active,
+  onUndo,
+}: {
+  active: boolean;
+  onUndo: () => void;
+}) {
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
+      if (e.shiftKey) return;
+      e.preventDefault();
+      onUndo();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [active, onUndo]);
+  return null;
+}
+
+function FormUndoBar({
+  onDesfazer,
+  canUndo,
+  isDirty,
+  children,
+}: {
+  onDesfazer: () => void;
+  canUndo: boolean;
+  isDirty: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className={styles.actionsBar}>
+      <button
+        type="button"
+        className={styles.btnGhost}
+        disabled={!canUndo && !isDirty}
+        title="Desfazer (Ctrl+Z)"
+        onClick={onDesfazer}
+      >
+        Desfazer
+      </button>
+      <div className={styles.actionsMain}>{children}</div>
+    </div>
+  );
+}
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "aulas", label: "Gestão de aulas" },
@@ -796,35 +891,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   const [sections, setSections] = useState<SectionAdminRow[]>([]);
   const [creatingSection, setCreatingSection] = useState(false);
   const [savingSection, setSavingSection] = useState(false);
-  const [sectionForm, setSectionForm] = useState({
-    title: "",
-    description: "",
-    thumbnailGradient: "",
-    coverImage: "",
-    unlockAfterDays: 0,
-    published: true,
-    comingSoon: false,
-  });
+  const lessonForm = useUndoForm(EMPTY_LESSON_FORM);
+  const createFormCtrl = useUndoForm(EMPTY_CREATE_FORM);
+  const sectionFormCtrl = useUndoForm(EMPTY_SECTION_FORM);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [sectionDragKey, setSectionDragKey] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    title: "",
-    duration: "",
-    description: "",
-    youtubeId: "",
-    tella: "",
-    published: true,
-  });
   const [creating, setCreating] = useState(false);
-  const [createForm, setCreateForm] = useState({
-    moduleId: "",
-    title: "",
-    duration: "",
-    description: "",
-    youtubeId: "",
-    tella: "",
-    published: false,
-  });
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [dragKey, setDragKey] = useState<string | null>(null);
@@ -920,7 +992,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
 
   function openEdit(lesson: LessonAdminRow) {
     setEditing(lesson);
-    setForm({
+    lessonForm.reset({
       title: lesson.title,
       duration: lesson.duration,
       description: lesson.description,
@@ -1023,6 +1095,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
 
   async function saveLesson() {
     if (!editing) return;
+    const form = lessonForm.value;
     setSaving(true);
     setError(null);
 
@@ -1068,48 +1141,33 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   })();
 
   function openCreateInModule(moduleId: string) {
-    setCreateForm({
+    createFormCtrl.reset({
+      ...EMPTY_CREATE_FORM,
       moduleId,
-      title: "",
-      duration: "",
-      description: "",
-      youtubeId: "",
-      tella: "",
-      published: false,
     });
     setCreating(true);
   }
 
   function openCreate() {
-    setCreateForm({
+    createFormCtrl.reset({
+      ...EMPTY_CREATE_FORM,
       moduleId: moduleOptions[0]?.id ?? "",
-      title: "",
-      duration: "",
-      description: "",
-      youtubeId: "",
-      tella: "",
-      published: false,
     });
     setCreating(true);
   }
 
   function openCreateSection() {
     const nextIndex = sections.length;
-    setSectionForm({
-      title: "",
-      description: "",
-      thumbnailGradient: "",
+    sectionFormCtrl.reset({
+      ...EMPTY_SECTION_FORM,
       coverImage: defaultSeasonCover(nextIndex),
-      unlockAfterDays: 0,
-      published: true,
-      comingSoon: false,
     });
     setEditingSectionId(null);
     setCreatingSection(true);
   }
 
   function openEditSection(section: SectionAdminRow) {
-    setSectionForm({
+    sectionFormCtrl.reset({
       title: section.title,
       description: section.description,
       thumbnailGradient: section.thumbnailGradient,
@@ -1123,6 +1181,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   }
 
   async function saveNewSection() {
+    const sectionForm = sectionFormCtrl.value;
     if (!sectionForm.title.trim()) {
       setError("Título da seção é obrigatório.");
       return;
@@ -1156,6 +1215,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   }
 
   async function saveEditSection() {
+    const sectionForm = sectionFormCtrl.value;
     if (!editingSectionId || !sectionForm.title.trim()) {
       setError("Título da seção é obrigatório.");
       return;
@@ -1264,6 +1324,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   }
 
   async function saveNewLesson() {
+    const createForm = createFormCtrl.value;
     if (!createForm.moduleId || !createForm.title.trim()) {
       setError("Módulo e título são obrigatórios.");
       return;
@@ -2358,20 +2419,25 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             aria-labelledby="edit-lesson-title"
             onClick={(e) => e.stopPropagation()}
           >
+            <ModalFormUndoKeys
+              active
+              onUndo={lessonForm.desfazer}
+            />
             <h2 id="edit-lesson-title" className={styles.modalTitle}>
               Editar aula
             </h2>
             <p className={styles.modalMeta}>
-              {editing.moduleTitle} · {editing.lessonId}
+              {editing.moduleTitle} · {editing.lessonId} · Ctrl+V cola · Ctrl+Z
+              desfaz
             </p>
 
             <label className={styles.field}>
               <span className={styles.label}>Título</span>
               <input
                 className={styles.input}
-                value={form.title}
+                value={lessonForm.value.title}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, title: e.target.value }))
+                  lessonForm.setValue((f) => ({ ...f, title: e.target.value }))
                 }
               />
             </label>
@@ -2380,9 +2446,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Duração</span>
               <input
                 className={styles.input}
-                value={form.duration}
+                value={lessonForm.value.duration}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, duration: e.target.value }))
+                  lessonForm.setValue((f) => ({ ...f, duration: e.target.value }))
                 }
               />
             </label>
@@ -2391,10 +2457,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Tella (slug) — tem prioridade</span>
               <input
                 className={styles.input}
-                value={form.tella}
+                value={lessonForm.value.tella}
                 placeholder="01-ca-1-o-que-e-o-claude-f528"
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, tella: e.target.value }))
+                  lessonForm.setValue((f) => ({ ...f, tella: e.target.value }))
                 }
               />
             </label>
@@ -2403,10 +2469,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>YouTube ID</span>
               <input
                 className={styles.input}
-                value={form.youtubeId}
+                value={lessonForm.value.youtubeId}
                 placeholder="dQw4w9WgXcQ"
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, youtubeId: e.target.value }))
+                  lessonForm.setValue((f) => ({ ...f, youtubeId: e.target.value }))
                 }
               />
             </label>
@@ -2415,9 +2481,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Descrição</span>
               <textarea
                 className={styles.textarea}
-                value={form.description}
+                value={lessonForm.value.description}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, description: e.target.value }))
+                  lessonForm.setValue((f) => ({
+                    ...f,
+                    description: e.target.value,
+                  }))
                 }
               />
             </label>
@@ -2425,15 +2494,19 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             <label className={styles.checkboxRow}>
               <input
                 type="checkbox"
-                checked={form.published}
+                checked={lessonForm.value.published}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, published: e.target.checked }))
+                  lessonForm.setValue((f) => ({ ...f, published: e.target.checked }))
                 }
               />
               Publicada (visível no catálogo)
             </label>
 
-            <div className={styles.actions}>
+            <FormUndoBar
+              onDesfazer={lessonForm.desfazer}
+              canUndo={lessonForm.canStepUndo}
+              isDirty={lessonForm.isDirty}
+            >
               <button
                 type="button"
                 className={styles.btnGhost}
@@ -2457,7 +2530,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                   "Salvar"
                 )}
               </button>
-            </div>
+            </FormUndoBar>
           </div>
         </div>
       ) : null}
@@ -2503,18 +2576,23 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             aria-labelledby="create-lesson-title"
             onClick={(e) => e.stopPropagation()}
           >
+            <ModalFormUndoKeys active onUndo={createFormCtrl.desfazer} />
             <h2 id="create-lesson-title" className={styles.modalTitle}>
               Adicionar aula
             </h2>
+            <p className={styles.modalMeta}>Ctrl+V cola · Ctrl+Z desfaz</p>
 
             <label className={styles.field}>
               <span className={styles.label}>Módulo</span>
               <select
                 className={`${styles.input} ${styles.select}`}
-                value={createForm.moduleId}
+                value={createFormCtrl.value.moduleId}
                 disabled={moduleOptions.length === 0}
                 onChange={(e) =>
-                  setCreateForm((f) => ({ ...f, moduleId: e.target.value }))
+                  createFormCtrl.setValue((f) => ({
+                    ...f,
+                    moduleId: e.target.value,
+                  }))
                 }
               >
                 {moduleOptions.length === 0 ? (
@@ -2533,9 +2611,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Título</span>
               <input
                 className={styles.input}
-                value={createForm.title}
+                value={createFormCtrl.value.title}
                 onChange={(e) =>
-                  setCreateForm((f) => ({ ...f, title: e.target.value }))
+                  createFormCtrl.setValue((f) => ({ ...f, title: e.target.value }))
                 }
               />
             </label>
@@ -2544,9 +2622,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Duração</span>
               <input
                 className={styles.input}
-                value={createForm.duration}
+                value={createFormCtrl.value.duration}
                 onChange={(e) =>
-                  setCreateForm((f) => ({ ...f, duration: e.target.value }))
+                  createFormCtrl.setValue((f) => ({
+                    ...f,
+                    duration: e.target.value,
+                  }))
                 }
               />
             </label>
@@ -2555,10 +2636,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Tella (slug) — tem prioridade</span>
               <input
                 className={styles.input}
-                value={createForm.tella}
+                value={createFormCtrl.value.tella}
                 placeholder="01-ca-1-o-que-e-o-claude-f528"
                 onChange={(e) =>
-                  setCreateForm((f) => ({ ...f, tella: e.target.value }))
+                  createFormCtrl.setValue((f) => ({ ...f, tella: e.target.value }))
                 }
               />
             </label>
@@ -2567,9 +2648,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>YouTube ID</span>
               <input
                 className={styles.input}
-                value={createForm.youtubeId}
+                value={createFormCtrl.value.youtubeId}
                 onChange={(e) =>
-                  setCreateForm((f) => ({ ...f, youtubeId: e.target.value }))
+                  createFormCtrl.setValue((f) => ({
+                    ...f,
+                    youtubeId: e.target.value,
+                  }))
                 }
               />
             </label>
@@ -2578,9 +2662,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Descrição</span>
               <textarea
                 className={styles.textarea}
-                value={createForm.description}
+                value={createFormCtrl.value.description}
                 onChange={(e) =>
-                  setCreateForm((f) => ({ ...f, description: e.target.value }))
+                  createFormCtrl.setValue((f) => ({
+                    ...f,
+                    description: e.target.value,
+                  }))
                 }
               />
             </label>
@@ -2588,15 +2675,22 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             <label className={styles.checkboxRow}>
               <input
                 type="checkbox"
-                checked={createForm.published}
+                checked={createFormCtrl.value.published}
                 onChange={(e) =>
-                  setCreateForm((f) => ({ ...f, published: e.target.checked }))
+                  createFormCtrl.setValue((f) => ({
+                    ...f,
+                    published: e.target.checked,
+                  }))
                 }
               />
               Publicar já (senão fica como rascunho)
             </label>
 
-            <div className={styles.actions}>
+            <FormUndoBar
+              onDesfazer={createFormCtrl.desfazer}
+              canUndo={createFormCtrl.canStepUndo}
+              isDirty={createFormCtrl.isDirty}
+            >
               <button
                 type="button"
                 className={styles.btnGhost}
@@ -2620,7 +2714,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                   "Criar aula"
                 )}
               </button>
-            </div>
+            </FormUndoBar>
           </div>
         </div>
       ) : null}
@@ -2637,17 +2731,19 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             aria-labelledby="create-section-title"
             onClick={(e) => e.stopPropagation()}
           >
+            <ModalFormUndoKeys active onUndo={sectionFormCtrl.desfazer} />
             <h2 id="create-section-title" className={styles.modalTitle}>
               {editingSectionId ? "Editar seção" : "Criar seção"}
             </h2>
+            <p className={styles.modalMeta}>Ctrl+V cola · Ctrl+Z desfaz</p>
 
             <label className={styles.field}>
               <span className={styles.label}>Título</span>
               <input
                 className={styles.input}
-                value={sectionForm.title}
+                value={sectionFormCtrl.value.title}
                 onChange={(e) =>
-                  setSectionForm((f) => ({ ...f, title: e.target.value }))
+                  sectionFormCtrl.setValue((f) => ({ ...f, title: e.target.value }))
                 }
               />
             </label>
@@ -2656,9 +2752,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Descrição</span>
               <textarea
                 className={styles.textarea}
-                value={sectionForm.description}
+                value={sectionFormCtrl.value.description}
                 onChange={(e) =>
-                  setSectionForm((f) => ({ ...f, description: e.target.value }))
+                  sectionFormCtrl.setValue((f) => ({
+                    ...f,
+                    description: e.target.value,
+                  }))
                 }
               />
             </label>
@@ -2667,10 +2766,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <span className={styles.label}>Gradiente (CSS) — capa fallback</span>
               <input
                 className={styles.input}
-                value={sectionForm.thumbnailGradient}
+                value={sectionFormCtrl.value.thumbnailGradient}
                 placeholder="linear-gradient(135deg, #…, #…)"
                 onChange={(e) =>
-                  setSectionForm((f) => ({
+                  sectionFormCtrl.setValue((f) => ({
                     ...f,
                     thumbnailGradient: e.target.value,
                   }))
@@ -2681,14 +2780,14 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             <label className={styles.field}>
               <span className={styles.label}>Capa do módulo</span>
               <CoverImagePicker
-                value={sectionForm.coverImage}
+                value={sectionFormCtrl.value.coverImage}
                 seasonIndex={
                   editingSectionId
                     ? sections.findIndex((s) => s.moduleId === editingSectionId)
                     : sections.length
                 }
                 onChange={(coverImage) =>
-                  setSectionForm((f) => ({ ...f, coverImage }))
+                  sectionFormCtrl.setValue((f) => ({ ...f, coverImage }))
                 }
               />
             </label>
@@ -2701,9 +2800,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 className={styles.input}
                 type="number"
                 min={0}
-                value={sectionForm.unlockAfterDays}
+                value={sectionFormCtrl.value.unlockAfterDays}
                 onChange={(e) =>
-                  setSectionForm((f) => ({
+                  sectionFormCtrl.setValue((f) => ({
                     ...f,
                     unlockAfterDays: Math.max(0, Number(e.target.value) || 0),
                   }))
@@ -2714,9 +2813,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             <label className={styles.checkboxRow}>
               <input
                 type="checkbox"
-                checked={sectionForm.published}
+                checked={sectionFormCtrl.value.published}
                 onChange={(e) =>
-                  setSectionForm((f) => ({ ...f, published: e.target.checked }))
+                  sectionFormCtrl.setValue((f) => ({
+                    ...f,
+                    published: e.target.checked,
+                  }))
                 }
               />
               Publicar já (senão fica como rascunho)
@@ -2725,16 +2827,23 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
             <label className={styles.checkboxRow}>
               <input
                 type="checkbox"
-                checked={sectionForm.comingSoon}
+                checked={sectionFormCtrl.value.comingSoon}
                 onChange={(e) =>
-                  setSectionForm((f) => ({ ...f, comingSoon: e.target.checked }))
+                  sectionFormCtrl.setValue((f) => ({
+                    ...f,
+                    comingSoon: e.target.checked,
+                  }))
                 }
               />
               Em breve (mostra travado em &quot;Sessões em breve&quot; para o
               aluno)
             </label>
 
-            <div className={styles.actions}>
+            <FormUndoBar
+              onDesfazer={sectionFormCtrl.desfazer}
+              canUndo={sectionFormCtrl.canStepUndo}
+              isDirty={sectionFormCtrl.isDirty}
+            >
               <button
                 type="button"
                 className={styles.btnGhost}
@@ -2761,7 +2870,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                   "Criar seção"
                 )}
               </button>
-            </div>
+            </FormUndoBar>
           </div>
         </div>
       ) : null}
