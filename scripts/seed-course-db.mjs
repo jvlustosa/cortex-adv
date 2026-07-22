@@ -43,6 +43,17 @@ function loadEnvFile(filename) {
   }
 }
 
+const SEASON_COVERS = [
+  "/assets/images/temporadas/temporada-0-comece-aqui.png",
+  "/assets/images/temporadas/temporada-1-fundacao-pratica.png",
+  "/assets/images/temporadas/temporada-2-economia-claude.png",
+  "/assets/images/temporadas/temporada-3-projects.png",
+  "/assets/images/temporadas/temporada-4-cowork.png",
+  "/assets/images/temporadas/temporada-5-escritorio-automatico.png",
+  "/assets/images/temporadas/temporada-6-artefatos.png",
+  "/assets/images/temporadas/temporada-7-encerramento.png",
+];
+
 /** course.yml → linhas mapeadas p/ o schema nativo (sort_order = posição). */
 function buildPlan() {
   const raw = yaml.load(readFileSync(resolve(root, "src/data/course.yml"), "utf8"));
@@ -58,7 +69,7 @@ function buildPlan() {
     title: m.title,
     description: m.description ?? null,
     thumbnail_gradient: m.thumbnailGradient ?? null,
-    cover_image: m.coverImage ?? null,
+    cover_image: m.coverImage ?? SEASON_COVERS[i % SEASON_COVERS.length],
     unlock_after_days: m.unlockAfterDays ?? 0,
     sort_order: i,
     published: true,

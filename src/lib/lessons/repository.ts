@@ -16,6 +16,7 @@ import {
   createLessonDb,
   deleteLessonDb,
   reorderModuleDb,
+  moveLessonDb,
   setPublishedBatchDb,
   updateLessonDb,
   type AdminContentLesson,
@@ -426,6 +427,25 @@ export async function createLesson(input: {
     orderIndex,
     origin: "custom",
   };
+}
+
+export async function moveLesson(input: {
+  fromModuleId: string;
+  lessonId: string;
+  toModuleId: string;
+  beforeLessonId?: string | null;
+}): Promise<void> {
+  if (!isDbCourseSource()) {
+    throw new Error(
+      "Mover aula entre módulos exige COURSE_SOURCE=db.",
+    );
+  }
+  return moveLessonDb({
+    lessonSlug: input.lessonId,
+    fromModuleSlug: input.fromModuleId,
+    toModuleSlug: input.toModuleId,
+    beforeLessonSlug: input.beforeLessonId ?? null,
+  });
 }
 
 export async function reorderModule(moduleId: string, lessonIds: string[]): Promise<void> {

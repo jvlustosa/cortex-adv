@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { LessonAdminRow, LessonOverrideRow } from "./types";
 import { slugifyLessonTitle, uniqueLessonId } from "./slug";
+import { insertSlugAt } from "./admin-grouping";
 
 // Implementação DB-native do repositório de aulas (tabelas courses/modules/
 // lessons). Ativa quando COURSE_SOURCE=db; o repository.ts despacha pra cá.
@@ -237,6 +238,8 @@ export async function updateLessonDb(input: {
   };
 }
 
+/** Move aula entre módulos (ou reordena no mesmo). Atualiza views/feedback/materiais
+ *  (chaves por slug) quando o módulo muda. */
 export async function reorderModuleDb(
   moduleSlug: string,
   lessonIds: string[],
@@ -254,6 +257,103 @@ export async function reorderModuleDb(
       .eq("slug", lessonIds[i]);
     if (error) throw error;
   }
+}
+
+/**
+ * Move uma aula para OUTRO módulo (modo DB). Atualiza module_id, reindexa
+ * origem e destino, e migra views/feedback (chaveados por slug) para preservar
+ * histórico. `toIndex` = posição desejada no destino (null = fim). Se o slug já
+ * existir no destino, gera um slug único lá. No-op se from == to.
+ */
+export async function moveLessonDb(input: {
+  lessonSlug: string;
+  fromModuleSlug: string;
+  toModuleSlug: string;
+  toIndex?: number | null;
+  beforeLessonSlug?: string | null;
+}): Promise<void> {
+  const admin = createAdminClient();
+  const { modules } = await loadModules(admin);
+  const from = requireModule(modules, input.fromModuleSlug);
+  const to = requireModule(modules, input.toModuleSlug);
+
+  if (from.id === to.id) {
+    const { data: sameRows, error: sameErr } = await admin
+      .from("lessons")
+      .select("slug")
+      .eq("module_id", from.id)
+      .order("sort_order", { ascending: true });
+    if (sameErr) throw sameErr;
+    const order = (sameRows ?? []).map((r) => (r as { slug: string }).slug);
+    let toIndex = input.toIndex ?? null;
+    if (input.beforeLessonSlug) {
+      const without = order.filter((s) => s !== input.lessonSlug);
+      const idx = without.indexOf(input.beforeLessonSlug);
+      toIndex = idx >= 0 ? idx : without.length;
+    }
+    const next = insertSlugAt(order, input.lessonSlug, toIndex);
+    await reorderModuleDb(input.fromModuleSlug, next);
+    return;
+  }
+
+  const { data: destRows, error: dErr } = await admin
+    .from("lessons")
+    .select("slug, sort_order")
+    .eq("module_id", to.id);
+  if (dErr) throw dErr;
+  const dest = (destRows ?? []) as { slug: string; sort_order: number }[];
+  const destSlugs = new Set(dest.map((r) => r.slug));
+
+  // Mantém o slug; só re-sluga se colidir no destino (raro).
+  const newSlug = destSlugs.has(input.lessonSlug)
+    ? uniqueLessonId(input.lessonSlug, destSlugs)
+    : input.lessonSlug;
+
+  const provisionalOrder =
+    dest.reduce((max, r) => Math.max(max, r.sort_order ?? -1), -1) + 1;
+
+  const { error: upErr } = await admin
+    .from("lessons")
+    .update({ module_id: to.id, slug: newSlug, sort_order: provisionalOrder })
+    .eq("module_id", from.id)
+    .eq("slug", input.lessonSlug);
+  if (upErr) throw upErr;
+
+  // views/feedback são chaveados por (slug do módulo, slug da aula) — migra pra
+  // não orfanar o histórico ao trocar de módulo.
+  const oldMatch = { module_id: input.fromModuleSlug, lesson_id: input.lessonSlug };
+  const newKey = { module_id: input.toModuleSlug, lesson_id: newSlug };
+  const { error: vErr } = await admin.from("lesson_views").update(newKey).match(oldMatch);
+  if (vErr) throw vErr;
+  const { error: fErr } = await admin.from("lesson_feedback").update(newKey).match(oldMatch);
+  if (fErr) throw fErr;
+  const { error: mErr } = await admin.from("lesson_materials").update(newKey).match(oldMatch);
+  if (mErr) throw mErr;
+
+  // Reindexa destino inserindo na posição pedida, depois fecha o buraco na origem.
+  let toIndex = input.toIndex ?? null;
+  if (input.beforeLessonSlug) {
+    const without = dest.map((r) => r.slug).filter((s) => s !== newSlug);
+    const idx = without.indexOf(input.beforeLessonSlug);
+    toIndex = idx >= 0 ? idx : without.length;
+  }
+  const destOrder = insertSlugAt(
+    dest.map((r) => r.slug),
+    newSlug,
+    toIndex,
+  );
+  await reorderModuleDb(input.toModuleSlug, destOrder);
+
+  const { data: srcRows, error: sErr } = await admin
+    .from("lessons")
+    .select("slug")
+    .eq("module_id", from.id)
+    .order("sort_order", { ascending: true });
+  if (sErr) throw sErr;
+  await reorderModuleDb(
+    input.fromModuleSlug,
+    (srcRows ?? []).map((r) => (r as { slug: string }).slug),
+  );
 }
 
 export async function setPublishedBatchDb(
