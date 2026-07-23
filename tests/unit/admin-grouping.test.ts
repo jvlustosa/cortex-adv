@@ -18,6 +18,7 @@ function row(moduleId: string, lessonId: string, title = lessonId): LessonAdminR
     feedbackCount: 0,
     avgRating: null,
     orderIndex: 0,
+    viewers: [],
     origin: "custom",
   };
 }

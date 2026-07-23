@@ -31,6 +31,12 @@ export type LessonFeedbackRow = {
   created_at: string;
 };
 
+export type LessonViewer = {
+  userId: string;
+  email: string;
+  viewedAt: string;
+};
+
 export type LessonAdminRow = {
   moduleId: string;
   moduleTitle: string;
@@ -42,6 +48,8 @@ export type LessonAdminRow = {
   tella: string | null;
   published: boolean;
   viewCount: number;
+  /** Alunos únicos que assistiram (para avatar stack no painel). */
+  viewers: LessonViewer[];
   feedbackCount: number;
   avgRating: number | null;
   orderIndex: number | null;

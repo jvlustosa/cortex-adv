@@ -14,3 +14,14 @@ export function formatBytes(bytes: number): string {
   if (kb < 1024) return `${Math.round(kb)} KB`;
   return `${(kb / 1024).toFixed(1)} MB`;
 }
+
+/** Iniciais para avatar stack (parte local do e-mail). */
+export function initialsFromEmail(email: string): string {
+  const local = email.split("@")[0]?.trim() ?? "";
+  if (!local) return "?";
+  const parts = local.split(/[._-]+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return local.slice(0, 2).toUpperCase();
+}

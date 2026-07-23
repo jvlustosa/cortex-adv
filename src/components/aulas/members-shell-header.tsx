@@ -36,8 +36,9 @@ type MembersShellHeaderProps = {
 
 // Deriva a aba ativa da rota atual — o header vive no layout compartilhado e
 // não recebe mais `active` por page.
-function useActiveTab(): "catalog" | "player" | "packs" | undefined {
+function useActiveTab(): "catalog" | "player" | "packs" | "admin" | undefined {
   const pathname = usePathname();
+  if (pathname.startsWith("/admin")) return "admin";
   if (pathname.startsWith("/area-de-membros/packs")) return "packs";
   if (pathname === "/area-de-membros") return "catalog";
   if (pathname.startsWith("/aulas")) return "player";
@@ -84,6 +85,11 @@ export function MembersShellHeader({
       ? `${styles.navLink} ${styles.navLinkActive}`
       : styles.navLink;
 
+  const adminLinkClass =
+    active === "admin"
+      ? `${styles.navLink} ${styles.adminLink} ${styles.navLinkActive}`
+      : `${styles.navLink} ${styles.adminLink}`;
+
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
@@ -109,7 +115,8 @@ export function MembersShellHeader({
           {isAdmin ? (
             <Link
               href="/admin"
-              className={`${styles.navLink} ${styles.adminLink}`}
+              className={adminLinkClass}
+              aria-current={active === "admin" ? "page" : undefined}
             >
               Admin
               <span className={styles.adminCaption}>
@@ -187,7 +194,8 @@ export function MembersShellHeader({
                 {isAdmin ? (
                   <Link
                     href="/admin"
-                    className={`${styles.navLink} ${styles.adminLink}`}
+                    className={adminLinkClass}
+                    aria-current={active === "admin" ? "page" : undefined}
                     onClick={closeMenu}
                   >
                     Admin

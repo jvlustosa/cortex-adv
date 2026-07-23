@@ -7,6 +7,7 @@ import type {
   LessonFeedbackItem,
   LessonFeedbackRow,
   LessonOverrideRow,
+  LessonViewer,
 } from "./types";
 import { fetchLessonOverrides, getMergedCourse } from "./merge-course";
 import { compareLessons, nextOrderIndex, type Orderable } from "./ordering";
@@ -29,26 +30,79 @@ export type { ModuleAdminRow };
 
 export class CatalogLessonError extends Error {}
 
-type ViewAgg = { module_id: string; lesson_id: string; count: number };
+type ViewRow = {
+  module_id: string;
+  lesson_id: string;
+  user_id: string | null;
+  viewed_at: string;
+};
+
+async function aggregateViews(): Promise<{
+  counts: Map<string, number>;
+  viewersByLesson: Map<string, LessonViewer[]>;
+}> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("lesson_views")
+    .select("module_id, lesson_id, user_id, viewed_at")
+    .order("viewed_at", { ascending: false });
+  if (error) throw error;
+
+  const counts = new Map<string, number>();
+  const uniqueByLesson = new Map<string, Map<string, { viewedAt: string }>>();
+
+  for (const row of (data ?? []) as ViewRow[]) {
+    const key = `${row.module_id}:${row.lesson_id}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+    if (!row.user_id) continue;
+    let byUser = uniqueByLesson.get(key);
+    if (!byUser) {
+      byUser = new Map();
+      uniqueByLesson.set(key, byUser);
+    }
+    if (!byUser.has(row.user_id)) {
+      byUser.set(row.user_id, { viewedAt: row.viewed_at });
+    }
+  }
+
+  const userIds = new Set<string>();
+  for (const byUser of uniqueByLesson.values()) {
+    for (const uid of byUser.keys()) userIds.add(uid);
+  }
+
+  const emailByUser = new Map<string, string>();
+  if (userIds.size > 0) {
+    const { data: users, error: usersErr } = await admin
+      .from("users")
+      .select("id, email")
+      .in("id", [...userIds]);
+    if (usersErr) throw usersErr;
+    for (const u of (users ?? []) as { id: string; email: string | null }[]) {
+      if (u.email) emailByUser.set(u.id, u.email);
+    }
+  }
+
+  const viewersByLesson = new Map<string, import("./types").LessonViewer[]>();
+  for (const [key, byUser] of uniqueByLesson) {
+    viewersByLesson.set(
+      key,
+      [...byUser.entries()].map(([userId, { viewedAt }]) => ({
+        userId,
+        email: emailByUser.get(userId) ?? `${userId.slice(0, 8)}…`,
+        viewedAt,
+      })),
+    );
+  }
+
+  return { counts, viewersByLesson };
+}
+
 type FeedbackAgg = {
   module_id: string;
   lesson_id: string;
   count: number;
   avg: number;
 };
-
-async function aggregateViews(): Promise<Map<string, number>> {
-  const admin = createAdminClient();
-  const { data, error } = await admin.from("lesson_views").select("module_id, lesson_id");
-  if (error) throw error;
-
-  const map = new Map<string, number>();
-  for (const row of (data ?? []) as ViewAgg[]) {
-    const key = `${row.module_id}:${row.lesson_id}`;
-    map.set(key, (map.get(key) ?? 0) + 1);
-  }
-  return map;
-}
 
 async function aggregateFeedback(): Promise<Map<string, FeedbackAgg>> {
   const admin = createAdminClient();
@@ -139,7 +193,8 @@ function adminContentFromCatalog(
 /** Junta o conteúdo (já ordenado) com views/feedback e calcula os totais. */
 function assembleAdminRows(
   content: AdminContentModule[],
-  viewMap: Map<string, number>,
+  viewCounts: Map<string, number>,
+  viewersByLesson: Map<string, LessonViewer[]>,
   feedbackMap: Map<string, FeedbackAgg>,
 ): { lessons: LessonAdminRow[]; totals: AdminTotals } {
   const lessons: LessonAdminRow[] = [];
@@ -157,7 +212,8 @@ function assembleAdminRows(
         youtubeId: l.youtubeId,
         tella: l.tella,
         published: l.published,
-        viewCount: viewMap.get(key) ?? 0,
+        viewCount: viewCounts.get(key) ?? 0,
+        viewers: viewersByLesson.get(key) ?? [],
         feedbackCount: feedback?.count ?? 0,
         avgRating: feedback ? Math.round(feedback.avg * 10) / 10 : null,
         orderIndex: l.orderIndex,
@@ -214,14 +270,22 @@ export async function listLessonsForAdmin(): Promise<{
     ? adminContentFromDb()
     : fetchLessonOverrides().then(adminContentFromCatalog);
 
-  const [content, viewMap, feedbackMap, modules] = await Promise.all([
+  const [content, viewAgg, feedbackMap, modules] = await Promise.all([
     contentPromise,
     aggregateViews(),
     aggregateFeedback(),
     dbMode ? listModulesForAdmin() : Promise.resolve(catalogModulesForAdmin()),
   ]);
 
-  return { ...assembleAdminRows(content, viewMap, feedbackMap), modules };
+  return {
+    ...assembleAdminRows(
+      content,
+      viewAgg.counts,
+      viewAgg.viewersByLesson,
+      feedbackMap,
+    ),
+    modules,
+  };
 }
 
 export async function upsertLessonOverride(input: {
@@ -444,6 +508,7 @@ export async function createLesson(input: {
     tella: input.tella ?? null,
     published: input.published,
     viewCount: 0,
+    viewers: [],
     feedbackCount: 0,
     avgRating: null,
     orderIndex,

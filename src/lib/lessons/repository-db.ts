@@ -169,6 +169,7 @@ export async function createLessonDb(input: {
     tella: input.tella ?? null,
     published: input.published,
     viewCount: 0,
+    viewers: [],
     feedbackCount: 0,
     avgRating: null,
     orderIndex: sortOrder,

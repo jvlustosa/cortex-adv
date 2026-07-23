@@ -1685,8 +1685,8 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                       <th>Views</th>
                       <th>Nota</th>
                       <th>Status</th>
-                      <th>Vídeo</th>
-                      <th />
+                      <th scope="col">Vídeo</th>
+                      <th scope="col" aria-label="Ações" />
                     </tr>
                   </thead>
                   <tbody>

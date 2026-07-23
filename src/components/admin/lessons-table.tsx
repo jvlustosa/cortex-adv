@@ -1,70 +1,21 @@
 "use client";
 
-import {
-  ExternalLink,
-  Link2,
-  MessageSquare,
-  Paperclip,
-  Pencil,
-  Play,
-  Trash2,
-} from "lucide-react";
 import type { DragEvent } from "react";
+import { useState } from "react";
 import {
   dropPositionFromPointer,
   type DropPosition,
 } from "@/lib/admin/dnd";
-import { lessonVideo } from "@/lib/lessons/video-urls";
 import type { LessonAdminRow } from "@/lib/lessons/types";
 import { DragHandle, ReorderButtons } from "./admin-dnd";
+import {
+  LessonRowMenu,
+  type MenuPoint,
+} from "./lesson-row-menu";
+import { LessonVideoThumb } from "./lesson-video-thumb";
 import { Stars } from "./admin-ui";
+import { LessonViewersStack } from "./lesson-viewers-stack";
 import styles from "./admin-dashboard.module.css";
-
-function VideoCell({
-  lesson,
-  onCopy,
-  onPreview,
-}: {
-  lesson: LessonAdminRow;
-  onCopy: (text: string) => void;
-  onPreview: (l: LessonAdminRow) => void;
-}) {
-  const video = lessonVideo(lesson);
-  if (!video) return <span className={styles.feedbackMeta}>Sem vídeo</span>;
-
-  return (
-    <div className={styles.rowActions}>
-      <button
-        type="button"
-        className={styles.iconBtn}
-        onClick={() => onPreview(lesson)}
-        title={`Preview (${video.label})`}
-        aria-label={`Preview (${video.label})`}
-      >
-        <Play className="size-4" aria-hidden />
-      </button>
-      <button
-        type="button"
-        className={styles.iconBtn}
-        onClick={() => onCopy(video.url)}
-        title="Copiar link"
-        aria-label="Copiar link do vídeo"
-      >
-        <Link2 className="size-4" aria-hidden />
-      </button>
-      <a
-        className={styles.iconBtn}
-        href={video.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Abrir vídeo"
-        aria-label="Abrir vídeo em nova aba"
-      >
-        <ExternalLink className="size-4" aria-hidden />
-      </a>
-    </div>
-  );
-}
 
 export function LessonRow({
   lesson,
@@ -116,11 +67,19 @@ export function LessonRow({
   onKeyMove: (l: LessonAdminRow, dir: -1 | 1) => void;
 }) {
   const key = `${lesson.moduleId}:${lesson.lessonId}`;
+  const [menuAt, setMenuAt] = useState<MenuPoint | null>(null);
+
   return (
     <tr
       className={`${styles.lessonRow}${dragging ? ` ${styles.lessonRowDragging}` : ""}${
         dropPosition === "before" ? ` ${styles.lessonRowDropBefore}` : ""
-      }${dropPosition === "after" ? ` ${styles.lessonRowDropAfter}` : ""}`}
+      }${dropPosition === "after" ? ` ${styles.lessonRowDropAfter}` : ""}${
+        menuAt ? ` ${styles.lessonRowMenuOpen}` : ""
+      }`}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        setMenuAt({ x: e.clientX, y: e.clientY });
+      }}
       onDragOver={(e) => {
         if (dragging) return;
         e.preventDefault();
@@ -193,30 +152,20 @@ export function LessonRow({
           </div>
         </div>
       </td>
-      <td>{lesson.viewCount}</td>
       <td>
-        <div className={styles.notaCell}>
-          <span>
-            {lesson.avgRating !== null ? (
-              <>
-                <Stars rating={Math.round(lesson.avgRating)} />{" "}
-                <span className={styles.feedbackMeta}>
-                  {lesson.avgRating} ({lesson.feedbackCount})
-                </span>
-              </>
-            ) : (
-              <span className={styles.feedbackMeta}>-</span>
-            )}
-          </span>
-          <button
-            type="button"
-            className={styles.feedbackBtn}
-            onClick={() => onFeedback(lesson)}
-            aria-label={`Ver avaliações de ${lesson.title}`}
-          >
-            <MessageSquare className="size-4" aria-hidden />
-          </button>
-        </div>
+        <LessonViewersStack viewers={lesson.viewers} total={lesson.viewCount} />
+      </td>
+      <td>
+        {lesson.avgRating !== null ? (
+          <>
+            <Stars rating={Math.round(lesson.avgRating)} />{" "}
+            <span className={styles.feedbackMeta}>
+              {lesson.avgRating} ({lesson.feedbackCount})
+            </span>
+          </>
+        ) : (
+          <span className={styles.feedbackMeta}>-</span>
+        )}
       </td>
       <td>
         <span
@@ -225,41 +174,23 @@ export function LessonRow({
           {lesson.published ? "Publicada" : "Rascunho"}
         </span>
       </td>
-      <td>
-        <VideoCell lesson={lesson} onCopy={onCopy} onPreview={onPreview} />
+      <td className={styles.videoThumbCell}>
+        <LessonVideoThumb lesson={lesson} onPreview={onPreview} />
       </td>
-      <td>
-        <div className={styles.rowActions}>
-          <button
-            type="button"
-            className={styles.iconBtn}
-            onClick={() => onEdit(lesson)}
-            title="Editar aula"
-            aria-label={`Editar ${lesson.title}`}
-          >
-            <Pencil className="size-4" aria-hidden />
-          </button>
-          <button
-            type="button"
-            className={styles.iconBtn}
-            onClick={() => onMaterials(lesson)}
-            title="Materiais"
-            aria-label={`Materiais de ${lesson.title}`}
-          >
-            <Paperclip className="size-4" aria-hidden />
-          </button>
-          {lesson.origin === "custom" || dbMode ? (
-            <button
-              type="button"
-              className={styles.iconDangerBtn}
-              onClick={() => onDelete(lesson)}
-              title="Excluir aula"
-              aria-label={`Excluir ${lesson.title}`}
-            >
-              <Trash2 className="size-4" aria-hidden />
-            </button>
-          ) : null}
-        </div>
+      <td className={styles.rowMenuCell}>
+        <LessonRowMenu
+          lesson={lesson}
+          dbMode={dbMode}
+          menuAt={menuAt}
+          onOpenMenu={setMenuAt}
+          onCloseMenu={() => setMenuAt(null)}
+          onCopy={onCopy}
+          onEdit={onEdit}
+          onPreview={onPreview}
+          onFeedback={onFeedback}
+          onMaterials={onMaterials}
+          onDelete={onDelete}
+        />
       </td>
     </tr>
   );

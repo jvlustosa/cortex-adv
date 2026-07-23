@@ -186,7 +186,7 @@ export function LessonsTableHead() {
             <th scope="col">Nota</th>
             <th scope="col">Status</th>
             <th scope="col">Vídeo</th>
-            <th scope="col" />
+            <th scope="col" aria-label="Ações" />
           </tr>
         </thead>
       </table>

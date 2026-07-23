@@ -1,11 +1,22 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { formatAdminDate, formatBytes } from "../../src/lib/admin/format.ts";
+import { formatAdminDate, formatBytes, initialsFromEmail } from "../../src/lib/admin/format.ts";
 import {
   lessonEmbedUrl,
   lessonVideo,
+  lessonVideoThumbnail,
 } from "../../src/lib/lessons/video-urls.ts";
 import { normalizeSection } from "../../src/lib/admin/normalize-section.ts";
+
+describe("initialsFromEmail", () => {
+  it("usa iniciais de nome.sobrenome", () => {
+    assert.equal(initialsFromEmail("maria.silva@escritorio.com"), "MS");
+  });
+
+  it("cai nos dois primeiros chars do local part", () => {
+    assert.equal(initialsFromEmail("joao@x.com"), "JO");
+  });
+});
 
 describe("formatAdminDate", () => {
   it("null → traço", () => {
@@ -31,6 +42,25 @@ describe("lessonVideo", () => {
   it("cai no YouTube sem Tella", () => {
     const v = lessonVideo({ youtubeId: "abc123" });
     assert.ok(v?.url.includes("youtube.com"));
+  });
+});
+
+describe("lessonVideoThumbnail", () => {
+  it("gera CDN Tella", () => {
+    const t = lessonVideoThumbnail({ tella: "abc-slug" });
+    assert.ok(t?.src.includes("cdn.tella.tv/thumbnails/abc-slug"));
+    assert.equal(t?.label, "Tella");
+  });
+
+  it("gera img.youtube sem Tella", () => {
+    const t = lessonVideoThumbnail({ youtubeId: "abc123" });
+    assert.ok(t?.src.includes("i.ytimg.com/vi/abc123"));
+    assert.equal(t?.label, "YouTube");
+  });
+
+  it("prioriza Tella sobre YouTube", () => {
+    const t = lessonVideoThumbnail({ tella: "t", youtubeId: "y" });
+    assert.equal(t?.label, "Tella");
   });
 });
 

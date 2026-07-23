@@ -3,6 +3,12 @@ type VideoLesson = {
   tella?: string | null;
 };
 
+export type LessonVideoThumb = {
+  src: string;
+  label: "Tella" | "YouTube";
+  videoUrl: string;
+};
+
 /** URL pública do vídeo. Tella tem prioridade (regra do player). */
 export function lessonVideo(
   lesson: VideoLesson,
@@ -14,6 +20,27 @@ export function lessonVideo(
     return {
       url: `https://www.youtube.com/watch?v=${lesson.youtubeId}`,
       label: "YouTube",
+    };
+  }
+  return null;
+}
+
+/** Thumbnail 16:9 para preview no admin (CDN Tella / img.youtube.com). */
+export function lessonVideoThumbnail(
+  lesson: VideoLesson,
+): LessonVideoThumb | null {
+  if (lesson.tella) {
+    return {
+      src: `https://cdn.tella.tv/thumbnails/${encodeURIComponent(lesson.tella)}/640x360.jpg`,
+      label: "Tella",
+      videoUrl: `https://www.tella.tv/video/${lesson.tella}`,
+    };
+  }
+  if (lesson.youtubeId) {
+    return {
+      src: `https://i.ytimg.com/vi/${encodeURIComponent(lesson.youtubeId)}/mqdefault.jpg`,
+      label: "YouTube",
+      videoUrl: `https://www.youtube.com/watch?v=${lesson.youtubeId}`,
     };
   }
   return null;

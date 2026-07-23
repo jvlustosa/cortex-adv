@@ -22,6 +22,7 @@ function row(
     feedbackCount: 0,
     avgRating: null,
     orderIndex: 0,
+    viewers: [],
     origin: "custom",
   };
 }
