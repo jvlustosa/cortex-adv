@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { ChevronDown, Copy, Loader2, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  Copy,
+  Loader2,
+  PlayCircle,
+  Trash2,
+  VideoOff,
+} from "lucide-react";
 import { useToast } from "@/components/toast";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import {
@@ -53,6 +60,7 @@ import {
 import { LessonRow } from "./lessons-table";
 import { LessonViewersStack } from "./lesson-viewers-stack";
 import { InviteWizard } from "./invite-wizard";
+import { ConfirmProvider, useConfirm } from "./confirm-dialog";
 import { useUndoForm } from "./use-undo-form";
 import styles from "./admin-dashboard.module.css";
 
@@ -337,6 +345,7 @@ function EditLessonModal({
   onDelete: () => void;
 }) {
   const toast = useToast();
+  const confirm = useConfirm();
   const form = formCtrl.value;
   const previewUrl = lessonEmbedUrl({
     tella: form.tella,
@@ -451,7 +460,12 @@ function EditLessonModal({
     }
   }
 
-  async function deleteMaterial(id: string) {
+  async function deleteMaterial(id: string, label: string) {
+    const ok = await confirm({
+      title: "Excluir material",
+      message: `Excluir "${label}"? O aluno deixa de ter acesso a este arquivo. Ação irreversível.`,
+    });
+    if (!ok) return;
     setMaterialDeletingId(id);
     try {
       const res = await adminFetch("/api/admin/lessons/materials", {
@@ -563,11 +577,18 @@ function EditLessonModal({
                   alt=""
                   className={styles.previewThumb}
                 />
+                <span className={styles.previewThumbOverlay} aria-hidden>
+                  <PlayCircle className="size-9" strokeWidth={1.5} />
+                </span>
                 <span className={styles.previewThumbBadge}>{thumb.label}</span>
               </div>
             ) : (
               <div className={styles.previewPlaceholder}>
-                Sem vídeo configurado
+                <VideoOff className="size-7" strokeWidth={1.5} aria-hidden />
+                <p className={styles.previewPlaceholderText}>
+                  Sem vídeo ainda. Cole um link do Tella ou YouTube nos campos ao
+                  lado — a prévia aparece aqui.
+                </p>
               </div>
             )}
 
@@ -820,7 +841,7 @@ function EditLessonModal({
                       className={styles.iconDangerBtn}
                       disabled={materialDeletingId === m.id}
                       aria-label={`Excluir ${m.label}`}
-                      onClick={() => void deleteMaterial(m.id)}
+                      onClick={() => void deleteMaterial(m.id, m.label)}
                     >
                       {materialDeletingId === m.id ? (
                         <Loader2 className="size-4 animate-spin" aria-hidden />
@@ -844,6 +865,7 @@ function EditLessonModal({
                 key={materialFileKey}
                 className={styles.input}
                 type="file"
+                accept=".md,.markdown,.html,.htm,.pdf,.txt,.png,.jpg,.jpeg,.gif,.webp,.svg"
                 onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)}
               />
               <button
@@ -1072,152 +1094,13 @@ function FeedbackModal({
   );
 }
 
-function MaterialsModal({
-  lesson,
-  materials,
-  loading,
-  uploading,
-  deletingId,
-  onUpload,
-  onDelete,
-  onClose,
-}: {
-  lesson: LessonAdminRow;
-  materials: LessonMaterialAdmin[];
-  loading: boolean;
-  uploading: boolean;
-  deletingId: string | null;
-  onUpload: (label: string, file: File) => void;
-  onDelete: (id: string) => void;
-  onClose: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  // Chave pra resetar o <input type="file"> após um upload bem-sucedido.
-  const [fileKey, setFileKey] = useState(0);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  function submit() {
-    if (!file) return;
-    onUpload(label.trim() || file.name, file);
-    setLabel("");
-    setFile(null);
-    setFileKey((k) => k + 1);
-  }
-
-  return (
-    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
-      <div
-        className={styles.modal}
-        role="dialog"
-        aria-label={`Materiais: ${lesson.title}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className={styles.modalHead}>
-          <h2 className={styles.modalTitle}>Materiais · {lesson.title}</h2>
-          <button
-            type="button"
-            className={styles.editBtn}
-            onClick={onClose}
-            aria-label="Fechar"
-          >
-            Fechar
-          </button>
-        </div>
-        <p className={styles.modalMeta}>
-          Skills, PDFs e templates que o aluno baixa dentro da aula.
-        </p>
-
-        {loading ? (
-          <p className={styles.loading}>
-            <Loader2 className="size-4 animate-spin" aria-hidden /> Carregando…
-          </p>
-        ) : materials.length === 0 ? (
-          <p className={styles.empty}>Nenhum material ainda.</p>
-        ) : (
-          <div className={styles.feedbackList}>
-            {materials.map((m) => (
-              <article key={m.id} className={styles.feedbackItem}>
-                <div className={styles.feedbackTop}>
-                  <div>
-                    <p className={styles.feedbackLesson}>{m.label}</p>
-                    <p className={styles.feedbackMeta}>
-                      {m.fileName}
-                      {m.sizeBytes ? ` · ${formatBytes(m.sizeBytes)}` : ""}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.iconDangerBtn}
-                    disabled={deletingId === m.id}
-                    aria-label={`Excluir ${m.label}`}
-                    onClick={() => onDelete(m.id)}
-                  >
-                    {deletingId === m.id ? (
-                      <Loader2 className="size-4 animate-spin" aria-hidden />
-                    ) : (
-                      <Trash2 className="size-4" aria-hidden />
-                    )}
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-
-        <label className={styles.field}>
-          <span className={styles.label}>Rótulo (opcional)</span>
-          <input
-            className={styles.input}
-            value={label}
-            placeholder="Ex.: Skill de petição inicial"
-            onChange={(e) => setLabel(e.target.value)}
-          />
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Arquivo</span>
-          <input
-            key={fileKey}
-            className={styles.input}
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
-        </label>
-
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.btnPrimary}
-            disabled={!file || uploading}
-            aria-busy={uploading}
-            onClick={submit}
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden /> Enviando…
-              </>
-            ) : (
-              "Adicionar material"
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function AdminDashboard({
+function AdminDashboardInner({
   dbMode: initialDbMode = false,
 }: {
   dbMode?: boolean;
 }) {
   const toast = useToast();
+  const confirm = useConfirm();
   const [dbMode, setDbMode] = useState(initialDbMode);
   const notifySuccess = useCallback(
     (message: string) => {
@@ -1244,17 +1127,6 @@ export function AdminDashboard({
     useState<LessonFeedbackDetail | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  // Materiais da aula (skills/PDFs) — upload/exclusão no painel.
-  const [materialsLesson, setMaterialsLesson] = useState<LessonAdminRow | null>(
-    null,
-  );
-  const [materials, setMaterials] = useState<LessonMaterialAdmin[]>([]);
-  const [materialsLoading, setMaterialsLoading] = useState(false);
-  const [materialUploading, setMaterialUploading] = useState(false);
-  const [materialDeletingId, setMaterialDeletingId] = useState<string | null>(
-    null,
-  );
 
   // Seções (módulos) — geridas só no modo DB (COURSE_SOURCE=db).
   const [sections, setSections] = useState<SectionAdminRow[]>([]);
@@ -1409,87 +1281,6 @@ export function AdminDashboard({
       setFeedbackLoading(false);
     }
   }, []);
-
-  const openMaterials = useCallback(async (lesson: LessonAdminRow) => {
-    setMaterialsLesson(lesson);
-    setMaterials([]);
-    setMaterialsLoading(true);
-    try {
-      const res = await adminFetch(
-        `/api/admin/lessons/materials?moduleId=${encodeURIComponent(lesson.moduleId)}&lessonId=${encodeURIComponent(lesson.lessonId)}`,
-      );
-      if (!res.ok) {
-        throw new Error(
-          await readApiErrorMessage(res, "Falha ao carregar materiais."),
-        );
-      }
-      const data = (await res.json()) as { materials: LessonMaterialAdmin[] };
-      setMaterials(data.materials);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao carregar materiais.",
-      );
-      setMaterialsLesson(null);
-    } finally {
-      setMaterialsLoading(false);
-    }
-  }, []);
-
-  async function uploadMaterial(label: string, file: File) {
-    if (!materialsLesson) return;
-    setMaterialUploading(true);
-    setError(null);
-    try {
-      const fd = new FormData();
-      fd.append("moduleId", materialsLesson.moduleId);
-      fd.append("lessonId", materialsLesson.lessonId);
-      fd.append("label", label);
-      fd.append("file", file);
-      const res = await adminFetch("/api/admin/lessons/materials", {
-        method: "POST",
-        body: fd,
-      });
-      if (!res.ok) {
-        throw new Error(await readApiErrorMessage(res, "Erro ao subir material."));
-      }
-      const data = (await res.json()) as { material: LessonMaterialAdmin };
-      setMaterials((prev) => [...prev, data.material]);
-      notifySuccess("Material enviado.");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Erro ao subir material.";
-      setError(message);
-      toast.error(message);
-    } finally {
-      setMaterialUploading(false);
-    }
-  }
-
-  async function deleteMaterial(id: string) {
-    setMaterialDeletingId(id);
-    setError(null);
-    try {
-      const res = await adminFetch("/api/admin/lessons/materials", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      if (!res.ok) {
-        throw new Error(
-          await readApiErrorMessage(res, "Erro ao excluir material."),
-        );
-      }
-      setMaterials((prev) => prev.filter((m) => m.id !== id));
-      notifySuccess("Material removido.");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Erro ao excluir material.";
-      setError(message);
-      toast.error(message);
-    } finally {
-      setMaterialDeletingId(null);
-    }
-  }
 
   async function saveLesson() {
     if (!editing) return;
@@ -1686,13 +1477,12 @@ export function AdminDashboard({
   }
 
   async function deleteSection(section: SectionAdminRow) {
-    if (
-      !window.confirm(
-        `Excluir a seção "${section.title}"? Isso remove a seção e suas ${section.lessonCount} aula(s), com views e avaliações. Ação irreversível.`,
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Excluir seção",
+      message: `Excluir a seção "${section.title}"? Isso remove a seção e suas ${section.lessonCount} aula(s), com views e avaliações. Ação irreversível.`,
+      confirmLabel: "Excluir seção",
+    });
+    if (!ok) return;
     setError(null);
     try {
       const res = await adminFetch("/api/admin/modules", {
@@ -1805,13 +1595,12 @@ export function AdminDashboard({
   }
 
   async function deleteLesson(lesson: LessonAdminRow) {
-    if (
-      !window.confirm(
-        `Excluir "${lesson.title}"? Isso remove a aula e suas avaliações. Ação irreversível.`,
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Excluir aula",
+      message: `Excluir "${lesson.title}"? Isso remove a aula e suas avaliações. Ação irreversível.`,
+      confirmLabel: "Excluir aula",
+    });
+    if (!ok) return;
     setError(null);
     try {
       const res = await adminFetch("/api/admin/lessons", {
@@ -2147,13 +1936,14 @@ export function AdminDashboard({
   }
 
   async function toggleBan(member: MemberAdminRow) {
-    if (
-      !member.banned &&
-      !window.confirm(
-        `Banir ${member.email}? O login fica bloqueado até você desbanir. Progresso e feedback são mantidos.`,
-      )
-    ) {
-      return;
+    if (!member.banned) {
+      const ok = await confirm({
+        title: `Banir ${member.email}?`,
+        message:
+          "O login fica bloqueado até você desbanir. Progresso e feedback são mantidos.",
+        confirmLabel: "Banir",
+      });
+      if (!ok) return;
     }
     setMemberActionId(member.id);
     setError(null);
@@ -2569,7 +2359,6 @@ export function AdminDashboard({
                                       onEdit={openEdit}
                                       onPreview={setPreviewLesson}
                                       onFeedback={openFeedback}
-                                      onMaterials={openMaterials}
                                       onDelete={deleteLesson}
                                       onDragStart={setDragKey}
                                       onDragEnd={clearLessonDrag}
@@ -2701,7 +2490,6 @@ export function AdminDashboard({
                               onEdit={openEdit}
                               onPreview={setPreviewLesson}
                               onFeedback={openFeedback}
-                              onMaterials={openMaterials}
                               onDelete={deleteLesson}
                               onDragStart={setDragKey}
                               onDragEnd={clearLessonDrag}
@@ -3047,19 +2835,6 @@ export function AdminDashboard({
         />
       ) : null}
 
-      {materialsLesson ? (
-        <MaterialsModal
-          lesson={materialsLesson}
-          materials={materials}
-          loading={materialsLoading}
-          uploading={materialUploading}
-          deletingId={materialDeletingId}
-          onUpload={uploadMaterial}
-          onDelete={deleteMaterial}
-          onClose={() => setMaterialsLesson(null)}
-        />
-      ) : null}
-
       {creating ? (
         <div
           className={styles.modalBackdrop}
@@ -3355,5 +3130,13 @@ export function AdminDashboard({
         </div>
       ) : null}
     </div>
+  );
+}
+
+export function AdminDashboard(props: { dbMode?: boolean }) {
+  return (
+    <ConfirmProvider>
+      <AdminDashboardInner {...props} />
+    </ConfirmProvider>
   );
 }

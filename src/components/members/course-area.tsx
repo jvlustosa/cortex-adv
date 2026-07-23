@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Clock, Download, PlayCircle } from "lucide-react";
+import { ArrowLeft, Clock, Download, Eye, PlayCircle } from "lucide-react";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
 import type { ComingSoonModuleView } from "@/lib/lessons/db-course";
 import type { LessonMaterial } from "@/lib/lessons/materials";
 import { normalizeTellaSlug, normalizeYoutubeId } from "@/lib/lessons/video-urls";
+import { MaterialViewer, isRenderable, materialKind } from "./material-viewer";
 import { CourseMenu } from "./course-menu";
 import { CompleteLessonButton } from "./complete-lesson-button";
 import { LessonFeedbackForm } from "./lesson-feedback-form";
@@ -67,6 +68,9 @@ export function CourseArea({
     key: string;
     items: LessonMaterial[];
   }>({ key: "", items: [] });
+  const [viewingMaterial, setViewingMaterial] = useState<LessonMaterial | null>(
+    null,
+  );
 
   // Ressincroniza estado local quando a navegação externa muda as props da URL
   // (voltar/avançar do navegador). Ajuste durante o render — padrão oficial do
@@ -283,26 +287,51 @@ export function CourseArea({
             <section className={styles.materials}>
               <h2 className={styles.materialsTitle}>Materiais da aula</h2>
               <ul className={styles.materialsList}>
-                {lessonMaterials.map((m) => (
-                  <li key={m.id}>
-                    <a
-                      href={m.url ?? "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download={m.fileName}
-                      aria-disabled={m.url ? undefined : true}
-                      className={styles.materialItem}
-                    >
-                      <Download className={styles.materialIcon} aria-hidden />
-                      <span className={styles.materialLabel}>{m.label}</span>
-                      {m.sizeBytes ? (
-                        <span className={styles.materialSize}>
-                          {formatBytes(m.sizeBytes)}
-                        </span>
-                      ) : null}
-                    </a>
-                  </li>
-                ))}
+                {lessonMaterials.map((m) => {
+                  const renderable = isRenderable(
+                    materialKind(m.fileName, m.contentType),
+                  );
+                  if (renderable) {
+                    return (
+                      <li key={m.id}>
+                        <button
+                          type="button"
+                          className={styles.materialItem}
+                          onClick={() => setViewingMaterial(m)}
+                          disabled={!m.url}
+                        >
+                          <Eye className={styles.materialIcon} aria-hidden />
+                          <span className={styles.materialLabel}>{m.label}</span>
+                          {m.sizeBytes ? (
+                            <span className={styles.materialSize}>
+                              {formatBytes(m.sizeBytes)}
+                            </span>
+                          ) : null}
+                        </button>
+                      </li>
+                    );
+                  }
+                  return (
+                    <li key={m.id}>
+                      <a
+                        href={m.url ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={m.fileName}
+                        aria-disabled={m.url ? undefined : true}
+                        className={styles.materialItem}
+                      >
+                        <Download className={styles.materialIcon} aria-hidden />
+                        <span className={styles.materialLabel}>{m.label}</span>
+                        {m.sizeBytes ? (
+                          <span className={styles.materialSize}>
+                            {formatBytes(m.sizeBytes)}
+                          </span>
+                        ) : null}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ) : null}
@@ -331,6 +360,11 @@ export function CourseArea({
           onSelectLesson={selectLesson}
         />
       </aside>
+
+      <MaterialViewer
+        material={viewingMaterial}
+        onClose={() => setViewingMaterial(null)}
+      />
     </div>
   );
 }

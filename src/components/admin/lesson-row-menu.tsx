@@ -5,7 +5,6 @@ import {
   Link2,
   MessageSquare,
   MoreVertical,
-  Paperclip,
   Pencil,
   Play,
   Trash2,
@@ -56,7 +55,6 @@ export function LessonRowMenu({
   onEdit,
   onPreview,
   onFeedback,
-  onMaterials,
   onDelete,
 }: {
   lesson: LessonAdminRow;
@@ -68,7 +66,6 @@ export function LessonRowMenu({
   onEdit: (l: LessonAdminRow) => void;
   onPreview: (l: LessonAdminRow) => void;
   onFeedback: (l: LessonAdminRow) => void;
-  onMaterials: (l: LessonAdminRow) => void;
   onDelete: (l: LessonAdminRow) => void;
 }) {
   const menuId = useId();
@@ -100,13 +97,6 @@ export function LessonRowMenu({
       label: "Editar aula",
       icon: <Pencil className="size-4" aria-hidden />,
       onSelect: () => onEdit(lesson),
-    },
-    {
-      type: "action",
-      id: "materials",
-      label: "Materiais",
-      icon: <Paperclip className="size-4" aria-hidden />,
-      onSelect: () => onMaterials(lesson),
     },
     { type: "sep" },
     {

@@ -67,8 +67,13 @@ export function LessonVideoThumb({
           title={`Preview: ${lesson.title}`}
           aria-label={`Preview de ${lesson.title}`}
         >
-          <Play className="size-5" aria-hidden />
+          <span className={styles.videoThumbFallbackIcon} aria-hidden>
+            <Play className="size-4 fill-current" />
+          </span>
           <span className={styles.videoThumbPlatform}>{video.label}</span>
+          {lesson.duration ? (
+            <span className={styles.videoThumbDuration}>{lesson.duration}</span>
+          ) : null}
         </button>
       )}
 

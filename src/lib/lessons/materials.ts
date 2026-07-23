@@ -109,6 +109,32 @@ export async function listLessonMaterialsForAdmin(
   }));
 }
 
+/**
+ * Content-type confiável. Navegadores costumam mandar `.md`/`.html` sem MIME
+ * (type vazio) — sem isso o arquivo fica como octet-stream e o visualizador não
+ * sabe renderizar. Deriva pela extensão quando o browser não informou.
+ */
+const EXT_CONTENT_TYPE: Record<string, string> = {
+  md: "text/markdown",
+  markdown: "text/markdown",
+  html: "text/html",
+  htm: "text/html",
+  txt: "text/plain",
+  pdf: "application/pdf",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+  svg: "image/svg+xml",
+};
+
+function inferContentType(fileName: string, provided: string): string {
+  if (provided && provided !== "application/octet-stream") return provided;
+  const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
+  return EXT_CONTENT_TYPE[ext] ?? provided ?? "application/octet-stream";
+}
+
 /** Nome de arquivo seguro pro storage (sem acentos/espaços/barras). */
 function safeFileName(name: string): string {
   const normalized = name
@@ -133,7 +159,7 @@ export async function createLessonMaterial(input: {
   const admin = createAdminClient();
 
   const fileName = input.file.name || "arquivo";
-  const contentType = input.file.type || "application/octet-stream";
+  const contentType = inferContentType(fileName, input.file.type);
   const buffer = Buffer.from(await input.file.arrayBuffer());
   const filePath = `${input.moduleId}/${input.lessonId}/${crypto.randomUUID()}-${safeFileName(fileName)}`;
 

@@ -34,7 +34,6 @@ export function LessonRow({
   onEdit,
   onPreview,
   onFeedback,
-  onMaterials,
   onDelete,
   onDragStart,
   onDragEnd,
@@ -62,7 +61,6 @@ export function LessonRow({
   onEdit: (l: LessonAdminRow) => void;
   onPreview: (l: LessonAdminRow) => void;
   onFeedback: (l: LessonAdminRow) => void;
-  onMaterials: (l: LessonAdminRow) => void;
   onDelete: (l: LessonAdminRow) => void;
   onDragStart: (key: string) => void;
   onDragEnd: () => void;
@@ -219,7 +217,6 @@ export function LessonRow({
           onEdit={onEdit}
           onPreview={onPreview}
           onFeedback={onFeedback}
-          onMaterials={onMaterials}
           onDelete={onDelete}
         />
       </td>
