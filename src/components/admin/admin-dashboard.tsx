@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { ChevronDown, Loader2, Trash2 } from "lucide-react";
+import { ChevronDown, Copy, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/components/toast";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import {
@@ -28,7 +29,13 @@ import {
   insertLessonAt,
   lessonIdsForModule,
 } from "@/lib/lessons/admin-grouping";
-import { lessonEmbedUrl } from "@/lib/lessons/video-urls";
+import {
+  lessonEmbedUrl,
+  lessonVideo,
+  lessonVideoThumbnail,
+  normalizeTellaSlug,
+  normalizeYoutubeId,
+} from "@/lib/lessons/video-urls";
 import type { AdminTotals, LessonAdminRow } from "@/lib/lessons/types";
 import { DragHandle, ReorderButtons } from "./admin-dnd";
 import {
@@ -44,6 +51,7 @@ import {
   type AdminTab,
 } from "./admin-ui";
 import { LessonRow } from "./lessons-table";
+import { LessonViewersStack } from "./lesson-viewers-stack";
 import { InviteWizard } from "./invite-wizard";
 import { useUndoForm } from "./use-undo-form";
 import styles from "./admin-dashboard.module.css";
@@ -89,6 +97,7 @@ type LessonFeedbackDetail = {
 };
 
 type LessonFormState = {
+  moduleId: string;
   title: string;
   duration: string;
   description: string;
@@ -97,7 +106,7 @@ type LessonFormState = {
   published: boolean;
 };
 
-type CreateLessonFormState = LessonFormState & { moduleId: string };
+type CreateLessonFormState = LessonFormState;
 
 type SectionFormState = {
   title: string;
@@ -110,6 +119,7 @@ type SectionFormState = {
 };
 
 const EMPTY_LESSON_FORM: LessonFormState = {
+  moduleId: "",
   title: "",
   duration: "",
   description: "",
@@ -173,6 +183,658 @@ function CoverImagePicker({
             <img src={src} alt="" />
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function EditLessonModal({
+  lesson,
+  formCtrl,
+  dbMode,
+  moduleOptions,
+  saving,
+  onClose,
+  onSave,
+  onDelete,
+}: {
+  lesson: LessonAdminRow;
+  formCtrl: ReturnType<typeof useUndoForm<LessonFormState>>;
+  dbMode: boolean;
+  moduleOptions: { id: string; title: string }[];
+  saving: boolean;
+  onClose: () => void;
+  onSave: () => void;
+  onDelete: () => void;
+}) {
+  const toast = useToast();
+  const form = formCtrl.value;
+  const previewUrl = lessonEmbedUrl({
+    tella: form.tella,
+    youtubeId: form.youtubeId,
+  });
+  const externalVideo = lessonVideo({
+    tella: form.tella,
+    youtubeId: form.youtubeId,
+  });
+  const thumb = lessonVideoThumbnail({
+    tella: form.tella,
+    youtubeId: form.youtubeId,
+  });
+  const resolvedTella = normalizeTellaSlug(form.tella);
+  const resolvedYoutube = resolvedTella
+    ? null
+    : normalizeYoutubeId(form.youtubeId);
+  const memberHref = `/aulas/${lesson.moduleId}/${lesson.lessonId}`;
+  const descLen = form.description.length;
+
+  const [materials, setMaterials] = useState<LessonMaterialAdmin[]>([]);
+  const [materialsLoading, setMaterialsLoading] = useState(true);
+  const [materialUploading, setMaterialUploading] = useState(false);
+  const [materialDeletingId, setMaterialDeletingId] = useState<string | null>(
+    null,
+  );
+  const [materialLabel, setMaterialLabel] = useState("");
+  const [materialFile, setMaterialFile] = useState<File | null>(null);
+  const [materialFileKey, setMaterialFileKey] = useState(0);
+
+  const [feedbackDetail, setFeedbackDetail] =
+    useState<LessonFeedbackDetail | null>(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(true);
+
+  const loadMaterials = useCallback(async () => {
+    setMaterialsLoading(true);
+    try {
+      const res = await adminFetch(
+        `/api/admin/lessons/materials?moduleId=${encodeURIComponent(lesson.moduleId)}&lessonId=${encodeURIComponent(lesson.lessonId)}`,
+      );
+      if (!res.ok) {
+        throw new Error(
+          await readApiErrorMessage(res, "Falha ao carregar materiais."),
+        );
+      }
+      const data = (await res.json()) as { materials: LessonMaterialAdmin[] };
+      setMaterials(data.materials);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Erro ao carregar materiais.",
+      );
+      setMaterials([]);
+    } finally {
+      setMaterialsLoading(false);
+    }
+  }, [lesson.lessonId, lesson.moduleId, toast]);
+
+  const loadFeedback = useCallback(async () => {
+    setFeedbackLoading(true);
+    try {
+      const res = await adminFetch(
+        `/api/admin/lessons/feedback?moduleId=${encodeURIComponent(lesson.moduleId)}&lessonId=${encodeURIComponent(lesson.lessonId)}`,
+      );
+      if (!res.ok) throw new Error("Falha ao carregar avaliações.");
+      setFeedbackDetail((await res.json()) as LessonFeedbackDetail);
+    } catch {
+      setFeedbackDetail(null);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  }, [lesson.lessonId, lesson.moduleId]);
+
+  useEffect(() => {
+    void loadMaterials();
+    void loadFeedback();
+  }, [loadMaterials, loadFeedback]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  async function uploadMaterial() {
+    if (!materialFile) return;
+    setMaterialUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("moduleId", lesson.moduleId);
+      fd.append("lessonId", lesson.lessonId);
+      fd.append("label", materialLabel.trim() || materialFile.name);
+      fd.append("file", materialFile);
+      const res = await adminFetch("/api/admin/lessons/materials", {
+        method: "POST",
+        body: fd,
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Erro ao subir material."));
+      }
+      const data = (await res.json()) as { material: LessonMaterialAdmin };
+      setMaterials((prev) => [...prev, data.material]);
+      setMaterialLabel("");
+      setMaterialFile(null);
+      setMaterialFileKey((k) => k + 1);
+      toast.success("Material enviado.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Erro ao subir material.",
+      );
+    } finally {
+      setMaterialUploading(false);
+    }
+  }
+
+  async function deleteMaterial(id: string) {
+    setMaterialDeletingId(id);
+    try {
+      const res = await adminFetch("/api/admin/lessons/materials", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        throw new Error(
+          await readApiErrorMessage(res, "Erro ao excluir material."),
+        );
+      }
+      setMaterials((prev) => prev.filter((m) => m.id !== id));
+      toast.success("Material removido.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Erro ao excluir material.",
+      );
+    } finally {
+      setMaterialDeletingId(null);
+    }
+  }
+
+  async function copyMemberLink() {
+    try {
+      const url = `${window.location.origin}${memberHref}`;
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copiado.");
+    } catch {
+      toast.error("Não foi possível copiar o link.");
+    }
+  }
+
+  const selectedModuleTitle =
+    moduleOptions.find((m) => m.id === form.moduleId)?.title ??
+    lesson.moduleTitle;
+  const moduleChanged =
+    dbMode && form.moduleId && form.moduleId !== lesson.moduleId;
+
+  return (
+    <div
+      className={styles.modalBackdrop}
+      role="presentation"
+      onClick={onClose}
+    >
+      <div
+        className={styles.modalEditLesson}
+        role="dialog"
+        aria-labelledby="edit-lesson-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ModalFormUndoKeys active onUndo={formCtrl.desfazer} />
+
+        <div className={styles.modalHead}>
+          <div className={styles.modalHeadMain}>
+            <h2 id="edit-lesson-title" className={styles.modalTitle}>
+              {form.title || lesson.title}
+            </h2>
+            <p className={styles.modalMeta}>
+              {selectedModuleTitle} · <code>{lesson.lessonId}</code> · Ctrl+V
+              cola · Ctrl+Z desfaz
+            </p>
+            <div className={styles.quickLinks}>
+              <Link
+                href={memberHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.quickLink}
+              >
+                Abrir como aluno ↗
+              </Link>
+              <button
+                type="button"
+                className={styles.quickLinkBtn}
+                onClick={() => void copyMemberLink()}
+              >
+                <Copy className="size-3.5" aria-hidden />
+                Copiar link
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={styles.editBtn}
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            Fechar
+          </button>
+        </div>
+
+        <div className={styles.modalTwoCol}>
+          <aside className={styles.modalColPreview}>
+            {previewUrl ? (
+              <div className={styles.playerWrap}>
+                <iframe
+                  src={previewUrl}
+                  title={form.title || lesson.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className={styles.player}
+                />
+              </div>
+            ) : thumb ? (
+              <div className={styles.previewThumbWrap}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={thumb.src}
+                  alt=""
+                  className={styles.previewThumb}
+                />
+                <span className={styles.previewThumbBadge}>{thumb.label}</span>
+              </div>
+            ) : (
+              <div className={styles.previewPlaceholder}>
+                Sem vídeo configurado
+              </div>
+            )}
+
+            {externalVideo ? (
+              <a
+                href={externalVideo.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.previewExternalLink}
+              >
+                Abrir no {externalVideo.label} ↗
+              </a>
+            ) : null}
+
+            <dl className={styles.lessonInfoGrid}>
+              <div className={styles.lessonInfoItem}>
+                <dt>Módulo</dt>
+                <dd>
+                  <span className={styles.lessonInfoPrimary}>
+                    {selectedModuleTitle}
+                  </span>
+                  <code className={styles.lessonInfoCode}>
+                    {form.moduleId || lesson.moduleId}
+                  </code>
+                  {moduleChanged ? (
+                    <span className={styles.lessonInfoHint}>
+                      Será movida ao salvar
+                    </span>
+                  ) : null}
+                </dd>
+              </div>
+              <div className={styles.lessonInfoItem}>
+                <dt>ID da aula</dt>
+                <dd>
+                  <code className={styles.lessonInfoCode}>{lesson.lessonId}</code>
+                </dd>
+              </div>
+              <div className={styles.lessonInfoItem}>
+                <dt>Origem</dt>
+                <dd>
+                  {lesson.origin === "custom"
+                    ? "Criada no painel"
+                    : "Catálogo"}
+                </dd>
+              </div>
+              <div className={styles.lessonInfoItem}>
+                <dt>Posição</dt>
+                <dd>
+                  {lesson.orderIndex != null
+                    ? `#${lesson.orderIndex + 1} no módulo`
+                    : "—"}
+                </dd>
+              </div>
+              <div className={styles.lessonInfoItem}>
+                <dt>Fonte do vídeo</dt>
+                <dd>
+                  {resolvedTella ? (
+                    <>
+                      Tella ·{" "}
+                      <code className={styles.lessonInfoCode}>
+                        {resolvedTella}
+                      </code>
+                    </>
+                  ) : resolvedYoutube ? (
+                    <>
+                      YouTube ·{" "}
+                      <code className={styles.lessonInfoCode}>
+                        {resolvedYoutube}
+                      </code>
+                    </>
+                  ) : (
+                    "Nenhuma"
+                  )}
+                </dd>
+              </div>
+              <div className={styles.lessonInfoItem}>
+                <dt>Views</dt>
+                <dd>
+                  <LessonViewersStack
+                    viewers={lesson.viewers}
+                    total={lesson.viewCount}
+                  />
+                </dd>
+              </div>
+              <div className={styles.lessonInfoItem}>
+                <dt>Avaliações</dt>
+                <dd className={styles.lessonInfoRating}>
+                  {lesson.feedbackCount > 0 ? (
+                    <>
+                      <Stars rating={Math.round(lesson.avgRating ?? 0)} />
+                      <span>
+                        {lesson.avgRating?.toFixed(1)} ({lesson.feedbackCount})
+                      </span>
+                    </>
+                  ) : (
+                    "Nenhuma"
+                  )}
+                </dd>
+              </div>
+              <div className={styles.lessonInfoItem}>
+                <dt>Materiais</dt>
+                <dd>
+                  {materialsLoading
+                    ? "…"
+                    : `${materials.length} arquivo${materials.length === 1 ? "" : "s"}`}
+                </dd>
+              </div>
+              <div className={styles.lessonInfoItem}>
+                <dt>Status</dt>
+                <dd>
+                  <span
+                    className={`${styles.badge} ${form.published ? styles.badgeOn : styles.badgeOff}`}
+                  >
+                    {form.published ? "Publicada" : "Rascunho"}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </aside>
+
+          <div className={styles.modalColForm}>
+            <section className={styles.formSection}>
+              <h3 className={styles.formSectionTitle}>Conteúdo</h3>
+
+              {dbMode && moduleOptions.length > 0 ? (
+                <label className={styles.field}>
+                  <span className={styles.label}>Módulo</span>
+                  <select
+                    className={`${styles.input} ${styles.select}`}
+                    value={form.moduleId}
+                    onChange={(e) =>
+                      formCtrl.setValue((f) => ({
+                        ...f,
+                        moduleId: e.target.value,
+                      }))
+                    }
+                  >
+                    {moduleOptions.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+
+              <label className={styles.field}>
+                <span className={styles.label}>Título</span>
+                <input
+                  className={styles.input}
+                  value={form.title}
+                  onChange={(e) =>
+                    formCtrl.setValue((f) => ({ ...f, title: e.target.value }))
+                  }
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span className={styles.label}>Duração</span>
+                <input
+                  className={styles.input}
+                  value={form.duration}
+                  placeholder="12 min"
+                  onChange={(e) =>
+                    formCtrl.setValue((f) => ({ ...f, duration: e.target.value }))
+                  }
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span className={styles.label}>
+                  Descrição
+                  <span className={styles.fieldHint}>{descLen} caracteres</span>
+                </span>
+                <textarea
+                  className={`${styles.textarea} ${styles.textareaTall}`}
+                  value={form.description}
+                  onChange={(e) =>
+                    formCtrl.setValue((f) => ({
+                      ...f,
+                      description: e.target.value,
+                    }))
+                  }
+                />
+              </label>
+            </section>
+
+            <section className={styles.formSection}>
+              <h3 className={styles.formSectionTitle}>Vídeo</h3>
+              <p className={styles.formSectionHint}>
+                Tella tem prioridade sobre YouTube. Cole slug, URL completa ou ID.
+              </p>
+
+              <label className={styles.field}>
+                <span className={styles.label}>Tella (slug ou URL)</span>
+                <input
+                  className={styles.input}
+                  value={form.tella}
+                  placeholder="01-ca-1-o-que-e-o-claude-f528"
+                  onChange={(e) =>
+                    formCtrl.setValue((f) => ({ ...f, tella: e.target.value }))
+                  }
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span className={styles.label}>YouTube (ID ou URL)</span>
+                <input
+                  className={styles.input}
+                  value={form.youtubeId}
+                  placeholder="dQw4w9WgXcQ"
+                  disabled={!!resolvedTella}
+                  onChange={(e) =>
+                    formCtrl.setValue((f) => ({ ...f, youtubeId: e.target.value }))
+                  }
+                />
+              </label>
+            </section>
+
+            <section className={styles.formSection}>
+              <h3 className={styles.formSectionTitle}>Publicação</h3>
+              <label className={styles.checkboxRow}>
+                <input
+                  type="checkbox"
+                  checked={form.published}
+                  onChange={(e) =>
+                    formCtrl.setValue((f) => ({
+                      ...f,
+                      published: e.target.checked,
+                    }))
+                  }
+                />
+                Publicada (visível no catálogo dos membros)
+              </label>
+            </section>
+          </div>
+        </div>
+
+        <div className={styles.modalBottomRow}>
+          <section className={styles.modalSidePanel}>
+            <h3 className={styles.formSectionTitle}>
+              Materiais
+              {!materialsLoading ? (
+                <span className={styles.panelCount}>{materials.length}</span>
+              ) : null}
+            </h3>
+            <p className={styles.formSectionHint}>
+              Skills, PDFs e templates que o aluno baixa na aula.
+            </p>
+
+            {materialsLoading ? (
+              <p className={styles.panelLoading}>
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                Carregando…
+              </p>
+            ) : materials.length === 0 ? (
+              <p className={styles.panelEmpty}>Nenhum material ainda.</p>
+            ) : (
+              <ul className={styles.panelList}>
+                {materials.map((m) => (
+                  <li key={m.id} className={styles.panelListItem}>
+                    <div className={styles.panelListBody}>
+                      <span className={styles.panelListTitle}>{m.label}</span>
+                      <span className={styles.panelListMeta}>
+                        {m.fileName}
+                        {m.sizeBytes ? ` · ${formatBytes(m.sizeBytes)}` : ""}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.iconDangerBtn}
+                      disabled={materialDeletingId === m.id}
+                      aria-label={`Excluir ${m.label}`}
+                      onClick={() => void deleteMaterial(m.id)}
+                    >
+                      {materialDeletingId === m.id ? (
+                        <Loader2 className="size-4 animate-spin" aria-hidden />
+                      ) : (
+                        <Trash2 className="size-4" aria-hidden />
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className={styles.panelUpload}>
+              <input
+                className={styles.input}
+                value={materialLabel}
+                placeholder="Rótulo (opcional)"
+                onChange={(e) => setMaterialLabel(e.target.value)}
+              />
+              <input
+                key={materialFileKey}
+                className={styles.input}
+                type="file"
+                onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)}
+              />
+              <button
+                type="button"
+                className={styles.btnGhost}
+                disabled={!materialFile || materialUploading}
+                aria-busy={materialUploading}
+                onClick={() => void uploadMaterial()}
+              >
+                {materialUploading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                    Enviando…
+                  </>
+                ) : (
+                  "Adicionar material"
+                )}
+              </button>
+            </div>
+          </section>
+
+          <section className={styles.modalSidePanel}>
+            <h3 className={styles.formSectionTitle}>
+              Avaliações
+              {!feedbackLoading && feedbackDetail ? (
+                <span className={styles.panelCount}>{feedbackDetail.count}</span>
+              ) : null}
+            </h3>
+
+            {feedbackLoading ? (
+              <p className={styles.panelLoading}>
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                Carregando…
+              </p>
+            ) : !feedbackDetail || feedbackDetail.count === 0 ? (
+              <p className={styles.panelEmpty}>Sem avaliações ainda.</p>
+            ) : (
+              <>
+                <p className={styles.formSectionHint}>
+                  Média {feedbackDetail.avg?.toFixed(1) ?? "—"} ·{" "}
+                  {feedbackDetail.count}{" "}
+                  {feedbackDetail.count === 1 ? "avaliação" : "avaliações"}
+                </p>
+                <ul className={styles.panelList}>
+                  {feedbackDetail.items.map((it, i) => (
+                    <li key={i} className={styles.panelFeedbackItem}>
+                      <div className={styles.panelFeedbackTop}>
+                        <span className={styles.panelListMeta}>
+                          {it.userEmail ?? "anônimo"} ·{" "}
+                          {formatAdminDate(it.createdAt)}
+                        </span>
+                        <Stars rating={it.rating} />
+                      </div>
+                      {it.comment ? (
+                        <p className={styles.panelFeedbackComment}>{it.comment}</p>
+                      ) : (
+                        <p className={styles.panelListMeta}>(sem comentário)</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+        </div>
+
+        <FormUndoBar
+          onDesfazer={formCtrl.desfazer}
+          canUndo={formCtrl.canStepUndo}
+          isDirty={formCtrl.isDirty}
+        >
+          <button
+            type="button"
+            className={styles.dangerBtn}
+            disabled={saving}
+            onClick={onDelete}
+          >
+            Excluir aula
+          </button>
+          <button type="button" className={styles.btnGhost} onClick={onClose}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            disabled={saving}
+            aria-busy={saving}
+            onClick={onSave}
+          >
+            {saving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                Salvando…
+              </>
+            ) : (
+              "Salvar"
+            )}
+          </button>
+        </FormUndoBar>
       </div>
     </div>
   );
@@ -612,6 +1274,7 @@ export function AdminDashboard({
   function openEdit(lesson: LessonAdminRow) {
     setEditing(lesson);
     lessonForm.reset({
+      moduleId: lesson.moduleId,
       title: lesson.title,
       duration: lesson.duration,
       description: lesson.description,
@@ -727,11 +1390,32 @@ export function AdminDashboard({
     setError(null);
 
     try {
+      let moduleId = editing.moduleId;
+
+      if (dbMode && form.moduleId && form.moduleId !== editing.moduleId) {
+        const moveRes = await adminFetch("/api/admin/lessons/move", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fromModuleId: editing.moduleId,
+            lessonId: editing.lessonId,
+            toModuleId: form.moduleId,
+            beforeLessonId: null,
+          }),
+        });
+        if (!moveRes.ok) {
+          throw new Error(
+            await readApiErrorMessage(moveRes, "Erro ao mover aula de módulo."),
+          );
+        }
+        moduleId = form.moduleId;
+      }
+
       const res = await adminFetch("/api/admin/lessons", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          moduleId: editing.moduleId,
+          moduleId,
           lessonId: editing.lessonId,
           title: form.title,
           duration: form.duration,
@@ -1033,6 +1717,7 @@ export function AdminDashboard({
       if (!res.ok) {
         throw new Error(await readApiErrorMessage(res, "Erro ao excluir."));
       }
+      setEditing(null);
       await loadLessons();
       notifySuccess("Aula excluída.");
     } catch (err) {
@@ -2226,131 +2911,16 @@ export function AdminDashboard({
       </AdminTabPanel>
 
       {editing ? (
-        <div
-          className={styles.modalBackdrop}
-          role="presentation"
-          onClick={() => setEditing(null)}
-        >
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-labelledby="edit-lesson-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ModalFormUndoKeys
-              active
-              onUndo={lessonForm.desfazer}
-            />
-            <h2 id="edit-lesson-title" className={styles.modalTitle}>
-              Editar aula
-            </h2>
-            <p className={styles.modalMeta}>
-              {editing.moduleTitle} · {editing.lessonId} · Ctrl+V cola · Ctrl+Z
-              desfaz
-            </p>
-
-            <label className={styles.field}>
-              <span className={styles.label}>Título</span>
-              <input
-                className={styles.input}
-                value={lessonForm.value.title}
-                onChange={(e) =>
-                  lessonForm.setValue((f) => ({ ...f, title: e.target.value }))
-                }
-              />
-            </label>
-
-            <label className={styles.field}>
-              <span className={styles.label}>Duração</span>
-              <input
-                className={styles.input}
-                value={lessonForm.value.duration}
-                onChange={(e) =>
-                  lessonForm.setValue((f) => ({ ...f, duration: e.target.value }))
-                }
-              />
-            </label>
-
-            <label className={styles.field}>
-              <span className={styles.label}>Tella (slug) — tem prioridade</span>
-              <input
-                className={styles.input}
-                value={lessonForm.value.tella}
-                placeholder="01-ca-1-o-que-e-o-claude-f528"
-                onChange={(e) =>
-                  lessonForm.setValue((f) => ({ ...f, tella: e.target.value }))
-                }
-              />
-            </label>
-
-            <label className={styles.field}>
-              <span className={styles.label}>YouTube ID</span>
-              <input
-                className={styles.input}
-                value={lessonForm.value.youtubeId}
-                placeholder="dQw4w9WgXcQ"
-                onChange={(e) =>
-                  lessonForm.setValue((f) => ({ ...f, youtubeId: e.target.value }))
-                }
-              />
-            </label>
-
-            <label className={styles.field}>
-              <span className={styles.label}>Descrição</span>
-              <textarea
-                className={styles.textarea}
-                value={lessonForm.value.description}
-                onChange={(e) =>
-                  lessonForm.setValue((f) => ({
-                    ...f,
-                    description: e.target.value,
-                  }))
-                }
-              />
-            </label>
-
-            <label className={styles.checkboxRow}>
-              <input
-                type="checkbox"
-                checked={lessonForm.value.published}
-                onChange={(e) =>
-                  lessonForm.setValue((f) => ({ ...f, published: e.target.checked }))
-                }
-              />
-              Publicada (visível no catálogo)
-            </label>
-
-            <FormUndoBar
-              onDesfazer={lessonForm.desfazer}
-              canUndo={lessonForm.canStepUndo}
-              isDirty={lessonForm.isDirty}
-            >
-              <button
-                type="button"
-                className={styles.btnGhost}
-                onClick={() => setEditing(null)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className={styles.btnPrimary}
-                disabled={saving}
-                aria-busy={saving}
-                onClick={() => void saveLesson()}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden />
-                    Salvando…
-                  </>
-                ) : (
-                  "Salvar"
-                )}
-              </button>
-            </FormUndoBar>
-          </div>
-        </div>
+        <EditLessonModal
+          lesson={editing}
+          formCtrl={lessonForm}
+          dbMode={dbMode}
+          moduleOptions={moduleOptions}
+          saving={saving}
+          onClose={() => setEditing(null)}
+          onSave={() => void saveLesson()}
+          onDelete={() => void deleteLesson(editing)}
+        />
       ) : null}
 
       {previewLesson ? (
