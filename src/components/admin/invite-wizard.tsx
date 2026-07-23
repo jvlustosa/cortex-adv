@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/toast";
 import { Loader2 } from "lucide-react";
 import styles from "./admin-dashboard.module.css";
 
@@ -85,6 +86,7 @@ function formatExpiry(value: string): string {
 }
 
 export function InviteWizard({ onCreated }: Props) {
+  const toast = useToast();
   const [step, setStep] = useState<WizardStep>(1);
   const [form, setForm] = useState<InviteFormState>(EMPTY_FORM);
   const [creating, setCreating] = useState(false);
@@ -106,7 +108,9 @@ export function InviteWizard({ onCreated }: Props) {
   function goNext() {
     setError(null);
     if (step === 1 && hasEmail && !emailValid) {
-      setError("E-mail do convidado inválido.");
+      const message = "E-mail do convidado inválido.";
+      setError(message);
+      toast.error(message);
       return;
     }
     setStep((s) => (s < 3 ? ((s + 1) as WizardStep) : s));
@@ -167,8 +171,18 @@ export function InviteWizard({ onCreated }: Props) {
         emailError: data.email?.error,
       });
       await onCreated();
+      if (data.email?.sent) {
+        toast.success("Convite criado e e-mail enviado.");
+      } else if (willSend && data.email?.error) {
+        toast.info("Convite criado, mas o e-mail não saiu.");
+      } else {
+        toast.success("Convite criado.");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar convite.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao criar convite.";
+      setError(message);
+      toast.error(message);
     } finally {
       setCreating(false);
     }

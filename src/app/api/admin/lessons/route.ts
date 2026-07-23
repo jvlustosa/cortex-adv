@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminJson } from "@/lib/admin/api-response";
 import { assertAdminApi } from "@/lib/admin/require-admin";
 import {
   listLessonsForAdmin,
@@ -8,13 +9,15 @@ import {
   CatalogLessonError,
 } from "@/lib/lessons/repository";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const auth = await assertAdminApi();
   if ("error" in auth) return auth.error;
 
   try {
     const data = await listLessonsForAdmin();
-    return NextResponse.json(data);
+    return adminJson(data);
   } catch (err) {
     console.error("[api/admin/lessons GET]", err);
     return NextResponse.json({ error: "Erro ao carregar aulas." }, { status: 500 });

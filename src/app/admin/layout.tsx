@@ -2,6 +2,8 @@ import { AulasShell } from "@/components/aulas/aulas-shell";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { isSupabaseEnabled } from "@/lib/supabase/enabled";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {

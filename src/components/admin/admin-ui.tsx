@@ -174,13 +174,17 @@ export function BulkActionBar({
   );
 }
 
-export function LessonsTableHead() {
+export function LessonsTableHead({ selectMode = false }: { selectMode?: boolean }) {
   return (
     <div className={`${styles.tableWrap} ${styles.lessonsTableHead}`}>
-      <table className={`${styles.table} ${styles.lessonsAdminTable}`}>
+      <table
+        className={`${styles.table} ${styles.lessonsAdminTable}${
+          selectMode ? "" : ` ${styles.lessonsAdminTableNoSelect}`
+        }`}
+      >
         <thead>
           <tr>
-            <th scope="col" />
+            {selectMode ? <th scope="col" aria-label="Selecionar" /> : null}
             <th scope="col">Aula</th>
             <th scope="col">Views</th>
             <th scope="col">Nota</th>

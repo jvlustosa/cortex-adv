@@ -271,6 +271,7 @@ export async function listLessonsForAdmin(): Promise<{
   lessons: LessonAdminRow[];
   totals: AdminTotals;
   modules: ModuleAdminRow[];
+  dbMode: boolean;
 }> {
   const dbMode = isDbCourseSource();
   const contentPromise = dbMode
@@ -292,6 +293,7 @@ export async function listLessonsForAdmin(): Promise<{
       feedbackMap,
     ),
     modules,
+    dbMode,
   };
 }
 

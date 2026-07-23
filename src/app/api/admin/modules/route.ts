@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminJson } from "@/lib/admin/api-response";
 import { assertAdminApi } from "@/lib/admin/require-admin";
 import { isDbCourseSource } from "@/lib/supabase/enabled";
 import {
@@ -20,6 +21,8 @@ function dbModeGuard() {
   return null;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const auth = await assertAdminApi();
   if ("error" in auth) return auth.error;
@@ -28,7 +31,7 @@ export async function GET() {
 
   try {
     const modules = await listModulesForAdmin();
-    return NextResponse.json({ modules });
+    return adminJson({ modules });
   } catch (err) {
     console.error("[api/admin/modules GET]", err);
     return NextResponse.json({ error: "Erro ao carregar seções." }, { status: 500 });
@@ -74,7 +77,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, module: section });
   } catch (err) {
     console.error("[api/admin/modules POST]", err);
-    return NextResponse.json({ error: "Erro ao criar seção." }, { status: 500 });
+    const message =
+      err instanceof Error && err.message
+        ? err.message
+        : "Erro ao criar seção.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

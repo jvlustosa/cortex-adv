@@ -1,14 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
-// e2e do painel /admin com o curso vindo do BANCO (COURSE_SOURCE=db), não do
-// course.yml hard-coded. Cobre o que foi reportado como quebrado: "gerir
-// módulos" (bloco Seções) e "adicionar aula". Não muta dados — o dev local
-// aponta pro Supabase de prod, então aqui só verificamos leitura/render.
+// e2e do painel /admin com COURSE_SOURCE=db. Requer:
+//   TEST_ADMIN_EMAIL — admin ativo (admin_users.active=true)
+//   SUPABASE_SERVICE_ROLE_KEY + NEXT_PUBLIC_SUPABASE_URL
+//   COURSE_SOURCE=db no servidor (playwright sobe npm run dev com .env.local)
 //
-// Login: magic link via service role (mesmo padrão de auth-login.spec). Requer
-// TEST_ADMIN_EMAIL = e-mail de um admin ATIVO (admin_users.active=true, domínio
-// admin). Sem isso, os testes autenticados pulam com mensagem honesta.
+// O teste de criar seção insere e remove um módulo de smoke (slug e2e-modulo-*).
 
 const adminEmail = process.env.TEST_ADMIN_EMAIL;
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -41,9 +39,7 @@ test.describe("Admin — curso vindo do banco (não hard-coded)", () => {
     expect(page.url()).toContain("next=");
   });
 
-  test("modo DB: painel mostra gestão de Seções (gerir módulos)", async ({
-    page,
-  }) => {
+  test("modo DB: painel mostra gestão de módulos", async ({ page }) => {
     test.skip(!adminEmail, "Defina TEST_ADMIN_EMAIL (admin ativo) para o fluxo admin");
     const signedIn = await signInAsAdmin(page, adminEmail!);
     test.skip(!signedIn, "Service role ausente ou e-mail não-admin — pulei o login");
@@ -51,7 +47,6 @@ test.describe("Admin — curso vindo do banco (não hard-coded)", () => {
     await page.goto("/admin");
     await expect(page.getByRole("heading", { name: "Painel admin" })).toBeVisible();
 
-    // Bloco "Módulos e aulas" + botão "Criar seção" só existem em COURSE_SOURCE=db.
     await expect(page.getByText("Módulos e aulas", { exact: true })).toBeVisible({
       timeout: 15_000,
     });
@@ -60,21 +55,48 @@ test.describe("Admin — curso vindo do banco (não hard-coded)", () => {
     ).toBeVisible();
   });
 
-  test("modo DB: aulas e módulos carregam do banco", async ({ page }) => {
+  test("modo DB: módulos semeados aparecem na lista", async ({ page }) => {
     test.skip(!adminEmail, "Defina TEST_ADMIN_EMAIL (admin ativo) para o fluxo admin");
     const signedIn = await signInAsAdmin(page, adminEmail!);
     test.skip(!signedIn, "Service role ausente ou e-mail não-admin — pulei o login");
 
     await page.goto("/admin");
-    await expect(page.getByText("Aulas do curso")).toBeVisible({
+    await expect(page.getByText("Módulos e aulas", { exact: true })).toBeVisible({
       timeout: 15_000,
     });
     await expect(
       page.getByRole("button", { name: "Adicionar aula" }),
     ).toBeVisible();
 
-    // Os módulos semeados no banco aparecem como cabeçalho de grupo na tabela.
     await expect(page.getByText("Comece aqui").first()).toBeVisible();
     await expect(page.getByText("Fundação prática").first()).toBeVisible();
+  });
+
+  test("modo DB: criar seção pelo modal", async ({ page }) => {
+    test.skip(!adminEmail, "Defina TEST_ADMIN_EMAIL (admin ativo) para o fluxo admin");
+    const signedIn = await signInAsAdmin(page, adminEmail!);
+    test.skip(!signedIn, "Service role ausente ou e-mail não-admin — pulei o login");
+
+    const moduleTitle = `E2E seção ${Date.now()}`;
+
+    await page.goto("/admin");
+    await expect(page.getByText("Módulos e aulas", { exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.getByRole("button", { name: "Criar seção" }).first().click();
+    const dialog = page.getByRole("dialog", { name: "Criar seção" });
+    await expect(dialog).toBeVisible();
+    await dialog.locator("input").first().fill(moduleTitle);
+    await dialog.getByRole("button", { name: "Criar seção" }).click();
+
+    await expect(page.getByText("Módulo criado.")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(moduleTitle).first()).toBeVisible();
+
+    // Cleanup: exclui o módulo criado (confirma o confirm() do browser).
+    page.once("dialog", (d) => d.accept());
+    const modulePanel = page.locator("article").filter({ hasText: moduleTitle });
+    await modulePanel.getByRole("button", { name: "Excluir" }).click();
+    await expect(page.getByText("Módulo excluído.")).toBeVisible({ timeout: 10_000 });
   });
 });

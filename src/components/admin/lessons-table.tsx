@@ -21,6 +21,7 @@ export function LessonRow({
   lesson,
   moduleNumber,
   lessonNumber,
+  compactMeta = false,
   selectMode,
   selected,
   dbMode,
@@ -47,6 +48,8 @@ export function LessonRow({
   lesson: LessonAdminRow;
   moduleNumber: number;
   lessonNumber: number;
+  /** Dentro do painel do módulo — esconde módulo repetido na meta. */
+  compactMeta?: boolean;
   selectMode: boolean;
   selected: Set<string>;
   dbMode: boolean;
@@ -80,6 +83,10 @@ export function LessonRow({
       }${dropPosition === "after" ? ` ${styles.lessonRowDropAfter}` : ""}${
         menuAt ? ` ${styles.lessonRowMenuOpen}` : ""
       }`}
+      onDoubleClick={(e) => {
+        if ((e.target as HTMLElement).closest("button, a, input, label")) return;
+        onEdit(lesson);
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
         setMenuAt({ x: e.clientX, y: e.clientY });
@@ -105,16 +112,16 @@ export function LessonRow({
         );
       }}
     >
-      <td>
-        {selectMode ? (
+      {selectMode ? (
+        <td>
           <input
             type="checkbox"
             checked={selected.has(key)}
             onChange={() => onToggle(key)}
             aria-label={`Selecionar ${lesson.title}`}
           />
-        ) : null}
-      </td>
+        </td>
+      ) : null}
       <td>
         <div className={styles.aulaCell}>
           <div className={styles.dragCluster}>
@@ -149,12 +156,25 @@ export function LessonRow({
               <span className={styles.orderBadge} aria-hidden>
                 {String(lessonNumber).padStart(2, "0")}
               </span>
-              <strong>{lesson.title}</strong>
+              <button
+                type="button"
+                className={styles.aulaTitleBtn}
+                onClick={() => onEdit(lesson)}
+                title="Editar aula"
+              >
+                {lesson.title}
+              </button>
             </div>
             <div className={styles.aulaMeta}>
               <span className={styles.feedbackMeta}>
-                Mód. {String(moduleNumber).padStart(2, "0")} · {lesson.moduleTitle} ·{" "}
-                {lesson.lessonId}
+                {compactMeta ? (
+                  lesson.lessonId
+                ) : (
+                  <>
+                    Mód. {String(moduleNumber).padStart(2, "0")} · {lesson.moduleTitle}{" "}
+                    · {lesson.lessonId}
+                  </>
+                )}
               </span>
               {lesson.origin === "custom" ? (
                 <span className={styles.customBadge}>criada no painel</span>

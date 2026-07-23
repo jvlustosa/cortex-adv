@@ -1,6 +1,8 @@
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { isDbCourseSource } from "@/lib/supabase/enabled";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Admin | Painel",
   robots: { index: false, follow: false },

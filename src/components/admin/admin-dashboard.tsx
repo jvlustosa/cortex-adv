@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { ChevronDown, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/components/toast";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/lib/course/module-covers";
 import type { MemberAdminRow, MemberTotals } from "@/lib/admin/members";
 import { formatAdminDate, formatBytes } from "@/lib/admin/format";
+import { adminFetch } from "@/lib/admin/client-fetch";
 import {
   resolveDropTarget,
   type DropPosition,
@@ -441,8 +442,20 @@ function MaterialsModal({
   );
 }
 
-export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
+export function AdminDashboard({
+  dbMode: initialDbMode = false,
+}: {
+  dbMode?: boolean;
+}) {
   const toast = useToast();
+  const [dbMode, setDbMode] = useState(initialDbMode);
+  const notifySuccess = useCallback(
+    (message: string) => {
+      setError(null);
+      toast.success(message);
+    },
+    [toast],
+  );
   const [tab, setTab] = useState<AdminTab>("aulas");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -492,6 +505,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     position: DropPosition;
   } | null>(null);
   const [moduleDropHover, setModuleDropHover] = useState<string | null>(null);
+  // Módulos recolhidos na gestão de aulas (só visual, por moduleId).
+  const [collapsedModules, setCollapsedModules] = useState<Set<string>>(
+    new Set(),
+  );
 
   const [members, setMembers] = useState<MemberAdminRow[]>([]);
   const [memberTotals, setMemberTotals] = useState<MemberTotals | null>(null);
@@ -511,8 +528,8 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
 
   const loadLessons = useCallback(async () => {
     const [lessonsRes, feedbackRes] = await Promise.all([
-      fetch("/api/admin/lessons"),
-      fetch("/api/admin/feedback"),
+      adminFetch("/api/admin/lessons"),
+      adminFetch("/api/admin/feedback"),
     ]);
 
     if (!lessonsRes.ok) throw new Error("Falha ao carregar aulas.");
@@ -522,10 +539,16 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       lessons: LessonAdminRow[];
       totals: AdminTotals;
       modules?: SectionAdminRow[];
+      dbMode?: boolean;
     };
     const feedbackData = (await feedbackRes.json()) as {
       feedback: FeedbackItem[];
     };
+
+    const activeDbMode = lessonsData.dbMode ?? dbMode;
+    if (typeof lessonsData.dbMode === "boolean") {
+      setDbMode(lessonsData.dbMode);
+    }
 
     setLessons(lessonsData.lessons);
     setLessonTotals(lessonsData.totals);
@@ -534,8 +557,8 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
 
     if (lessonsData.modules?.length) {
       setSections(lessonsData.modules.map(normalizeSection));
-    } else if (dbMode) {
-      const modulesRes = await fetch("/api/admin/modules");
+    } else if (activeDbMode) {
+      const modulesRes = await adminFetch("/api/admin/modules");
       if (modulesRes.ok) {
         const data = (await modulesRes.json()) as { modules: SectionAdminRow[] };
         setSections(data.modules.map(normalizeSection));
@@ -544,7 +567,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   }, [dbMode]);
 
   const loadMembers = useCallback(async () => {
-    const res = await fetch("/api/admin/members");
+    const res = await adminFetch("/api/admin/members");
     if (!res.ok) throw new Error("Falha ao carregar membros.");
 
     const data = (await res.json()) as {
@@ -557,7 +580,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   }, []);
 
   const loadInvites = useCallback(async () => {
-    const res = await fetch("/api/admin/invites");
+    const res = await adminFetch("/api/admin/invites");
     if (!res.ok) throw new Error("Falha ao carregar convites.");
 
     const data = (await res.json()) as { invites: InviteItem[] };
@@ -577,6 +600,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       setLoading(false);
     }
   }, [tab, loadLessons, loadMembers, loadInvites]);
+
+  useEffect(() => {
+    setDbMode(initialDbMode);
+  }, [initialDbMode]);
 
   useEffect(() => {
     void loadTab();
@@ -599,7 +626,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setFeedbackDetail(null);
     setFeedbackLoading(true);
     try {
-      const res = await fetch(
+      const res = await adminFetch(
         `/api/admin/lessons/feedback?moduleId=${encodeURIComponent(lesson.moduleId)}&lessonId=${encodeURIComponent(lesson.lessonId)}`,
       );
       if (!res.ok) throw new Error("Falha ao carregar avaliações.");
@@ -617,7 +644,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setMaterials([]);
     setMaterialsLoading(true);
     try {
-      const res = await fetch(
+      const res = await adminFetch(
         `/api/admin/lessons/materials?moduleId=${encodeURIComponent(lesson.moduleId)}&lessonId=${encodeURIComponent(lesson.lessonId)}`,
       );
       if (!res.ok) {
@@ -647,7 +674,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       fd.append("lessonId", materialsLesson.lessonId);
       fd.append("label", label);
       fd.append("file", file);
-      const res = await fetch("/api/admin/lessons/materials", {
+      const res = await adminFetch("/api/admin/lessons/materials", {
         method: "POST",
         body: fd,
       });
@@ -656,8 +683,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       }
       const data = (await res.json()) as { material: LessonMaterialAdmin };
       setMaterials((prev) => [...prev, data.material]);
+      notifySuccess("Material enviado.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao subir material.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao subir material.";
+      setError(message);
+      toast.error(message);
     } finally {
       setMaterialUploading(false);
     }
@@ -667,7 +698,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setMaterialDeletingId(id);
     setError(null);
     try {
-      const res = await fetch("/api/admin/lessons/materials", {
+      const res = await adminFetch("/api/admin/lessons/materials", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
@@ -678,8 +709,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
         );
       }
       setMaterials((prev) => prev.filter((m) => m.id !== id));
+      notifySuccess("Material removido.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao excluir material.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao excluir material.";
+      setError(message);
+      toast.error(message);
     } finally {
       setMaterialDeletingId(null);
     }
@@ -692,7 +727,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setError(null);
 
     try {
-      const res = await fetch("/api/admin/lessons", {
+      const res = await adminFetch("/api/admin/lessons", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -713,8 +748,11 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
 
       setEditing(null);
       await loadLessons();
+      notifySuccess("Aula salva.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar.");
+      const message = err instanceof Error ? err.message : "Erro ao salvar.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -775,13 +813,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   async function saveNewSection() {
     const sectionForm = sectionFormCtrl.value;
     if (!sectionForm.title.trim()) {
-      setError("Título da seção é obrigatório.");
+      const message = "Título da seção é obrigatório.";
+      setError(message);
+      toast.error(message);
       return;
     }
     setSavingSection(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/modules", {
+      const res = await adminFetch("/api/admin/modules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -798,9 +838,14 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
         throw new Error(await readApiErrorMessage(res, "Erro ao criar seção."));
       }
       setCreatingSection(false);
+      setEditingSectionId(null);
       await loadLessons();
+      notifySuccess("Módulo criado.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar seção.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao criar seção.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSavingSection(false);
     }
@@ -809,13 +854,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   async function saveEditSection() {
     const sectionForm = sectionFormCtrl.value;
     if (!editingSectionId || !sectionForm.title.trim()) {
-      setError("Título da seção é obrigatório.");
+      const message = "Título da seção é obrigatório.";
+      setError(message);
+      toast.error(message);
       return;
     }
     setSavingSection(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/modules", {
+      const res = await adminFetch("/api/admin/modules", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -835,8 +882,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       setCreatingSection(false);
       setEditingSectionId(null);
       await loadLessons();
+      notifySuccess("Módulo atualizado.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar seção.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao salvar seção.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSavingSection(false);
     }
@@ -852,7 +903,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     }
     setError(null);
     try {
-      const res = await fetch("/api/admin/modules", {
+      const res = await adminFetch("/api/admin/modules", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ moduleId: section.moduleId }),
@@ -861,15 +912,19 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
         throw new Error(await readApiErrorMessage(res, "Erro ao excluir seção."));
       }
       await loadLessons();
+      notifySuccess("Módulo excluído.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao excluir seção.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao excluir seção.";
+      setError(message);
+      toast.error(message);
     }
   }
 
   async function persistSectionOrder(ordered: SectionAdminRow[]) {
     const snapshot = sections;
     try {
-      const res = await fetch("/api/admin/modules/reorder", {
+      const res = await adminFetch("/api/admin/modules/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order: ordered.map((s) => s.moduleId) }),
@@ -877,7 +932,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       if (!res.ok) throw new Error("reorder falhou");
     } catch {
       setSections(snapshot); // rollback otimista
-      setError("Não consegui salvar a nova ordem das seções. Revertido.");
+      const message = "Não consegui salvar a nova ordem das seções. Revertido.";
+      setError(message);
+      toast.error(message);
       return;
     }
     // Ordem salva: ressincroniza "Aulas do curso" + dropdown de criar aula, que
@@ -918,13 +975,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   async function saveNewLesson() {
     const createForm = createFormCtrl.value;
     if (!createForm.moduleId || !createForm.title.trim()) {
-      setError("Módulo e título são obrigatórios.");
+      const message = "Módulo e título são obrigatórios.";
+      setError(message);
+      toast.error(message);
       return;
     }
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/lessons", {
+      const res = await adminFetch("/api/admin/lessons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -942,8 +1001,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       }
       setCreating(false);
       await loadLessons();
+      notifySuccess("Aula criada.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar aula.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao criar aula.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -959,7 +1022,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     }
     setError(null);
     try {
-      const res = await fetch("/api/admin/lessons", {
+      const res = await adminFetch("/api/admin/lessons", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -971,8 +1034,11 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
         throw new Error(await readApiErrorMessage(res, "Erro ao excluir."));
       }
       await loadLessons();
+      notifySuccess("Aula excluída.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao excluir.");
+      const message = err instanceof Error ? err.message : "Erro ao excluir.";
+      setError(message);
+      toast.error(message);
     }
   }
 
@@ -981,6 +1047,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
+      return next;
+    });
+  }
+
+  function toggleModuleCollapsed(moduleId: string) {
+    setCollapsedModules((prev) => {
+      const next = new Set(prev);
+      if (next.has(moduleId)) next.delete(moduleId);
+      else next.add(moduleId);
       return next;
     });
   }
@@ -1004,7 +1079,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     });
     setError(null);
     try {
-      const res = await fetch("/api/admin/lessons/batch", {
+      const res = await adminFetch("/api/admin/lessons/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ keys, published }),
@@ -1013,8 +1088,13 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
         throw new Error(await readApiErrorMessage(res, "Erro no lote."));
       }
       await loadLessons();
+      notifySuccess(
+        `${keys.length} aula${keys.length === 1 ? "" : "s"} ${published ? "publicada(s)" : "despublicada(s)"}.`,
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro no lote.");
+      const message = err instanceof Error ? err.message : "Erro no lote.";
+      setError(message);
+      toast.error(message);
     }
   }
 
@@ -1022,7 +1102,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     const lessonIds = lessonIdsForModule(ordered, moduleId);
     const snapshot = lessons;
     try {
-      const res = await fetch("/api/admin/lessons/reorder", {
+      const res = await adminFetch("/api/admin/lessons/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ moduleId, lessonIds }),
@@ -1030,7 +1110,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       if (!res.ok) throw new Error("reorder falhou");
     } catch {
       setLessons(snapshot);
-      setError("Não consegui salvar a nova ordem. Revertido.");
+      const message = "Não consegui salvar a nova ordem. Revertido.";
+      setError(message);
+      toast.error(message);
     }
   }
 
@@ -1044,7 +1126,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     const snapshot = lessons;
     setLessons(optimistic);
     try {
-      const res = await fetch("/api/admin/lessons/move", {
+      const res = await adminFetch("/api/admin/lessons/move", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1059,9 +1141,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       }
     } catch (err) {
       setLessons(snapshot);
-      setError(
-        err instanceof Error ? err.message : "Não consegui mover a aula.",
-      );
+      const message =
+        err instanceof Error ? err.message : "Não consegui mover a aula.";
+      setError(message);
+      toast.error(message);
     }
   }
 
@@ -1091,7 +1174,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       return;
     }
     if (!dbMode) {
-      setError("Mover entre módulos exige COURSE_SOURCE=db.");
+      const message = "Mover entre módulos exige COURSE_SOURCE=db.";
+      setError(message);
+      toast.error(message);
       return;
     }
     const beforeLessonId = targetKey ? targetKey.split(":")[1] : null;
@@ -1197,7 +1282,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setInviteResend(null);
     setError(null);
     try {
-      const res = await fetch("/api/admin/invites/resend", {
+      const res = await adminFetch("/api/admin/invites/resend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: invite.id }),
@@ -1207,12 +1292,16 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
         throw new Error(data.error ?? "Erro ao reenviar convite.");
       }
       setInviteResend({ id: invite.id, ok: true, message: "E-mail reenviado." });
+      notifySuccess("Convite reenviado.");
     } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao reenviar.";
       setInviteResend({
         id: invite.id,
         ok: false,
-        message: err instanceof Error ? err.message : "Erro ao reenviar.",
+        message,
       });
+      toast.error(message);
     } finally {
       setResendingId(null);
     }
@@ -1221,7 +1310,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   async function toggleInvite(id: string, active: boolean) {
     setError(null);
     try {
-      const res = await fetch("/api/admin/invites", {
+      const res = await adminFetch("/api/admin/invites", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, active }),
@@ -1229,8 +1318,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
 
       if (!res.ok) throw new Error("Erro ao atualizar convite.");
       await loadInvites();
+      notifySuccess(active ? "Convite reativado." : "Convite desativado.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar convite.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao atualizar convite.";
+      setError(message);
+      toast.error(message);
     }
   }
 
@@ -1239,7 +1332,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setError(null);
     setResentAccess(null);
     try {
-      const res = await fetch("/api/admin/members", {
+      const res = await adminFetch("/api/admin/members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ memberId: member.id }),
@@ -1251,9 +1344,10 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       await copyText(data.magicLink);
       setResentAccess({ email: member.email, url: data.magicLink });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao gerar link de acesso.",
-      );
+      const message =
+        err instanceof Error ? err.message : "Erro ao gerar link de acesso.";
+      setError(message);
+      toast.error(message);
     } finally {
       setMemberActionId(null);
     }
@@ -1271,15 +1365,19 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
     setMemberActionId(member.id);
     setError(null);
     try {
-      const res = await fetch("/api/admin/members", {
+      const res = await adminFetch("/api/admin/members", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ memberId: member.id, banned: !member.banned }),
       });
       if (!res.ok) throw new Error("Erro ao atualizar membro.");
       await loadMembers();
+      notifySuccess(member.banned ? "Membro desbanido." : "Membro banido.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar membro.");
+      const message =
+        err instanceof Error ? err.message : "Erro ao atualizar membro.";
+      setError(message);
+      toast.error(message);
     } finally {
       setMemberActionId(null);
     }
@@ -1288,7 +1386,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
   async function copyText(text: string) {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Copiado.");
+      notifySuccess("Copiado.");
     } catch {
       toast.error("Não consegui copiar.");
     }
@@ -1311,6 +1409,15 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
       {error ? <p className={styles.error}>{error}</p> : null}
 
       <AdminTabPanel tabId="aulas" activeTab={tab}>
+        {!loading && !dbMode ? (
+          <p className={styles.notice} role="status">
+            <strong>Modo catálogo (YAML).</strong> Gestão de seções, capas e
+            mover aulas entre módulos exige{" "}
+            <code>COURSE_SOURCE=db</code> na Vercel + redeploy. Sem isso a
+            tela fica em &quot;Aulas do curso&quot; (lista plana).
+          </p>
+        ) : null}
+
         {loading ? (
           <SectionLoading label="Carregando aulas…" />
         ) : (
@@ -1339,6 +1446,24 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
               <div className={styles.sectionHead}>
                 <span>Módulos e aulas</span>
                 <div className={styles.headActions}>
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    onClick={() =>
+                      setCollapsedModules(
+                        lessonGroups.every((g) =>
+                          collapsedModules.has(g.moduleId),
+                        )
+                          ? new Set()
+                          : new Set(lessonGroups.map((g) => g.moduleId)),
+                      )
+                    }
+                  >
+                    {lessonGroups.length > 0 &&
+                    lessonGroups.every((g) => collapsedModules.has(g.moduleId))
+                      ? "Expandir tudo"
+                      : "Recolher tudo"}
+                  </button>
                   <button
                     type="button"
                     className={styles.btnGhost}
@@ -1377,10 +1502,12 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                 />
               ) : null}
               <p className={styles.hint}>
-                Segure ⋮⋮ para arrastar. Solte entre aulas para reordenar ou no
-                cabeçalho de outro módulo para mover.
+                Clique no título ou dê duplo clique na linha para editar. ⋮⋮
+                arrasta · clique direito abre ações.
               </p>
-              {hasLessonRows ? <LessonsTableHead /> : null}
+              {hasLessonRows ? (
+                <LessonsTableHead selectMode={selectMode} />
+              ) : null}
               <div className={styles.moduleList}>
                 {lessonGroups.length === 0 ? (
                   <p className={styles.empty}>
@@ -1401,6 +1528,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                     const coverSrc =
                       section?.coverImage ??
                       defaultSeasonCover(section?.sortOrder ?? gIdx);
+                    const collapsed = collapsedModules.has(group.moduleId);
                     return (
                       <article
                         key={group.moduleId}
@@ -1463,6 +1591,28 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                             section && handleSectionDrop(section.moduleId)
                           }
                         >
+                          <button
+                            type="button"
+                            className={styles.moduleCollapseBtn}
+                            aria-expanded={!collapsed}
+                            aria-label={
+                              collapsed
+                                ? `Expandir ${group.moduleTitle}`
+                                : `Recolher ${group.moduleTitle}`
+                            }
+                            onClick={() =>
+                              toggleModuleCollapsed(group.moduleId)
+                            }
+                          >
+                            <ChevronDown
+                              className={`${styles.moduleCollapseIcon}${
+                                collapsed
+                                  ? ` ${styles.moduleCollapseIconCollapsed}`
+                                  : ""
+                              }`}
+                              aria-hidden
+                            />
+                          </button>
                           {section ? (
                             <div className={styles.dragCluster}>
                               <DragHandle
@@ -1565,7 +1715,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                             ) : null}
                           </div>
                         </header>
-                        {group.lessons.length === 0 ? (
+                        {collapsed ? null : group.lessons.length === 0 ? (
                           <div
                             className={`${styles.moduleEmpty}${
                               moduleDropHover === group.moduleId && dragKey
@@ -1591,7 +1741,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                         ) : (
                           <div className={styles.tableWrap}>
                             <table
-                              className={`${styles.table} ${styles.lessonsAdminTable}`}
+                              className={`${styles.table} ${styles.lessonsAdminTable}${
+                                selectMode ? "" : ` ${styles.lessonsAdminTableNoSelect}`
+                              }`}
                             >
                               <tbody>
                                 {group.lessons.map((lesson, lIdx) => {
@@ -1607,6 +1759,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                                       lesson={lesson}
                                       moduleNumber={gIdx + 1}
                                       lessonNumber={lIdx + 1}
+                                      compactMeta
                                       dbMode={dbMode}
                                       selectMode={selectMode}
                                       selected={selected}

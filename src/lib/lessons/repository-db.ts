@@ -3,6 +3,7 @@ import { fillLessonFromCatalog, isCatalogLesson } from "./catalog-fallback";
 import type { LessonAdminRow, LessonOverrideRow } from "./types";
 import { slugifyLessonTitle, uniqueLessonId } from "./slug";
 import { insertSlugAt } from "./admin-grouping";
+import { moduleLegacyLevelFields } from "./module-legacy-fields";
 
 // Implementação DB-native do repositório de aulas (tabelas courses/modules/
 // lessons). Ativa quando COURSE_SOURCE=db; o repository.ts despacha pra cá.
@@ -511,6 +512,7 @@ export async function createModule(input: {
     rows.reduce((max, r) => Math.max(max, r.sort_order ?? -1), -1) + 1;
   const published = input.published ?? true;
   const comingSoon = input.comingSoon ?? false;
+  const { level_key, level_num } = moduleLegacyLevelFields(sortOrder, comingSoon);
 
   const { error } = await admin.from("modules").insert({
     course_id: courseId,
@@ -523,6 +525,8 @@ export async function createModule(input: {
     sort_order: sortOrder,
     published,
     coming_soon: comingSoon,
+    level_key,
+    level_num,
   });
   if (error) throw error;
 

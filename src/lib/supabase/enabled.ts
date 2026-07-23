@@ -82,5 +82,7 @@ export function isServiceRoleConfigured(): boolean {
  * course-db-native. Sem a flag ligada, comportamento idêntico ao de hoje.
  */
 export function isDbCourseSource(): boolean {
-  return process.env.COURSE_SOURCE === "db";
+  // .trim(): a env na Vercel pode vir com \n/espaço no fim ("db\n"), o que
+  // silenciosamente derrubava o modo DB. Normaliza antes de comparar.
+  return process.env.COURSE_SOURCE?.trim() === "db";
 }
