@@ -188,6 +188,135 @@ function CoverImagePicker({
   );
 }
 
+/**
+ * Campos de vídeo compartilhados entre editar e criar aula. O usuário cola o
+ * link comum (Tella ou YouTube) e o valor é normalizado no salvamento — não
+ * precisa extrair slug/ID. `showPreview` liga a prévia embutida (usada no criar,
+ * onde não há coluna de preview separada).
+ */
+function VideoFields({
+  tella,
+  youtubeId,
+  onPatch,
+  showPreview = false,
+  previewTitle,
+}: {
+  tella: string;
+  youtubeId: string;
+  onPatch: (patch: Partial<Pick<LessonFormState, "tella" | "youtubeId">>) => void;
+  showPreview?: boolean;
+  previewTitle?: string;
+}) {
+  // Uma plataforma por vez. Detecta a inicial pelo que já está preenchido
+  // (Tella tem prioridade); depois o usuário troca no seletor.
+  const [provider, setProvider] = useState<"tella" | "youtube">(
+    youtubeId.trim() && !tella.trim() ? "youtube" : "tella",
+  );
+
+  const rawValue = provider === "tella" ? tella : youtubeId;
+  const video = lessonVideo({ tella, youtubeId });
+  const previewUrl = showPreview ? lessonEmbedUrl({ tella, youtubeId }) : null;
+  const hasInput = rawValue.trim().length > 0;
+
+  function selectProvider(next: "tella" | "youtube") {
+    if (next === provider) return;
+    setProvider(next);
+    // Limpa a outra plataforma pra não deixar link duplicado/ambíguo no banco.
+    onPatch(next === "tella" ? { youtubeId: "" } : { tella: "" });
+  }
+
+  function handleInput(raw: string) {
+    onPatch(provider === "tella" ? { tella: raw } : { youtubeId: raw });
+  }
+
+  return (
+    <>
+      <p className={styles.formSectionHint}>
+        Escolha a plataforma e cole o link do vídeo — o mesmo que você
+        compartilha. Ele embeda sozinho, não precisa converter para slug nem ID.
+      </p>
+
+      <div
+        className={styles.videoProviderTabs}
+        role="group"
+        aria-label="Plataforma do vídeo"
+      >
+        <button
+          type="button"
+          className={`${styles.videoProviderTab} ${provider === "tella" ? styles.videoProviderTabActive : ""}`}
+          aria-pressed={provider === "tella"}
+          onClick={() => selectProvider("tella")}
+        >
+          Tella
+        </button>
+        <button
+          type="button"
+          className={`${styles.videoProviderTab} ${provider === "youtube" ? styles.videoProviderTabActive : ""}`}
+          aria-pressed={provider === "youtube"}
+          onClick={() => selectProvider("youtube")}
+        >
+          YouTube
+        </button>
+      </div>
+
+      <label className={styles.field}>
+        <span className={styles.label}>
+          {provider === "tella" ? "Link do Tella" : "Link do YouTube"}
+        </span>
+        <input
+          className={styles.input}
+          value={rawValue}
+          placeholder={
+            provider === "tella"
+              ? "https://www.tella.tv/video/..."
+              : "https://youtu.be/... (ou só o ID)"
+          }
+          onChange={(e) => handleInput(e.target.value)}
+        />
+      </label>
+
+      {video ? (
+        <p className={styles.videoStatus}>
+          <span className={`${styles.badge} ${styles.badgeOn}`}>
+            {video.label} reconhecido
+          </span>
+          <a
+            href={video.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.previewExternalLink}
+          >
+            Abrir link ↗
+          </a>
+        </p>
+      ) : hasInput ? (
+        <p className={styles.videoStatusWarn}>
+          Não reconheci esse link. Cole a URL do vídeo{" "}
+          {provider === "tella" ? "no Tella" : "no YouTube"}.
+        </p>
+      ) : null}
+
+      {showPreview ? (
+        previewUrl ? (
+          <div className={styles.playerWrap}>
+            <iframe
+              src={previewUrl}
+              title={previewTitle || "Prévia do vídeo"}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className={styles.player}
+            />
+          </div>
+        ) : (
+          <div className={styles.previewPlaceholder}>
+            Cole um link acima para ver a prévia.
+          </div>
+        )
+      ) : null}
+    </>
+  );
+}
+
 function EditLessonModal({
   lesson,
   formCtrl,
@@ -628,34 +757,13 @@ function EditLessonModal({
 
             <section className={styles.formSection}>
               <h3 className={styles.formSectionTitle}>Vídeo</h3>
-              <p className={styles.formSectionHint}>
-                Tella tem prioridade sobre YouTube. Cole slug, URL completa ou ID.
-              </p>
-
-              <label className={styles.field}>
-                <span className={styles.label}>Tella (slug ou URL)</span>
-                <input
-                  className={styles.input}
-                  value={form.tella}
-                  placeholder="01-ca-1-o-que-e-o-claude-f528"
-                  onChange={(e) =>
-                    formCtrl.setValue((f) => ({ ...f, tella: e.target.value }))
-                  }
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span className={styles.label}>YouTube (ID ou URL)</span>
-                <input
-                  className={styles.input}
-                  value={form.youtubeId}
-                  placeholder="dQw4w9WgXcQ"
-                  disabled={!!resolvedTella}
-                  onChange={(e) =>
-                    formCtrl.setValue((f) => ({ ...f, youtubeId: e.target.value }))
-                  }
-                />
-              </label>
+              <VideoFields
+                tella={form.tella}
+                youtubeId={form.youtubeId}
+                onPatch={(patch) =>
+                  formCtrl.setValue((f) => ({ ...f, ...patch }))
+                }
+              />
             </section>
 
             <section className={styles.formSection}>
@@ -3020,31 +3128,15 @@ export function AdminDashboard({
               />
             </label>
 
-            <label className={styles.field}>
-              <span className={styles.label}>Tella (slug) — tem prioridade</span>
-              <input
-                className={styles.input}
-                value={createFormCtrl.value.tella}
-                placeholder="01-ca-1-o-que-e-o-claude-f528"
-                onChange={(e) =>
-                  createFormCtrl.setValue((f) => ({ ...f, tella: e.target.value }))
-                }
-              />
-            </label>
-
-            <label className={styles.field}>
-              <span className={styles.label}>YouTube ID</span>
-              <input
-                className={styles.input}
-                value={createFormCtrl.value.youtubeId}
-                onChange={(e) =>
-                  createFormCtrl.setValue((f) => ({
-                    ...f,
-                    youtubeId: e.target.value,
-                  }))
-                }
-              />
-            </label>
+            <VideoFields
+              tella={createFormCtrl.value.tella}
+              youtubeId={createFormCtrl.value.youtubeId}
+              onPatch={(patch) =>
+                createFormCtrl.setValue((f) => ({ ...f, ...patch }))
+              }
+              showPreview
+              previewTitle={createFormCtrl.value.title}
+            />
 
             <label className={styles.field}>
               <span className={styles.label}>Descrição</span>

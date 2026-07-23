@@ -8,8 +8,22 @@ import {
   deleteCustomLesson,
   CatalogLessonError,
 } from "@/lib/lessons/repository";
+import { normalizeTellaSlug, normalizeYoutubeId } from "@/lib/lessons/video-urls";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Guarda no banco sempre o slug/ID limpo, aceitando o link comum que o usuário
+ * cola (o player de membros monta a URL a partir do valor cru). `undefined` =
+ * campo não enviado (não mexe); string vazia/URL inválida vira `null`.
+ */
+function cleanTella(v: string | null | undefined): string | null | undefined {
+  return v === undefined ? undefined : normalizeTellaSlug(v);
+}
+
+function cleanYoutube(v: string | null | undefined): string | null | undefined {
+  return v === undefined ? undefined : normalizeYoutubeId(v);
+}
 
 export async function GET() {
   const auth = await assertAdminApi();
@@ -58,8 +72,8 @@ export async function PATCH(request: Request) {
     const row = await upsertLessonOverride({
       moduleId: body.moduleId,
       lessonId: body.lessonId,
-      youtubeId: body.youtubeId,
-      tella: body.tella,
+      youtubeId: cleanYoutube(body.youtubeId),
+      tella: cleanTella(body.tella),
       duration: body.duration,
       title: body.title,
       description: body.description,
@@ -105,8 +119,8 @@ export async function POST(request: Request) {
     const lesson = await createLesson({
       moduleId: body.moduleId,
       title: body.title.trim(),
-      tella: body.tella ?? null,
-      youtubeId: body.youtubeId ?? null,
+      tella: normalizeTellaSlug(body.tella ?? null),
+      youtubeId: normalizeYoutubeId(body.youtubeId ?? null),
       duration: body.duration ?? null,
       description: body.description ?? null,
       published: body.published ?? true,

@@ -824,6 +824,56 @@
   text-decoration: underline;
 }
 
+.videoProviderTabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.videoProviderTab {
+  padding: 0.4rem 0.9rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.videoProviderTab:hover {
+  color: var(--foreground);
+}
+
+.videoProviderTabActive {
+  background: var(--accent);
+  color: #fff;
+}
+
+.videoProviderTabActive:hover {
+  color: #fff;
+}
+
+.videoStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.1rem 0 0.65rem;
+}
+
+.videoStatusWarn {
+  margin: 0.1rem 0 0.65rem;
+  font-size: 0.78rem;
+  color: var(--danger);
+}
+
 .lessonInfoGrid {
   display: grid;
   gap: 0.65rem;

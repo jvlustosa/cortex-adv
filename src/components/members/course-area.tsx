@@ -7,6 +7,7 @@ import { ArrowLeft, Clock, Download, PlayCircle } from "lucide-react";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
 import type { ComingSoonModuleView } from "@/lib/lessons/db-course";
 import type { LessonMaterial } from "@/lib/lessons/materials";
+import { normalizeTellaSlug, normalizeYoutubeId } from "@/lib/lessons/video-urls";
 import { CourseMenu } from "./course-menu";
 import { CompleteLessonButton } from "./complete-lesson-button";
 import { LessonFeedbackForm } from "./lesson-feedback-form";
@@ -100,6 +101,11 @@ export function CourseArea({
 
   const currentKey = `${activeModule.id}:${activeLesson.id}`;
   const isCurrentCompleted = completed.has(currentKey);
+
+  // Aceita tanto o slug/ID limpo quanto o link comum colado no admin. Tella
+  // tem prioridade sobre YouTube (mesma regra do player do admin).
+  const tellaSlug = normalizeTellaSlug(activeLesson.tella);
+  const youtubeId = tellaSlug ? null : normalizeYoutubeId(activeLesson.youtubeId);
 
   const flat = course.modules.flatMap((m) =>
     m.lessons.map((l) => ({ moduleId: m.id, lessonId: l.id })),
@@ -219,20 +225,20 @@ export function CourseArea({
         </div>
 
         <div className={styles.playerWrap}>
-          {activeLesson.tella ? (
+          {tellaSlug ? (
             <iframe
               key={activeLesson.id}
               className={styles.playerIframe}
-              src={`https://www.tella.tv/video/${activeLesson.tella}/embed?b=0&title=0&a=0`}
+              src={`https://www.tella.tv/video/${tellaSlug}/embed?b=0&title=0&a=0`}
               title={activeLesson.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
             />
-          ) : activeLesson.youtubeId ? (
+          ) : youtubeId ? (
             <iframe
               key={activeLesson.id}
               className={styles.playerIframe}
-              src={`https://www.youtube-nocookie.com/embed/${activeLesson.youtubeId}?rel=0`}
+              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
               title={activeLesson.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
