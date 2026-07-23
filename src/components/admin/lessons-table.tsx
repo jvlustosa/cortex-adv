@@ -19,6 +19,8 @@ import styles from "./admin-dashboard.module.css";
 
 export function LessonRow({
   lesson,
+  moduleNumber,
+  lessonNumber,
   selectMode,
   selected,
   dbMode,
@@ -43,6 +45,8 @@ export function LessonRow({
   onKeyMove,
 }: {
   lesson: LessonAdminRow;
+  moduleNumber: number;
+  lessonNumber: number;
   selectMode: boolean;
   selected: Set<string>;
   dbMode: boolean;
@@ -140,15 +144,22 @@ export function LessonRow({
               onDown={onMoveDown}
             />
           </div>
-          <div>
-            <strong>{lesson.title}</strong>
-            <br />
-            <span className={styles.feedbackMeta}>
-              {lesson.moduleTitle} · {lesson.lessonId}
-            </span>
-            {lesson.origin === "custom" ? (
-              <span className={styles.customBadge}>criada no painel</span>
-            ) : null}
+          <div className={styles.aulaBody}>
+            <div className={styles.aulaTitleRow}>
+              <span className={styles.orderBadge} aria-hidden>
+                {String(lessonNumber).padStart(2, "0")}
+              </span>
+              <strong>{lesson.title}</strong>
+            </div>
+            <div className={styles.aulaMeta}>
+              <span className={styles.feedbackMeta}>
+                Mód. {String(moduleNumber).padStart(2, "0")} · {lesson.moduleTitle} ·{" "}
+                {lesson.lessonId}
+              </span>
+              {lesson.origin === "custom" ? (
+                <span className={styles.customBadge}>criada no painel</span>
+              ) : null}
+            </div>
           </div>
         </div>
       </td>

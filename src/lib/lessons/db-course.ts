@@ -1,5 +1,6 @@
 import type { Course, CourseLesson, CourseModule } from "@/data/course-content";
 import { getModuleCoverImage } from "@/lib/course/module-covers";
+import { fillLessonFromCatalog } from "@/lib/lessons/catalog-fallback";
 
 // Mapeamento puro de linhas do DB (courses/modules/lessons) → shape de runtime
 // (Course/CourseModule/CourseLesson). Sem Supabase aqui: fica testável isolado.
@@ -61,13 +62,21 @@ export type MappedCourse = Pick<Course, "title" | "subtitle"> & {
 };
 
 function toLesson(row: LessonRow): PublishedCourseLesson {
+  const filled = fillLessonFromCatalog(row.module_slug, row.slug, {
+    title: row.title,
+    duration: row.duration,
+    youtube_id: row.youtube_id,
+    tella: row.tella,
+    description: row.description,
+  });
+
   return {
     id: row.slug,
-    title: row.title,
-    duration: row.duration ?? "",
-    youtubeId: row.youtube_id ?? undefined,
-    tella: row.tella ?? undefined,
-    description: row.description ?? "",
+    title: filled.title ?? row.title,
+    duration: filled.duration ?? "",
+    youtubeId: filled.youtube_id ?? undefined,
+    tella: filled.tella ?? undefined,
+    description: filled.description ?? "",
     published: row.published,
   };
 }

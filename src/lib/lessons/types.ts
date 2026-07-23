@@ -34,6 +34,8 @@ export type LessonFeedbackRow = {
 export type LessonViewer = {
   userId: string;
   email: string;
+  /** Nome do perfil; null se só tiver e-mail. */
+  name: string | null;
   viewedAt: string;
 };
 

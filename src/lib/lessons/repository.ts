@@ -71,14 +71,20 @@ async function aggregateViews(): Promise<{
   }
 
   const emailByUser = new Map<string, string>();
+  const nameByUser = new Map<string, string | null>();
   if (userIds.size > 0) {
     const { data: users, error: usersErr } = await admin
       .from("users")
-      .select("id, email")
+      .select("id, email, full_name")
       .in("id", [...userIds]);
     if (usersErr) throw usersErr;
-    for (const u of (users ?? []) as { id: string; email: string | null }[]) {
+    for (const u of (users ?? []) as {
+      id: string;
+      email: string | null;
+      full_name: string | null;
+    }[]) {
       if (u.email) emailByUser.set(u.id, u.email);
+      nameByUser.set(u.id, u.full_name?.trim() || null);
     }
   }
 
@@ -89,6 +95,7 @@ async function aggregateViews(): Promise<{
       [...byUser.entries()].map(([userId, { viewedAt }]) => ({
         userId,
         email: emailByUser.get(userId) ?? `${userId.slice(0, 8)}…`,
+        name: nameByUser.get(userId) ?? null,
         viewedAt,
       })),
     );

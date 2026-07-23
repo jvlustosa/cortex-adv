@@ -1505,6 +1505,9 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                           />
                           <div className={styles.modulePanelMeta}>
                             <h3 className={styles.modulePanelTitle}>
+                              <span className={styles.orderBadge} aria-hidden>
+                                {String(gIdx + 1).padStart(2, "0")}
+                              </span>
                               {group.moduleTitle}
                             </h3>
                             <p className={styles.feedbackMeta}>
@@ -1591,7 +1594,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                               className={`${styles.table} ${styles.lessonsAdminTable}`}
                             >
                               <tbody>
-                                {group.lessons.map((lesson) => {
+                                {group.lessons.map((lesson, lIdx) => {
                                   const bounds = lessonMoveBounds(
                                     lessons,
                                     lesson,
@@ -1602,6 +1605,8 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                                     <LessonRow
                                       key={key}
                                       lesson={lesson}
+                                      moduleNumber={gIdx + 1}
+                                      lessonNumber={lIdx + 1}
                                       dbMode={dbMode}
                                       selectMode={selectMode}
                                       selected={selected}
@@ -1690,7 +1695,7 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {lessonGroups.map((group) => (
+                    {lessonGroups.map((group, gIdx) => (
                       <Fragment key={group.moduleId}>
                         <tr className={styles.moduleRow}>
                           <td>
@@ -1712,9 +1717,16 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                               />
                             ) : null}
                           </td>
-                          <td colSpan={6}>{group.moduleTitle}</td>
+                          <td colSpan={6}>
+                            <span className={styles.moduleRowLabel}>
+                              <span className={styles.orderBadge} aria-hidden>
+                                {String(gIdx + 1).padStart(2, "0")}
+                              </span>
+                              {group.moduleTitle}
+                            </span>
+                          </td>
                         </tr>
-                        {group.lessons.map((lesson) => {
+                        {group.lessons.map((lesson, lIdx) => {
                           const bounds = lessonMoveBounds(
                             lessons,
                             lesson,
@@ -1725,6 +1737,8 @@ export function AdminDashboard({ dbMode = false }: { dbMode?: boolean }) {
                             <LessonRow
                               key={key}
                               lesson={lesson}
+                              moduleNumber={gIdx + 1}
+                              lessonNumber={lIdx + 1}
                               dbMode={false}
                               selectMode={selectMode}
                               selected={selected}

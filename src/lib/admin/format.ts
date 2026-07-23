@@ -15,6 +15,18 @@ export function formatBytes(bytes: number): string {
   return `${(kb / 1024).toFixed(1)} MB`;
 }
 
+/** Nome legível para tooltip / avatar stack. */
+export function viewerDisplayName(viewer: {
+  name?: string | null;
+  email: string;
+}): string {
+  const name = viewer.name?.trim();
+  if (name) return name;
+  const local = viewer.email.split("@")[0]?.trim() ?? "";
+  if (!local) return viewer.email;
+  return local.replace(/[._-]+/g, " ");
+}
+
 /** Iniciais para avatar stack (parte local do e-mail). */
 export function initialsFromEmail(email: string): string {
   const local = email.split("@")[0]?.trim() ?? "";

@@ -76,6 +76,28 @@ checks as (
          not exists(select 1 from public.modules where cover_image is null or cover_image = ''),
          (select count(*)::text from public.modules where cover_image is null or cover_image = '') || ' sem capa' union all
 
+  select '017', 'aulas do catálogo com tella no DB',
+         (select count(*) from (
+           values
+             ('comece-aqui', 'o-que-e-claude'),
+             ('comece-aqui', 'claude-vs-chatgpt'),
+             ('fundacao-pratica', '5-superpoderes')
+         ) as v(module_slug, lesson_slug)
+         left join public.modules m on m.slug = v.module_slug
+         left join public.lessons l on l.module_id = m.id and l.slug = v.lesson_slug
+         where l.id is null or coalesce(btrim(l.tella), '') = ''
+         ) = 0,
+         (select count(*)::text from (
+           values
+             ('comece-aqui', 'o-que-e-claude'),
+             ('comece-aqui', 'claude-vs-chatgpt'),
+             ('fundacao-pratica', '5-superpoderes')
+         ) as v(module_slug, lesson_slug)
+         left join public.modules m on m.slug = v.module_slug
+         left join public.lessons l on l.module_id = m.id and l.slug = v.lesson_slug
+         where l.id is null or coalesce(btrim(l.tella), '') = ''
+         )) || ' sem tella (amostra)' union all
+
   -- ── drift catálogo estático ↔ DB ─────────────────────────────────────────
   -- aulas no overlay estático (lesson_overrides) sem par nas tabelas nativas.
   -- 0 = seed em dia. >0 = rode `npm run db:seed -- --apply` antes do modo DB.

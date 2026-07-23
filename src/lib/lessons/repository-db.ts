@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fillLessonFromCatalog, isCatalogLesson } from "./catalog-fallback";
 import type { LessonAdminRow, LessonOverrideRow } from "./types";
 import { slugifyLessonTitle, uniqueLessonId } from "./slug";
 import { insertSlugAt } from "./admin-grouping";
@@ -97,17 +98,26 @@ export async function adminContentFromDb(): Promise<AdminContentModule[]> {
 
   const byModule = new Map<string, AdminContentLesson[]>();
   for (const l of (lessons ?? []) as Row[]) {
+    const mod = modules.find((m) => m.id === l.module_id);
+    const moduleSlug = mod?.slug ?? "";
+    const filled = fillLessonFromCatalog(moduleSlug, l.slug, {
+      title: l.title,
+      duration: l.duration,
+      description: l.description,
+      youtube_id: l.youtube_id,
+      tella: l.tella,
+    });
     const bucket = byModule.get(l.module_id) ?? [];
     bucket.push({
       lessonId: l.slug,
-      title: l.title,
-      duration: l.duration ?? "",
-      description: l.description ?? "",
-      youtubeId: l.youtube_id ?? null,
-      tella: l.tella ?? null,
+      title: filled.title ?? l.title,
+      duration: filled.duration ?? "",
+      description: filled.description ?? "",
+      youtubeId: filled.youtube_id ?? null,
+      tella: filled.tella ?? null,
       published: l.published,
       orderIndex: l.sort_order,
-      origin: "custom",
+      origin: isCatalogLesson(moduleSlug, l.slug) ? "catalog" : "custom",
       catalogIndex: null,
     });
     byModule.set(l.module_id, bucket);

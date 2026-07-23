@@ -147,13 +147,28 @@
   padding-left: 0.35rem;
 }
 
+.avatarChipWrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: -0.42rem;
+}
+
+.avatarChipWrap:first-child {
+  margin-left: 0;
+}
+
+.avatarChipWrap:hover,
+.avatarChipWrap:focus-within {
+  z-index: 20 !important;
+}
+
 .avatarChip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 1.65rem;
   height: 1.65rem;
-  margin-left: -0.42rem;
   border-radius: 999px;
   border: 2px solid var(--surface);
   background: linear-gradient(145deg, #3d2218, #d97757);
@@ -161,7 +176,7 @@
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  flex-shrink: 0;
+  cursor: default;
 }
 
 .avatarChipExtra {
@@ -169,6 +184,86 @@
   color: var(--muted);
   font-size: 0.55rem;
   font-weight: 600;
+}
+
+.avatarTooltip {
+  position: absolute;
+  bottom: calc(100% + 0.45rem);
+  left: 50%;
+  z-index: 30;
+  display: flex;
+  width: max-content;
+  max-width: 14rem;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(0.2rem);
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+}
+
+.avatarChipWrap:hover .avatarTooltip,
+.avatarChipWrap:focus-within .avatarTooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.avatarTooltipName {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.avatarTooltipEmail {
+  font-size: 0.7rem;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.avatarTooltipMeta {
+  margin-top: 0.1rem;
+  padding-top: 0.28rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.avatarTooltipList {
+  max-width: 16rem;
+}
+
+.avatarTooltipUsers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.avatarTooltipUsers li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.avatarTooltipUsers li span:first-child {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.avatarTooltipUsers li span:last-child {
+  font-size: 0.68rem;
+  color: var(--muted);
+  word-break: break-all;
 }
 
 .viewCountBadge {
@@ -230,6 +325,50 @@
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
+  min-width: 12rem;
+}
+
+.aulaBody {
+  min-width: 0;
+  flex: 1;
+}
+
+.aulaTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.aulaMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.orderBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.65rem;
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--claude);
+  background: rgba(217, 119, 87, 0.12);
+  border: 1px solid rgba(217, 119, 87, 0.22);
+  flex-shrink: 0;
+}
+
+.moduleRowLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
 }
 
 .dragHandle {
@@ -932,7 +1071,43 @@
 
 .videoThumbCell {
   width: 8.5rem;
-  vertical-align: middle;
+  vertical-align: top;
+}
+
+.videoThumbStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  min-width: 7.75rem;
+}
+
+.videoThumbLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  max-width: 7.75rem;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  color: var(--claude);
+  text-decoration: none;
+}
+
+.videoThumbLink span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.videoThumbLink:hover {
+  text-decoration: underline;
+}
+
+.videoThumbBtnFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--claude);
+  background: color-mix(in srgb, var(--claude) 10%, #0a0a0a);
 }
 
 .videoThumbBtn {
@@ -1385,6 +1560,9 @@
 }
 
 .modulePanelTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
   font-size: 0.95rem;
   font-weight: 600;
