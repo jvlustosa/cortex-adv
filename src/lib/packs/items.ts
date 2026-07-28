@@ -2,7 +2,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isServiceRoleConfigured, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
 export const PACK_ITEMS_BUCKET = "pack-items";
-const SIGNED_URL_TTL_SECONDS = 300;
+// TTL curto de propósito: a URL é assinada no clique (rota /api/packs/download),
+// não no render da página, então só precisa sobreviver ao redirect.
+const SIGNED_URL_TTL_SECONDS = 60;
 
 export type PackItemKind = "skill-file" | "remote-connector" | "lesson-ref";
 export type PackItemStatus = "ready" | "teaser";
@@ -119,7 +121,12 @@ export async function listPackItemsForAdmin(): Promise<PackItemAdmin[]> {
   return ((data ?? []) as PackItemRow[]).map(rowToAdmin);
 }
 
-/** Lista itens com signed URL para alunos autenticados. */
+/** Rota que assina o download no clique — nada de URL com prazo no HTML. */
+export function packItemDownloadPath(id: string): string {
+  return `/api/packs/download?id=${encodeURIComponent(id)}`;
+}
+
+/** Lista itens para alunos autenticados, com o link de download da rota. */
 export async function listPackItemsForMember(): Promise<PackItemMember[]> {
   if (!isSupabaseEnabled() || !isServiceRoleConfigured()) return [];
 
@@ -133,27 +140,55 @@ export async function listPackItemsForMember(): Promise<PackItemMember[]> {
 
     if (error) throw error;
 
-    const items: PackItemMember[] = [];
-    for (const row of (data ?? []) as PackItemRow[]) {
-      const base = rowToAdmin(row);
-      let downloadUrl: string | null = null;
-
-      if (row.kind === "skill-file" && row.file_path && row.file_name) {
-        const { data: signed } = await admin.storage
-          .from(PACK_ITEMS_BUCKET)
-          .createSignedUrl(row.file_path, SIGNED_URL_TTL_SECONDS, {
-            download: row.file_name,
-          });
-        downloadUrl = signed?.signedUrl ?? null;
-      }
-
-      items.push({ ...base, downloadUrl });
-    }
-    return items;
+    return ((data ?? []) as PackItemRow[]).map((row) => ({
+      ...rowToAdmin(row),
+      downloadUrl:
+        row.kind === "skill-file" && row.file_path && row.file_name
+          ? packItemDownloadPath(row.id)
+          : null,
+    }));
   } catch (err) {
     console.error("[packs] list member items", err);
     return [];
   }
+}
+
+/** Item cru por id — usado pela rota de download pra decidir o acesso. */
+export async function getPackItemRow(id: string): Promise<PackItemRow | null> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("pack_items")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[packs] get item", error);
+    return null;
+  }
+  return (data as PackItemRow) ?? null;
+}
+
+/** Signed URL de download do arquivo do item. null se a assinatura falhar. */
+export async function signPackItemDownload(
+  row: PackItemRow,
+): Promise<string | null> {
+  if (!row.file_path || !row.file_name) return null;
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.storage
+    .from(PACK_ITEMS_BUCKET)
+    .createSignedUrl(row.file_path, SIGNED_URL_TTL_SECONDS, {
+      download: row.file_name,
+    });
+
+  // Antes o erro era descartado: arquivo sumido no bucket virava item sem
+  // botão, sem rastro nenhum no log. Agora aparece.
+  if (error) {
+    console.error("[packs] sign download", { itemId: row.id }, error);
+    return null;
+  }
+  return data?.signedUrl ?? null;
 }
 
 export async function createPackItem(input: {

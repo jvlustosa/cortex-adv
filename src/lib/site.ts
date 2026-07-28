@@ -48,7 +48,7 @@ export const COMMUNITY = {
     perks: [
       "Dicas de prompt e novidades do Claude Academy",
       "Troca informal entre advogados curiosos com IA",
-      "Avisos de lançamento e lista de espera",
+      "Avisos de aulas novas e materiais liberados",
     ],
     note: "Não inclui suporte às aulas nem acesso ao conteúdo do curso.",
   },

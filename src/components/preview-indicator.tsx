@@ -7,13 +7,15 @@ import { cn } from "@/lib/utils";
 import styles from "./preview-indicator.module.css";
 
 const PHASE_LABEL: Record<LaunchPhase, string> = {
+  evergreen: "Matrícula aberta · plano anual",
   live: "Vagas abertas · checkout no ar",
   closed: "Inscrições encerradas",
   before: "Antes de abrir",
 };
 
 const OPTIONS: { key: LaunchPhase; param: string; label: string }[] = [
-  { key: "live", param: "live", label: "Aberto" },
+  { key: "evergreen", param: "evergreen", label: "Perpétuo" },
+  { key: "live", param: "live", label: "Turma aberta" },
   { key: "closed", param: "closed", label: "Encerrado" },
   { key: "before", param: "before", label: "Antes" },
 ];

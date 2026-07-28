@@ -22,7 +22,12 @@ import { LaunchBanner } from "@/components/launch-banner";
 import { MentorProfile } from "@/components/mentor-profile";
 import { TrilhaSneakPeek } from "@/components/trilha-sneak-peek";
 import { pageShellClass } from "@/lib/layout";
+import { SALES_MODE } from "@/lib/launch-window";
+import { formatBRL, getPricingSummary, PRICING } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
+
+const isEvergreen = SALES_MODE === "evergreen";
+const { total } = getPricingSummary();
 
 const faqItems: FaqItem[] = [
   {
@@ -60,8 +65,9 @@ const faqItems: FaqItem[] = [
   },
   {
     question: "Quanto custa o curso?",
-    answer:
-      "O curso é pago e inclui a Comunidade VIP. O grupo aberto continua gratuito para quem quiser só acompanhar. Quem entra na lista de espera recebe valor e condições de lançamento antes de todo mundo.",
+    answer: isEvergreen
+      ? `Plano anual: 12× ${formatBRL(PRICING.installments.amount)} no cartão, ${formatBRL(total)} no total. Inclui o curso completo e a Comunidade VIP por 1 ano, com tudo que for liberado no período sem pagar de novo. O grupo aberto continua gratuito para quem quiser só acompanhar.`
+      : "O curso é pago e inclui a Comunidade VIP. O grupo aberto continua gratuito para quem quiser só acompanhar. Quem entra na lista de espera recebe valor e condições de lançamento antes de todo mundo.",
     reaction: "✨",
   },
   {

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseSetupSteps } from "@/lib/packs/items";
-import { canAccessPackItem } from "@/lib/packs/load-packs";
+import { packItemDownloadPath, parseSetupSteps } from "@/lib/packs/items";
+import { canAccessPackItem, canDownloadPackItem } from "@/lib/packs/load-packs";
 import {
   PACKS,
   countPackItems,
@@ -53,6 +53,33 @@ test("canAccessPackItem: amostra libera antes da garantia", () => {
   assert.equal(canAccessPackItem("premium", false), false);
   assert.equal(canAccessPackItem("premium", true), true);
   assert.equal(canAccessPackItem(undefined, true), true);
+});
+
+test("canDownloadPackItem: só skill-file pronto e liberado baixa", () => {
+  const item = (over: Partial<Parameters<typeof canDownloadPackItem>[0]>) => ({
+    kind: "skill-file",
+    status: "ready",
+    tier: "premium" as const,
+    ...over,
+  });
+
+  assert.equal(canDownloadPackItem(item({}), true), true);
+  // Galeria travada (dentro da garantia) não baixa premium, mas baixa amostra.
+  assert.equal(canDownloadPackItem(item({}), false), false);
+  assert.equal(canDownloadPackItem(item({ tier: "amostra" }), false), true);
+  // Teaser não tem arquivo pra entregar, mesmo liberado.
+  assert.equal(canDownloadPackItem(item({ status: "teaser" }), true), false);
+  // Conector e referência de aula não passam pela rota de download.
+  assert.equal(canDownloadPackItem(item({ kind: "remote-connector" }), true), false);
+  assert.equal(canDownloadPackItem(item({ kind: "lesson-ref" }), true), false);
+});
+
+test("packItemDownloadPath: id vai escapado na query", () => {
+  assert.equal(packItemDownloadPath("abc"), "/api/packs/download?id=abc");
+  assert.equal(
+    packItemDownloadPath("a b&c"),
+    "/api/packs/download?id=a%20b%26c",
+  );
 });
 
 test("parseSetupSteps: uma linha por passo", () => {

@@ -1,7 +1,11 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { getLaunchPhase, type LaunchPhase } from "@/lib/launch-window";
+import {
+  getLaunchPhase,
+  SALES_MODE,
+  type LaunchPhase,
+} from "@/lib/launch-window";
 
 /**
  * Store externo do relógio, compartilhado por todos os consumidores (um só
@@ -55,6 +59,7 @@ const PREVIEW_PHASES: Record<string, LaunchPhase> = {
   live: "live",
   closed: "closed",
   before: "before",
+  evergreen: "evergreen",
 };
 
 function readPreviewPhase(): LaunchPhase | null {
@@ -72,7 +77,17 @@ export type LaunchState = {
 /** Estado de lançamento resolvido no cliente (respeita `?preview=`). */
 export function useLaunchState(): LaunchState {
   const now = useNow();
-  if (!now) return { now: null, phase: null, isPreview: false };
+
+  // Perpétuo não depende do relógio: a fase já é conhecida no HTML estático,
+  // então o preço e o botão de matrícula saem prontos no primeiro render.
+  // Em modo turma segue null até montar — nunca revela o checkout antes da hora.
+  if (!now) {
+    return {
+      now: null,
+      phase: SALES_MODE === "evergreen" ? "evergreen" : null,
+      isPreview: false,
+    };
+  }
 
   const preview = readPreviewPhase();
   return {

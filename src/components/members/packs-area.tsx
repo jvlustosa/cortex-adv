@@ -1,17 +1,12 @@
+import type { ComponentType } from "react";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Download,
-  Lock,
-  Plug,
-  Sparkles,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowRight, Download, Lock, Sparkles } from "lucide-react";
 import { countPackItems, lessonHref, type Pack, type PackIconKey } from "@/data/packs";
 import type { PackAccess } from "@/lib/course/packs-access";
 import { formatUnlockDate } from "@/lib/course/packs-access";
 import { canAccessPackItem } from "@/lib/packs/load-packs";
 import { PRICING } from "@/lib/pricing";
+import { PlugConnectionIcon } from "@/components/icons/plug-connection";
 import { ConnectorUrl } from "./connector-url";
 import { CopyPrompt } from "./copy-prompt";
 import { PackGiftBox } from "./pack-gift-box";
@@ -25,9 +20,9 @@ type PacksAreaProps = {
   access: PackAccess;
 };
 
-const PACK_ICONS: Record<PackIconKey, LucideIcon> = {
+const PACK_ICONS: Record<PackIconKey, ComponentType<{ className?: string }>> = {
   skills: Sparkles,
-  conectores: Plug,
+  conectores: PlugConnectionIcon,
 };
 
 function isTeaser(status: Pack["items"][number]["status"]): boolean {

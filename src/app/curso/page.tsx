@@ -14,17 +14,30 @@ import {
   getPricingSummary,
   PRICING,
 } from "@/lib/pricing";
+import { SALES_MODE } from "@/lib/launch-window";
 import { LaunchBanner } from "@/components/launch-banner";
 import { CommunityTiers } from "@/components/community-tiers";
 import { pageShellClass } from "@/lib/layout";
 import { OPEN_WHATSAPP_GROUP_URL, SITE_BRAND } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
-const { upfront, upfrontDiscountPercent } = getPricingSummary();
+const { total, upfront, upfrontDiscountPercent } = getPricingSummary();
+const isEvergreen = SALES_MODE === "evergreen";
+
+/** Linha de preço do hero: no perpétuo só o plano anual, sem desconto à vista. */
+const priceDetail = isEvergreen
+  ? `${formatBRL(total)} em 12 parcelas iguais`
+  : `ou ${formatBRL(upfront)} à vista · ${upfrontDiscountPercent}% de desconto`;
 
 export const metadata: Metadata = {
-  title: "Curso Claude Cowork para Advogados | Garanta sua vaga",
-  description: `Domine o Claude Cowork no escritório. ${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas, liberadas aos poucos. A partir de 12× ${formatBRL(PRICING.installments.amount)} ou ${formatBRL(upfront)} à vista.`,
+  title: isEvergreen
+    ? "Curso Claude Cowork para Advogados | Matrícula aberta"
+    : "Curso Claude Cowork para Advogados | Garanta sua vaga",
+  description: `Domine o Claude Cowork no escritório. ${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas, liberadas aos poucos. ${
+    isEvergreen
+      ? `Plano anual em 12× ${formatBRL(PRICING.installments.amount)}.`
+      : `A partir de 12× ${formatBRL(PRICING.installments.amount)} ou ${formatBRL(upfront)} à vista.`
+  }`,
 };
 
 export default function CursoSalesPage() {
@@ -86,10 +99,7 @@ export default function CursoSalesPage() {
             <p className="mt-8 font-serif text-[clamp(1.75rem,5vw,2.25rem)] text-[var(--foreground)]">
               12× {formatBRL(PRICING.installments.amount)}
             </p>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              ou {formatBRL(upfront)} à vista ·{" "}
-              {upfrontDiscountPercent}% de desconto
-            </p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{priceDetail}</p>
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <a
                 href="#precos"

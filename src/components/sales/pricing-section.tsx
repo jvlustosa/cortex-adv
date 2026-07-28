@@ -51,6 +51,11 @@ export function PricingSection() {
   const { total, upfront, savings, upfrontDiscountPercent } =
     getPricingSummary();
 
+  // Perpétuo: um plano só, o anual, sem desconto de lançamento. O desconto à
+  // vista era condição de turma — mantê-lo no ar o ano todo esvazia o preço
+  // de lançamento da próxima turma.
+  const isEvergreen = phase === "evergreen";
+
   // Encerrado: some com o preço, mas mantém a pilha de valor à vista (o que
   // entra no curso) e joga todo mundo pra fila de espera. O convite pra
   // comunidade acontece depois, no sucesso do formulário.
@@ -125,16 +130,23 @@ export function PricingSection() {
             Quanto custa o curso
           </h2>
           <p className={styles.subtitle}>
-            Curso completo + Comunidade VIP. Parcela em 12× no cartão ou paga
-            à vista e economiza {formatBRL(savings)}.
+            {isEvergreen
+              ? "Curso completo + Comunidade VIP por 1 ano, em 12× no cartão. Um plano só, sem letra miúda."
+              : `Curso completo + Comunidade VIP. Parcela em 12× no cartão ou paga à vista e economiza ${formatBRL(savings)}.`}
           </p>
         </header>
 
         <PricingUrgencyNote />
 
-        <div className={styles.grid}>
-          <article className={styles.card}>
-            <p className={styles.planLabel}>12× no cartão</p>
+        <div
+          className={`${styles.grid} ${isEvergreen ? styles.gridSingle : ""}`}
+        >
+          <article
+            className={`${styles.card} ${isEvergreen ? styles.cardFeatured : ""}`}
+          >
+            <p className={styles.planLabel}>
+              {isEvergreen ? "Plano anual" : "12× no cartão"}
+            </p>
             <p className={styles.price}>
               12× {formatBRL(PRICING.installments.amount)}
             </p>
@@ -148,34 +160,38 @@ export function PricingSection() {
             </ul>
             <PricingCta
               plan="installments"
-              className={`${styles.cta} ${styles.ctaSecondary}`}
-              liveLabel="Garantir vaga em 12×"
+              className={`${styles.cta} ${isEvergreen ? styles.ctaPrimary : styles.ctaSecondary}`}
+              liveLabel={
+                isEvergreen ? "Fazer minha matrícula" : "Garantir vaga em 12×"
+              }
             />
           </article>
 
-          <article className={`${styles.card} ${styles.cardFeatured}`}>
-            <span className={styles.badge}>
-              {upfrontDiscountPercent}% mais barato à vista
-            </span>
-            <p className={styles.planLabel}>Pagamento único</p>
-            <p className={styles.price}>{formatBRL(upfront)}</p>
-            <p className={styles.priceDetail}>
-              Era {formatBRL(total)} parcelado. Paga uma vez e pronto
-            </p>
-            <p className={styles.savings}>
-              Você leva {formatBRL(savings)} de desconto
-            </p>
-            <ul className={styles.features}>
-              {features.map((feature) => (
-                <FeatureItem key={feature.text} feature={feature} />
-              ))}
-            </ul>
-            <PricingCta
-              plan="upfront"
-              className={`${styles.cta} ${styles.ctaPrimary}`}
-              liveLabel="Garantir vaga à vista"
-            />
-          </article>
+          {isEvergreen ? null : (
+            <article className={`${styles.card} ${styles.cardFeatured}`}>
+              <span className={styles.badge}>
+                {upfrontDiscountPercent}% mais barato à vista
+              </span>
+              <p className={styles.planLabel}>Pagamento único</p>
+              <p className={styles.price}>{formatBRL(upfront)}</p>
+              <p className={styles.priceDetail}>
+                Era {formatBRL(total)} parcelado. Paga uma vez e pronto
+              </p>
+              <p className={styles.savings}>
+                Você leva {formatBRL(savings)} de desconto
+              </p>
+              <ul className={styles.features}>
+                {features.map((feature) => (
+                  <FeatureItem key={feature.text} feature={feature} />
+                ))}
+              </ul>
+              <PricingCta
+                plan="upfront"
+                className={`${styles.cta} ${styles.ctaPrimary}`}
+                liveLabel="Garantir vaga à vista"
+              />
+            </article>
+          )}
         </div>
 
         <p className={styles.guarantee}>

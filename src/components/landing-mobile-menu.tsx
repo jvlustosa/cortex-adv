@@ -13,7 +13,10 @@ import { createPortal } from "react-dom";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { SignOutButton } from "@/components/sign-out-button";
 import { useSessionUser } from "@/lib/auth/use-session";
+import { SALES_MODE } from "@/lib/launch-window";
 import { cn } from "@/lib/utils";
+
+const isEvergreen = SALES_MODE === "evergreen";
 
 const linkClass =
   "flex min-h-11 items-center rounded-lg px-3 py-2.5 text-[15px] text-[var(--muted)] transition hover:bg-[var(--surface)] hover:text-[var(--foreground)]";
@@ -162,11 +165,11 @@ export function LandingMobileMenu() {
 
                 {!user && (
                   <a
-                    href="#lista-espera"
+                    href={isEvergreen ? "#precos" : "#lista-espera"}
                     onClick={close}
                     className="mt-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
                   >
-                    Garantir vaga
+                    {isEvergreen ? "Fazer matrícula" : "Garantir vaga"}
                     <ArrowRight className="size-4" aria-hidden />
                   </a>
                 )}

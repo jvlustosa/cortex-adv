@@ -70,3 +70,16 @@ export function canAccessPackItem(
   if (tier === "amostra") return true;
   return galleryUnlocked;
 }
+
+/**
+ * Autorização do download em si. Esconder o botão não é controle de acesso —
+ * a rota decide de novo, com a mesma regra que a UI usa pra renderizar.
+ */
+export function canDownloadPackItem(
+  item: { kind: string; status: string; tier: PackItemTier | undefined },
+  galleryUnlocked: boolean,
+): boolean {
+  if (item.kind !== "skill-file") return false;
+  if (item.status === "teaser") return false;
+  return canAccessPackItem(item.tier, galleryUnlocked);
+}

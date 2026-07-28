@@ -20,10 +20,16 @@ import styles from "./launch-banner.module.css";
 export function LaunchBanner() {
   const { now, phase } = useLaunchState();
 
-  // Encerrado: o banner some por completo — sem faixa "encerrado" grudada no
-  // topo depois da hora. A captação de lead segue na seção #lista-espera,
-  // mais abaixo na página. (PreviewIndicator segue pra alternar fases no ?preview.)
-  if (phase === "closed") return <PreviewIndicator />;
+  // Pré-hidratação (phase null): nada no topo. Renderizar uma faixa neutra aqui
+  // fazia o banner piscar — aparecia no HTML estático e sumia (ou trocava de
+  // texto) assim que o relógio resolvia a fase no cliente.
+  // Perpétuo: sem faixa de turma — não existe vaga contada nem prazo pra afirmar.
+  // Encerrado: some por completo, sem faixa "encerrado" grudada no topo depois
+  // da hora. A captação de lead segue na seção #lista-espera, mais abaixo.
+  // (PreviewIndicator segue pra alternar fases no ?preview.)
+  if (phase === null || phase === "evergreen" || phase === "closed") {
+    return <PreviewIndicator />;
+  }
 
   const remaining =
     now && phase === "live" ? formatRemaining(now, LAUNCH_CLOSES_AT) : "";
@@ -62,12 +68,6 @@ export function LaunchBanner() {
       ctaHref = "#lista-espera";
       ctaLabel = "Entrar na lista";
       break;
-    default:
-      // pré-hidratação: mensagem neutra, sem afirmar fase nem revelar checkout
-      badge = LAUNCH.cohort;
-      message = <>{spots} no preço de lançamento</>;
-      ctaHref = "#precos";
-      ctaLabel = "Garantir vaga";
   }
 
   return (

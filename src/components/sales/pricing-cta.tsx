@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import { isCheckoutOpen } from "@/lib/launch-window";
 import { CHECKOUT } from "@/lib/pricing";
 import { useLaunchPhase } from "@/lib/use-launch-phase";
 
@@ -13,15 +14,15 @@ type PricingCtaProps = {
 };
 
 /**
- * CTA de compra com gate de lançamento (cliente). Na janela ao vivo aponta
- * pro checkout ASAAS; antes de abrir ou depois de encerrar, cai na lista de
- * espera. null (pré-hidratação) trata como fechado — nunca revela o checkout
- * antes da hora.
+ * CTA de compra com gate de venda (cliente). No perpétuo e na janela ao vivo
+ * aponta pro checkout ASAAS; antes de abrir ou depois de encerrar uma turma,
+ * cai na lista de espera. null (pré-hidratação em modo turma) trata como
+ * fechado — nunca revela o checkout antes da hora.
  */
 export function PricingCta({ plan, className, liveLabel }: PricingCtaProps) {
   const phase = useLaunchPhase();
   const checkoutUrl = CHECKOUT[plan];
-  const open = phase === "live" && Boolean(checkoutUrl);
+  const open = isCheckoutOpen(phase) && Boolean(checkoutUrl);
 
   const href = open ? checkoutUrl : "#lista-espera";
   const label = open ? liveLabel : "Entrar na lista de espera";

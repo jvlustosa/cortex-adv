@@ -51,6 +51,68 @@
   margin-top: 2rem;
 }
 
+/* Perpétuo: no lugar do formulário de fila, o CTA direto pra matrícula. */
+.ctaRow {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .ctaRow {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  width: 100%;
+  max-width: 20rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.85rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+@media (min-width: 640px) {
+  .ctaPrimary,
+  .ctaSecondary {
+    width: auto;
+    max-width: none;
+    padding-inline: 2rem;
+  }
+}
+
+.ctaPrimary {
+  background: var(--accent);
+  color: var(--background);
+}
+
+.ctaPrimary:hover {
+  background: var(--accent-hover);
+}
+
+.ctaSecondary {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+.ctaSecondary:hover {
+  border-color: rgba(217, 119, 87, 0.35);
+}
+
 .links {
   margin-top: 1.25rem;
   display: flex;
