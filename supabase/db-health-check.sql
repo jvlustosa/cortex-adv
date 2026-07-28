@@ -6,7 +6,7 @@
 -- │ 100% pronto pro painel /admin em modo COURSE_SOURCE=db. Qualquer ❌ FALTA  │
 -- │ ordena no topo com a migração que resolve.                                 │
 -- │                                                                            │
--- │ Cobre migrações 010, 012, 013, 014, 015 + seed + bucket de materiais +     │
+-- │ Cobre migrações 010, 012, 013, 014, 015, 018 + seed + buckets privados +   │
 -- │ drift catálogo↔DB. Sem efeitos colaterais.                                 │
 -- └──────────────────────────────────────────────────────────────────────────┘
 
@@ -97,6 +97,27 @@ checks as (
          left join public.lessons l on l.module_id = m.id and l.slug = v.lesson_slug
          where l.id is null or coalesce(btrim(l.tella), '') = ''
          )) || ' sem tella (amostra)' union all
+
+  -- ── galeria premium: itens de pack geridos pelo admin (018) ──────────────
+  select '018', 'tabela pack_items', to_regclass('public.pack_items') is not null, '' union all
+  select '018', 'enums pack_item_kind/status/tier',
+         (select count(*) from pg_type
+           where typname in ('pack_item_kind','pack_item_status','pack_item_tier')) = 3,
+         (select count(*)::text from pg_type
+           where typname in ('pack_item_kind','pack_item_status','pack_item_tier')) || ' de 3' union all
+  select '018', 'RLS ligada em pack_items',
+         coalesce((select relrowsecurity from pg_class where oid = to_regclass('public.pack_items')), false),
+         'sem policy pública: só service role' union all
+  select '018', 'bucket pack-items (privado)',
+         exists(select 1 from storage.buckets where id='pack-items' and public=false),
+         coalesce((select case when public then 'PÚBLICO (deveria ser privado)' else 'ok' end
+                   from storage.buckets where id='pack-items'), 'ausente') union all
+  -- ⚠️ informativo: galeria vazia não quebra nada, só não aparece item pro aluno.
+  select '018', 'itens cadastrados na galeria (>=1)',
+         coalesce((select count(*) from public.pack_items), 0) >= 1,
+         coalesce((select string_agg(pack_id || '=' || n, ', ' order by pack_id)
+                   from (select pack_id, count(*)::text as n
+                           from public.pack_items group by pack_id) s), 'nenhum item') union all
 
   -- ── drift catálogo estático ↔ DB ─────────────────────────────────────────
   -- aulas no overlay estático (lesson_overrides) sem par nas tabelas nativas.
