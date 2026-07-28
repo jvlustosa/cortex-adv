@@ -21,6 +21,9 @@ const isEvergreen = SALES_MODE === "evergreen";
 const linkClass =
   "flex min-h-11 items-center rounded-lg px-3 py-2.5 text-[15px] text-[var(--muted)] transition hover:bg-[var(--surface)] hover:text-[var(--foreground)]";
 
+const ctaClass =
+  "mt-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]";
+
 // Detecta o client sem setState-em-effect (false no SSR, true após hidratar).
 const emptySubscribe = () => () => {};
 function useIsClient() {
@@ -148,13 +151,6 @@ export function LandingMobileMenu() {
                         {user.email ?? "Minha conta"}
                       </span>
                     </span>
-                    <Link
-                      href="/area-de-membros"
-                      onClick={close}
-                      className={linkClass}
-                    >
-                      Área de membros
-                    </Link>
                     <SignOutButton
                       className={cn(linkClass, "gap-2")}
                       onSignedOut={close}
@@ -167,11 +163,22 @@ export function LandingMobileMenu() {
                   </Link>
                 )}
 
-                {!user && (
+                {/* Mesmo slot de ação principal do header: logado vira o
+                    atalho pro curso, deslogado continua sendo a matrícula. */}
+                {user ? (
+                  <Link
+                    href="/area-de-membros"
+                    onClick={close}
+                    className={ctaClass}
+                  >
+                    Área de membros
+                    <ArrowRight className="size-4" aria-hidden />
+                  </Link>
+                ) : (
                   <a
                     href={isEvergreen ? "#precos" : "#lista-espera"}
                     onClick={close}
-                    className="mt-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--accent-hover)]"
+                    className={ctaClass}
                   >
                     {isEvergreen ? "Fazer matrícula" : "Garantir vaga"}
                     <ArrowRight className="size-4" aria-hidden />
