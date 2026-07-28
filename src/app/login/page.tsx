@@ -5,7 +5,7 @@ import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { LoginForm } from "@/components/login-form";
 import { LoginStatusBanner } from "@/components/login-status-banner";
-import { OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
+import { OpenGroupLink } from "@/components/open-group-link";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -69,15 +69,10 @@ export default async function LoginPage() {
             Seja membro VIP
           </Link>
           <span aria-hidden>·</span>
-          <a
-            href={OPEN_WHATSAPP_GROUP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-[var(--foreground)]"
-          >
+          <OpenGroupLink className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-[var(--foreground)]">
             <WhatsAppIcon className="size-3.5" />
             Entre na comunidade gratuita
-          </a>
+          </OpenGroupLink>
         </p>
         <p className="mt-4">
           <Link

@@ -9,7 +9,7 @@ import {
   ClaudeAcademyBrand,
   CLAUDE_ACADEMY_LOGO,
 } from "@/components/claude-academy-brand";
-import { OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
+import { OpenGroupLink } from "@/components/open-group-link";
 import { questions, getResult, maxScore } from "./quiz-data";
 
 function QuizHeader() {
@@ -330,15 +330,10 @@ export function QuizClient() {
                 {result.cta}
                 <ArrowRight className="size-4 opacity-80" aria-hidden />
               </Link>
-              <a
-                href={OPEN_WHATSAPP_GROUP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]"
-              >
+              <OpenGroupLink className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]">
                 <WhatsAppIcon className="size-4" />
                 Entrar no grupo aberto
-              </a>
+              </OpenGroupLink>
               <Link
                 href="/login"
                 className="inline-flex items-center gap-2 text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]"

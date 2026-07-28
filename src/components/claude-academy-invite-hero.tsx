@@ -1,66 +1,25 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
-import { readApiErrorMessage } from "@/lib/errors/format";
+import { OpenGroupLink } from "@/components/open-group-link";
 import { fireSubtleConfetti } from "@/lib/confetti";
+import { COURSE_MENTOR } from "@/lib/site";
 import {
-  COURSE_MENTOR,
-  OPEN_WHATSAPP_GROUP_URL,
-  WAITLIST_API_URL,
-} from "@/lib/site";
+  BRAZIL_DDI,
+  DDI_OPTIONS,
+  formatPhoneForDdi,
+  submitWaitlist,
+} from "@/lib/waitlist/form";
+import { markLead, useIsLead } from "@/lib/waitlist/lead";
 import styles from "./claude-academy-invite-hero.module.css";
-
-const LEAD_KEY = "cj_claude_academy_lead";
-
-// Leitura SSR-safe do flag de lead (localStorage) sem setState-in-effect.
-const subscribeLead = () => () => {};
-const getLeadSnapshot = () => {
-  try {
-    return localStorage.getItem(LEAD_KEY) === "1";
-  } catch {
-    return false;
-  }
-};
-const getLeadServerSnapshot = () => false;
-
-const DDI_OPTIONS = [
-  { value: "+55", label: "🇧🇷 +55", min: 10, max: 11 },
-  { value: "+1", label: "🇺🇸 +1", min: 10, max: 10 },
-  { value: "+351", label: "🇵🇹 +351", min: 9, max: 9 },
-  { value: "+54", label: "🇦🇷 +54", min: 10, max: 11 },
-  { value: "+34", label: "🇪🇸 +34", min: 9, max: 9 },
-  { value: "+39", label: "🇮🇹 +39", min: 9, max: 11 },
-  { value: "+44", label: "🇬🇧 +44", min: 10, max: 10 },
-  { value: "+33", label: "🇫🇷 +33", min: 9, max: 9 },
-  { value: "+49", label: "🇩🇪 +49", min: 10, max: 11 },
-  { value: "+56", label: "🇨🇱 +56", min: 9, max: 9 },
-  { value: "+57", label: "🇨🇴 +57", min: 10, max: 10 },
-  { value: "+52", label: "🇲🇽 +52", min: 10, max: 10 },
-  { value: "+595", label: "🇵🇾 +595", min: 9, max: 9 },
-  { value: "+598", label: "🇺🇾 +598", min: 8, max: 9 },
-] as const;
 
 type ClaudeAcademyWaitlistProps = {
   /** Só o formulário, sem título duplicado (uso no hero). */
   compact?: boolean;
 };
-
-function formatBrazilPhone(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (digits.length > 6) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-  }
-  if (digits.length > 2) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  }
-  if (digits.length > 0) {
-    return `(${digits}`;
-  }
-  return "";
-}
 
 function obrigadoPath(search: string): string {
   return search ? `/obrigado?${search}` : "/obrigado";
@@ -77,7 +36,7 @@ export function ClaudeAcademyWaitlist({
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const [ddi, setDdi] = useState("+55");
+  const [ddi, setDdi] = useState(BRAZIL_DDI);
   const [isClient, setIsClient] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -85,11 +44,7 @@ export function ClaudeAcademyWaitlist({
   // Lead que volta pode reabrir o form (outra pessoa, outro e-mail).
   const [showFormAgain, setShowFormAgain] = useState(false);
   const redirectTimer = useRef<number | undefined>(undefined);
-  const alreadyLead = useSyncExternalStore(
-    subscribeLead,
-    getLeadSnapshot,
-    getLeadServerSnapshot,
-  );
+  const alreadyLead = useIsLead();
 
   useEffect(() => {
     return () => {
@@ -97,89 +52,38 @@ export function ClaudeAcademyWaitlist({
     };
   }, []);
 
-  const isBrazil = ddi === "+55";
-  const selectedDdi = DDI_OPTIONS.find((option) => option.value === ddi) ?? DDI_OPTIONS[0];
-
-  function handleWhatsappChange(value: string) {
-    if (isBrazil) {
-      setWhatsapp(formatBrazilPhone(value));
-      return;
-    }
-    const maxDigits = 15;
-    setWhatsapp(value.replace(/\D/g, "").slice(0, maxDigits));
-  }
+  const isBrazil = ddi === BRAZIL_DDI;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-
-    const nomeTrim = nome.trim();
-    const emailTrim = email.trim();
-    const whatsappTrim = whatsapp.trim();
-    const digits = whatsappTrim.replace(/\D/g, "");
-
-    if (nomeTrim.length < 2) {
-      setError("Informe seu nome.");
-      return;
-    }
-    if (emailTrim.length < 5 || !emailTrim.includes("@")) {
-      setError("Informe um e-mail válido.");
-      return;
-    }
-    if (digits.length < selectedDdi.min || digits.length > selectedDdi.max) {
-      setError(
-        isBrazil
-          ? "Informe o WhatsApp com DDD."
-          : "Informe o número de WhatsApp completo.",
-      );
-      return;
-    }
-
     setLoading(true);
 
-    try {
-      const res = await fetch(WAITLIST_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: nomeTrim,
-          email: emailTrim,
-          whatsapp: `${ddi}${digits}`,
-          whatsapp_ddi: ddi,
-          whatsapp_local: whatsappTrim,
-          is_client: isClient,
-          page: pathname,
-          url_params: queryString ? `?${queryString}` : "",
-          referrer: typeof document !== "undefined" ? document.referrer : "",
-          website: honeypot,
-        }),
-      });
+    const result = await submitWaitlist(
+      { nome, email, whatsapp, ddi, isClient },
+      {
+        page: pathname,
+        urlParams: queryString ? `?${queryString}` : "",
+        referrer: typeof document !== "undefined" ? document.referrer : "",
+        honeypot,
+      },
+    );
 
-      if (!res.ok) {
-        setError(
-          await readApiErrorMessage(res, "Não foi possível enviar. Tente de novo em instantes."),
-        );
-        setLoading(false);
-        return;
-      }
-
-      try {
-        localStorage.setItem(LEAD_KEY, "1");
-      } catch {
-        /* ignore */
-      }
-
-      // Confete sutil antes de seguir pro /obrigado.
-      // Sem animação (reduced-motion / sem canvas), redireciona na hora.
-      const next = obrigadoPath(queryString);
-      if (fireSubtleConfetti()) {
-        redirectTimer.current = window.setTimeout(() => router.push(next), 650);
-      } else {
-        router.push(next);
-      }
-    } catch {
-      setError("Erro de conexão. Verifique a internet e tente novamente.");
+    if (!result.ok) {
+      setError(result.message);
       setLoading(false);
+      return;
+    }
+
+    markLead();
+
+    // Confete sutil antes de seguir pro /obrigado.
+    // Sem animação (reduced-motion / sem canvas), redireciona na hora.
+    const next = obrigadoPath(queryString);
+    if (fireSubtleConfetti()) {
+      redirectTimer.current = window.setTimeout(() => router.push(next), 650);
+    } else {
+      router.push(next);
     }
   }
 
@@ -207,15 +111,10 @@ export function ClaudeAcademyWaitlist({
                 Entre no grupo aberto e acompanhe as novidades do Claude para
                 advogados.
               </p>
-              <a
-                className={styles.communityBtn}
-                href={OPEN_WHATSAPP_GROUP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <OpenGroupLink className={styles.communityBtn}>
                 <WhatsAppIcon className="size-[18px]" />
                 Entrar na comunidade gratuita
-              </a>
+              </OpenGroupLink>
             </div>
             <button
               type="button"
@@ -302,7 +201,9 @@ export function ClaudeAcademyWaitlist({
                 maxLength={isBrazil ? 15 : 18}
                 required
                 value={whatsapp}
-                onChange={(event) => handleWhatsappChange(event.target.value)}
+                onChange={(event) =>
+                  setWhatsapp(formatPhoneForDdi(ddi, event.target.value))
+                }
               />
             </div>
 

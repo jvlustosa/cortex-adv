@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
-import { OPEN_WHATSAPP_GROUP_URL, SITE_HOST } from "@/lib/site";
+import { OpenGroupLink } from "@/components/open-group-link";
+import { OpenGroupQr } from "@/components/open-group-qr";
+import { SITE_HOST } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Obrigado | Claude Academy",
@@ -28,38 +29,15 @@ export default function ObrigadoPage() {
           Enquanto isso, entre no grupo aberto. É grátis.
         </p>
 
-        <div className="hidden md:block">
-          <div
-            className="overflow-hidden rounded-2xl bg-white p-5"
-            style={{
-              boxShadow:
-                "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)",
-            }}
-          >
-            <Image
-              src="/assets/images/qr-grupo-whatsapp.png"
-              alt="QR Code do grupo aberto Claude Academy no WhatsApp"
-              width={320}
-              height={320}
-              className="size-80 rounded-lg"
-              priority
-            />
-          </div>
-          <p className="mt-3 text-xs" style={{ color: "#71717a" }}>
-            Aponte a câmera do celular para entrar
-          </p>
-        </div>
+        <OpenGroupQr />
 
-        <a
-          href={OPEN_WHATSAPP_GROUP_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+        <OpenGroupLink
           className="flex items-center gap-3 rounded-full px-8 py-4 text-base font-semibold text-white transition-opacity hover:opacity-90"
           style={{ background: "#25d366" }}
         >
           <WhatsAppIcon className="size-5" />
           Entrar no grupo aberto
-        </a>
+        </OpenGroupLink>
 
         <p className="text-sm text-[var(--muted)]">
           Sem spam. Avisamos só quando a turma abrir.

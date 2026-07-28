@@ -18,7 +18,8 @@ import { SALES_MODE } from "@/lib/launch-window";
 import { LaunchBanner } from "@/components/launch-banner";
 import { CommunityTiers } from "@/components/community-tiers";
 import { pageShellClass } from "@/lib/layout";
-import { OPEN_WHATSAPP_GROUP_URL, SITE_BRAND } from "@/lib/site";
+import { OpenGroupLink } from "@/components/open-group-link";
+import { SITE_BRAND } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const { total, upfront, upfrontDiscountPercent } = getPricingSummary();
@@ -101,15 +102,10 @@ export default function CursoSalesPage() {
                 Ver preços
                 <ArrowRight className="size-4 opacity-80" aria-hidden />
               </a>
-              <a
-                href={OPEN_WHATSAPP_GROUP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-6 py-3.5 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--accent)]/35 sm:w-auto sm:max-w-none sm:px-8"
-              >
+              <OpenGroupLink className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-6 py-3.5 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--accent)]/35 sm:w-auto sm:max-w-none sm:px-8">
                 <WhatsAppIcon className="size-4" />
                 Grupo aberto
-              </a>
+              </OpenGroupLink>
             </div>
             <p className="mt-4 inline-flex items-center gap-2 text-sm text-[var(--muted)]">
               <ShieldCheck

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Check, Lock } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
-import { COMMUNITY, OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
+import { OpenGroupLink } from "@/components/open-group-link";
+import { COMMUNITY } from "@/lib/site";
 import styles from "./community-tiers.module.css";
 
 type CommunityTiersProps = {
@@ -55,15 +56,10 @@ export function CommunityTiers({
               ))}
             </ul>
             <p className={styles.note}>{open.note}</p>
-            <a
-              href={OPEN_WHATSAPP_GROUP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${styles.cta} ${styles.ctaOpen}`}
-            >
+            <OpenGroupLink className={`${styles.cta} ${styles.ctaOpen}`}>
               <WhatsAppIcon className="size-4" />
               Entrar no grupo aberto
-            </a>
+            </OpenGroupLink>
           </article>
 
           <article className={`${styles.card} ${styles.cardVip}`}>

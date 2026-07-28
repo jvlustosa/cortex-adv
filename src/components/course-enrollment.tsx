@@ -4,7 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { ClaudeAcademyWaitlist } from "@/components/claude-academy-invite-hero";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { SALES_MODE } from "@/lib/launch-window";
-import { COURSE_MENTOR, OPEN_WHATSAPP_GROUP_URL } from "@/lib/site";
+import { OpenGroupLink } from "@/components/open-group-link";
+import { COURSE_MENTOR } from "@/lib/site";
 import styles from "./course-enrollment.module.css";
 
 const isEvergreen = SALES_MODE === "evergreen";
@@ -57,15 +58,10 @@ export function CourseEnrollment() {
               Fazer minha matrícula
               <ArrowRight className="size-4 opacity-80" aria-hidden />
             </a>
-            <a
-              href={OPEN_WHATSAPP_GROUP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.ctaSecondary}
-            >
+            <OpenGroupLink className={styles.ctaSecondary}>
               <WhatsAppIcon className="size-4" />
               Ainda não. Quero o grupo aberto
-            </a>
+            </OpenGroupLink>
           </div>
         ) : (
           <div className={styles.form}>
@@ -83,15 +79,10 @@ export function CourseEnrollment() {
         )}
 
         <div className={styles.links}>
-          <a
-            href={OPEN_WHATSAPP_GROUP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5"
-          >
+          <OpenGroupLink className="inline-flex items-center gap-1.5">
             <WhatsAppIcon className="size-3.5" />
             Grupo aberto
-          </a>
+          </OpenGroupLink>
           <span className={styles.linksSep} aria-hidden>
             ·
           </span>
