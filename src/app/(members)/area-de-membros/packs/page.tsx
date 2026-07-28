@@ -1,7 +1,7 @@
 import { PacksArea } from "@/components/members/packs-area";
-import { PACKS } from "@/data/packs";
 import { computePackAccess, type PackAccess } from "@/lib/course/packs-access";
 import { requireCourseAccess } from "@/lib/course/require-access";
+import { loadPacks } from "@/lib/packs/load-packs";
 
 export const metadata = {
   title: "Galeria Premium | Claude Cowork para advogados",
@@ -23,9 +23,11 @@ export default async function PacksPage() {
     ? { isUnlocked: true, unlockAt: null }
     : computePackAccess(user?.created_at);
 
+  const packs = await loadPacks();
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
-      <PacksArea packs={PACKS} access={access} />
+      <PacksArea packs={packs} access={access} />
     </main>
   );
 }

@@ -7,12 +7,29 @@ export type PackIconKey = "skills" | "conectores";
 
 export type PackItemStatus = "ready" | "teaser";
 
+/** Premium exige liberação da galeria; amostra fica acessível antes disso. */
+export type PackItemTier = "premium" | "amostra";
+
 /** Item entregue como conector MCP remoto: o aluno cola a URL no Claude. */
-export type RemoteConnectorItem = {
-  kind: "remote-connector";
+export type PackItemBase = {
+  id?: string;
   name: string;
   description: string;
   status?: PackItemStatus;
+  tier?: PackItemTier;
+};
+
+/** Skill com arquivo .zip hospedado na galeria (download direto). */
+export type SkillFileItem = PackItemBase & {
+  kind: "skill-file";
+  fileName?: string;
+  /** Signed URL temporária; preenchida no runtime para alunos. */
+  downloadUrl?: string | null;
+  sizeBytes?: number | null;
+};
+
+export type RemoteConnectorItem = PackItemBase & {
+  kind: "remote-connector";
   /** URL do conector remoto adicionada nas configurações do Claude. */
   connectorUrl: string;
   /** Passos de setup no Claude, na ordem. */
@@ -20,17 +37,14 @@ export type RemoteConnectorItem = {
 };
 
 /** Item que vive dentro das aulas (skills baixáveis nos materiais). */
-export type LessonRefItem = {
+export type LessonRefItem = PackItemBase & {
   kind: "lesson-ref";
-  name: string;
-  description: string;
-  status?: PackItemStatus;
   /** Deep-link pra aula onde a skill aparece nos materiais. */
   moduleId?: string;
   lessonId?: string;
 };
 
-export type PackItem = RemoteConnectorItem | LessonRefItem;
+export type PackItem = SkillFileItem | RemoteConnectorItem | LessonRefItem;
 
 export type Pack = {
   id: string;

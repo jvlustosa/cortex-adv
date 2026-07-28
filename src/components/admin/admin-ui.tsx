@@ -3,12 +3,13 @@
 import { useEffect, type ReactNode } from "react";
 import styles from "./admin-dashboard.module.css";
 
-export type AdminTab = "aulas" | "membros" | "convites";
+export type AdminTab = "aulas" | "membros" | "convites" | "galeria";
 
 export const ADMIN_TABS: { id: AdminTab; label: string }[] = [
   { id: "aulas", label: "Gestão de aulas" },
   { id: "membros", label: "Gestão de membros" },
   { id: "convites", label: "Emissão de convites" },
+  { id: "galeria", label: "Galeria Premium" },
 ];
 
 export function AdminTabs({

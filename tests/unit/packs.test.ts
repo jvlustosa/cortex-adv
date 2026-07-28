@@ -1,5 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { parseSetupSteps } from "@/lib/packs/items";
+import { canAccessPackItem } from "@/lib/packs/load-packs";
 import {
   PACKS,
   countPackItems,
@@ -46,6 +48,17 @@ test("countPackItems: total = ready + teasers", () => {
   assert.equal(total, 3);
 });
 
+test("canAccessPackItem: amostra libera antes da garantia", () => {
+  assert.equal(canAccessPackItem("amostra", false), true);
+  assert.equal(canAccessPackItem("premium", false), false);
+  assert.equal(canAccessPackItem("premium", true), true);
+  assert.equal(canAccessPackItem(undefined, true), true);
+});
+
+test("parseSetupSteps: uma linha por passo", () => {
+  assert.deepEqual(parseSetupSteps("a\n\nb\n c "), ["a", "b", "c"]);
+});
+
 // Guardas sobre os dados reais: se alguém quebrar PACKS em produção, cai aqui.
 test("PACKS reais: contagem consistente e não-vazia", () => {
   assert.ok(PACKS.length > 0);
@@ -62,7 +75,6 @@ test("PACKS reais: todo lesson-ref com deep-link resolve pra /aulas/<mod>/<aula>
     for (const item of pack.items) {
       if (item.kind !== "lesson-ref") continue;
       const href = lessonHref(item);
-      // Ou não tem deep-link, ou o deep-link é bem-formado.
       if (item.moduleId && item.lessonId) {
         assert.equal(href, `/aulas/${item.moduleId}/${item.lessonId}`);
       } else {

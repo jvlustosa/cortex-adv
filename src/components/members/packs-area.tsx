@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  Download,
   Lock,
   Plug,
   Sparkles,
@@ -9,6 +10,7 @@ import {
 import { countPackItems, lessonHref, type Pack, type PackIconKey } from "@/data/packs";
 import type { PackAccess } from "@/lib/course/packs-access";
 import { formatUnlockDate } from "@/lib/course/packs-access";
+import { canAccessPackItem } from "@/lib/packs/load-packs";
 import { PRICING } from "@/lib/pricing";
 import { ConnectorUrl } from "./connector-url";
 import { CopyPrompt } from "./copy-prompt";
@@ -178,14 +180,15 @@ function GalleryGroup({
       <div className={styles.grid}>
         {pack.items.map((item) => {
           const teaser = isTeaser(item.status);
-          const showDetail = unlocked && !teaser;
+          const itemAccessible = canAccessPackItem(item.tier, unlocked);
+          const showDetail = itemAccessible && !teaser;
           const href =
             item.kind === "lesson-ref" ? lessonHref(item) : null;
 
           return (
             <article
-              key={item.name}
-              className={`${styles.box} ${teaser || !unlocked ? styles.boxTeaser : ""}`}
+              key={item.id ?? item.name}
+              className={`${styles.box} ${teaser || !itemAccessible ? styles.boxTeaser : ""}`}
             >
               <span className={styles.boxIcon} aria-hidden>
                 <Icon className="size-5" />
@@ -195,13 +198,15 @@ function GalleryGroup({
                   <h3 className={styles.boxTitle}>{item.name}</h3>
                   {teaser ? (
                     <span className={styles.teaserBadge}>Sendo preparado</span>
+                  ) : item.tier === "amostra" ? (
+                    <span className={styles.teaserBadge}>Amostra</span>
                   ) : !unlocked ? (
                     <span className={styles.teaserBadge}>Teaser</span>
                   ) : null}
                 </div>
                 <p
                   className={
-                    !unlocked || teaser
+                    !itemAccessible || teaser
                       ? `${styles.boxDesc} ${styles.boxDescBlur}`
                       : styles.boxDesc
                   }
@@ -230,7 +235,18 @@ function GalleryGroup({
                   )
                 ) : null}
 
-                {item.kind === "lesson-ref" && href && unlocked ? (
+                {item.kind === "skill-file" && showDetail && item.downloadUrl ? (
+                  <a
+                    href={item.downloadUrl}
+                    className={styles.lessonLink}
+                    download={item.fileName}
+                  >
+                    Baixar {item.fileName ?? "skill.zip"}
+                    <Download className="size-3.5 opacity-80" aria-hidden />
+                  </a>
+                ) : null}
+
+                {item.kind === "lesson-ref" && href && itemAccessible ? (
                   <Link href={href} className={styles.lessonLink}>
                     {teaser
                       ? "Ver aula relacionada"
@@ -240,7 +256,7 @@ function GalleryGroup({
                 ) : null}
               </div>
               <span className={styles.boxAction} aria-hidden>
-                {teaser || !unlocked ? (
+                {teaser || !itemAccessible ? (
                   <Lock className="size-4" />
                 ) : (
                   <Sparkles className="size-4" />

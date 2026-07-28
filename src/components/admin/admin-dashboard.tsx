@@ -60,6 +60,7 @@ import {
 import { LessonRow } from "./lessons-table";
 import { LessonViewersStack } from "./lesson-viewers-stack";
 import { InviteWizard } from "./invite-wizard";
+import { PacksAdminPanel } from "./packs-admin";
 import { ConfirmProvider, useConfirm } from "./confirm-dialog";
 import { useUndoForm } from "./use-undo-form";
 import styles from "./admin-dashboard.module.css";
@@ -1230,6 +1231,7 @@ function AdminDashboardInner({
   }, []);
 
   const loadTab = useCallback(async () => {
+    if (tab === "galeria") return;
     setLoading(true);
     setError(null);
     try {
@@ -2804,6 +2806,10 @@ function AdminDashboardInner({
           </section>
         </>
         )}
+      </AdminTabPanel>
+
+      <AdminTabPanel tabId="galeria" activeTab={tab}>
+        <PacksAdminPanel />
       </AdminTabPanel>
 
       {editing ? (
