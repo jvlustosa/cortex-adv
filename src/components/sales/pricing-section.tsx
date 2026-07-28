@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowRight, Check, Lock, ShieldCheck } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
 import { COURSE_SCOPE } from "@/data/curso-trilha-public";
@@ -46,10 +47,14 @@ function FeatureItem({ feature }: { feature: Feature }) {
   );
 }
 
+type Plan = "upfront" | "installments";
+
 export function PricingSection() {
   const phase = useLaunchPhase();
   const { total, upfront, savings, upfrontDiscountPercent } =
     getPricingSummary();
+  // À vista abre selecionado: é a condição que a gente quer empurrar.
+  const [plan, setPlan] = useState<Plan>("upfront");
 
   // Os dois planos ficam no ar nos dois modos. O que muda no perpétuo é só a
   // linguagem: nada de "vaga" ou prazo, que não seriam verdade vendendo o ano
@@ -130,55 +135,82 @@ export function PricingSection() {
             Quanto custa o curso
           </h2>
           <p className={styles.subtitle}>
-            Curso completo + Comunidade VIP por 1 ano. Parcela em 12× no cartão
-            ou paga à vista e economiza {formatBRL(savings)}.
+            Curso completo + Comunidade VIP por 1 ano. É o mesmo acesso nas duas
+            formas de pagamento: à vista você economiza {formatBRL(savings)}.
           </p>
         </header>
 
         <PricingUrgencyNote />
 
-        <div className={styles.grid}>
-          <article className={styles.card}>
-            <p className={styles.planLabel}>
-              {isEvergreen ? "Plano anual" : "12× no cartão"}
-            </p>
-            <p className={styles.price}>
-              12× {formatBRL(PRICING.installments.amount)}
-            </p>
-            <p className={styles.priceDetail}>
-              {formatBRL(total)} em 12 parcelas iguais
-            </p>
-            <ul className={styles.features}>
-              {features.map((feature) => (
-                <FeatureItem key={feature.text} feature={feature} />
-              ))}
-            </ul>
-            <PricingCta
-              plan="installments"
-              className={`${styles.cta} ${styles.ctaSecondary}`}
-              liveLabel={
-                isEvergreen ? "Fazer minha matrícula" : "Garantir vaga em 12×"
-              }
-            />
-          </article>
+        <article
+          className={`${styles.card} ${plan === "upfront" ? styles.cardFeatured : ""}`}
+        >
+          <div className={styles.switch} role="group" aria-label="Forma de pagamento">
+            <button
+              type="button"
+              onClick={() => setPlan("upfront")}
+              aria-pressed={plan === "upfront"}
+              className={`${styles.switchOption} ${plan === "upfront" ? styles.switchOptionActive : ""}`}
+            >
+              À vista
+              <span className={styles.switchTag}>
+                {upfrontDiscountPercent}% off
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPlan("installments")}
+              aria-pressed={plan === "installments"}
+              className={`${styles.switchOption} ${plan === "installments" ? styles.switchOptionActive : ""}`}
+            >
+              Parcelado
+              <span className={`${styles.switchTag} ${styles.switchTagNeutral}`}>
+                12×
+              </span>
+            </button>
+          </div>
 
-          <article className={`${styles.card} ${styles.cardFeatured}`}>
-            <span className={styles.badge}>
-              {upfrontDiscountPercent}% mais barato à vista
-            </span>
-            <p className={styles.planLabel}>Pagamento único</p>
-            <p className={styles.price}>{formatBRL(upfront)}</p>
-            <p className={styles.priceDetail}>
-              Era {formatBRL(total)} parcelado. Paga uma vez e pronto
-            </p>
-            <p className={styles.savings}>
-              Você leva {formatBRL(savings)} de desconto
-            </p>
-            <ul className={styles.features}>
-              {features.map((feature) => (
-                <FeatureItem key={feature.text} feature={feature} />
-              ))}
-            </ul>
+          {plan === "upfront" ? (
+            <>
+              <p className={styles.planLabel}>Pagamento único</p>
+              <p className={styles.price}>{formatBRL(upfront)}</p>
+              <p className={styles.priceDetail}>
+                Era {formatBRL(total)} parcelado. Paga uma vez e pronto
+              </p>
+              <p className={styles.savings}>
+                Você leva {formatBRL(savings)} de desconto
+              </p>
+            </>
+          ) : (
+            <>
+              <p className={styles.planLabel}>
+                {isEvergreen ? "Plano anual no cartão" : "12× no cartão"}
+              </p>
+              <p className={styles.price}>
+                12× {formatBRL(PRICING.installments.amount)}
+              </p>
+              <p className={styles.priceDetail}>
+                {formatBRL(total)} em 12 parcelas iguais
+              </p>
+              <p className={styles.savingsMuted}>
+                À vista sai {formatBRL(upfront)}, {formatBRL(savings)} mais
+                barato
+              </p>
+            </>
+          )}
+
+          <p className={styles.sameNote}>
+            Muda só a forma de pagar. O que você recebe é exatamente isto nos
+            dois casos:
+          </p>
+
+          <ul className={styles.features}>
+            {features.map((feature) => (
+              <FeatureItem key={feature.text} feature={feature} />
+            ))}
+          </ul>
+
+          {plan === "upfront" ? (
             <PricingCta
               plan="upfront"
               className={`${styles.cta} ${styles.ctaPrimary}`}
@@ -186,8 +218,16 @@ export function PricingSection() {
                 isEvergreen ? "Matricular à vista" : "Garantir vaga à vista"
               }
             />
-          </article>
-        </div>
+          ) : (
+            <PricingCta
+              plan="installments"
+              className={`${styles.cta} ${styles.ctaPrimary}`}
+              liveLabel={
+                isEvergreen ? "Fazer minha matrícula" : "Garantir vaga em 12×"
+              }
+            />
+          )}
+        </article>
 
         <p className={styles.guarantee}>
           <ShieldCheck className={`size-4 ${styles.guaranteeIcon}`} aria-hidden />
