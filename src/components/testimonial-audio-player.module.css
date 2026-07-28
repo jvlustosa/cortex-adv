@@ -1,0 +1,327 @@
+.player {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  background:
+    radial-gradient(
+      ellipse 120% 80% at 50% -20%,
+      rgba(217, 119, 87, 0.22),
+      transparent 55%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--accent) 12%, var(--surface)) 0%,
+      var(--surface) 45%,
+      #0d0d0d 100%
+    );
+  padding: 1.75rem 1.5rem 1.5rem;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--foreground) 4%, transparent) inset,
+    0 24px 60px rgba(217, 119, 87, 0.16),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (min-width: 640px) {
+  .player {
+    padding: 2rem 2rem 1.75rem;
+  }
+}
+
+.glow {
+  pointer-events: none;
+  position: absolute;
+  inset: auto -4rem -5rem auto;
+  z-index: 0;
+  height: 14rem;
+  width: 14rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 119, 87, 0.28) 0%, transparent 70%);
+  filter: blur(36px);
+}
+
+.header {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 1.35rem;
+  text-align: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  padding: 0.35rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.title {
+  margin: 0;
+  max-width: 34rem;
+  margin-inline: auto;
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: clamp(1.35rem, 3.2vw, 1.85rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin: 0.75rem auto 0;
+  max-width: 36rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.speakerCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0 auto 1.25rem;
+  max-width: 36rem;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--background) 55%, transparent);
+  padding: 0.9rem 1rem;
+  text-align: left;
+}
+
+.speakerPhotoWrap {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 8px 24px rgba(217, 119, 87, 0.28);
+}
+
+.speakerPhoto {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.speakerInfo {
+  min-width: 0;
+}
+
+.speakerName {
+  margin: 0;
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.speakerCredential {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.speakerOfficeLink {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.45rem;
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.speakerOfficeLink:hover {
+  color: var(--foreground);
+}
+
+.speakerOfficeName {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--foreground) 82%, var(--muted));
+}
+
+.speakerOfficeIcon {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.speakerOfficeHost {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .speakerCard {
+    align-items: flex-start;
+    padding: 0.85rem;
+  }
+
+  .speakerPhotoWrap {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .speakerName {
+    font-size: 1.05rem;
+  }
+}
+
+.controls {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--background) 72%, transparent);
+  padding: 1rem 1rem 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .controls {
+    gap: 1.25rem;
+    padding: 1.15rem 1.25rem 0.95rem;
+  }
+}
+
+.playBtn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(145deg, var(--accent) 0%, var(--claude-deep) 100%);
+  color: #0a0a0a;
+  cursor: pointer;
+  box-shadow:
+    0 10px 28px rgba(217, 119, 87, 0.42),
+    0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.playBtn:hover {
+  transform: scale(1.04);
+  filter: brightness(1.05);
+  box-shadow:
+    0 14px 32px rgba(217, 119, 87, 0.5),
+    0 0 0 5px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.playBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.playIcon {
+  margin-left: 0.12rem;
+}
+
+.waveWrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 4.5rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+@media (min-width: 640px) {
+  .waveform {
+    height: 5.25rem;
+    gap: 3px;
+  }
+}
+
+.bar {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground) 16%, transparent);
+  transform-origin: center bottom;
+  transition:
+    background 0.12s linear,
+    transform 0.18s ease;
+}
+
+.barPlayed {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 88%, white) 0%,
+    var(--accent) 55%,
+    var(--claude-deep) 100%
+  );
+}
+
+.barActive {
+  animation: barPulse 1.1s ease-in-out infinite;
+}
+
+.barActive:nth-child(3n) {
+  animation-delay: 0.08s;
+}
+
+.barActive:nth-child(3n + 1) {
+  animation-delay: 0.16s;
+}
+
+.barActive:nth-child(3n + 2) {
+  animation-delay: 0.24s;
+}
+
+@keyframes barPulse {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(1.08);
+  }
+}
+
+.timeRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.55rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barActive {
+    animation: none;
+  }
+
+  .playBtn {
+    transition: none;
+  }
+}

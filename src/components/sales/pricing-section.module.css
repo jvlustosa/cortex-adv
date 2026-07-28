@@ -69,12 +69,6 @@
     grid-template-columns: 1fr 1fr;
     align-items: stretch;
   }
-
-  /* Perpétuo: plano único, card centralizado em vez de meia largura solta. */
-  .gridSingle {
-    grid-template-columns: minmax(0, 26rem);
-    justify-content: center;
-  }
 }
 
 .card {

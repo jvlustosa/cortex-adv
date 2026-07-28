@@ -33,8 +33,38 @@
 }
 
 .head {
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.75rem;
   text-align: center;
+}
+
+.mentorDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 0 2rem;
+}
+
+.mentorDivider::before,
+.mentorDivider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 28%, var(--border)),
+    transparent
+  );
+}
+
+.mentorDividerLabel {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 .eyebrow {

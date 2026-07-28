@@ -96,7 +96,7 @@ checks as (
          left join public.modules m on m.slug = v.module_slug
          left join public.lessons l on l.module_id = m.id and l.slug = v.lesson_slug
          where l.id is null or coalesce(btrim(l.tella), '') = ''
-         )) || ' sem tella (amostra)' union all
+         ) || ' sem tella (amostra)' union all
 
   -- ── galeria premium: itens de pack geridos pelo admin (018) ──────────────
   select '018', 'tabela pack_items', to_regclass('public.pack_items') is not null, '' union all

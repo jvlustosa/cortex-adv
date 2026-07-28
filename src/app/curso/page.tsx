@@ -24,20 +24,13 @@ import { cn } from "@/lib/utils";
 const { total, upfront, upfrontDiscountPercent } = getPricingSummary();
 const isEvergreen = SALES_MODE === "evergreen";
 
-/** Linha de preço do hero: no perpétuo só o plano anual, sem desconto à vista. */
-const priceDetail = isEvergreen
-  ? `${formatBRL(total)} em 12 parcelas iguais`
-  : `ou ${formatBRL(upfront)} à vista · ${upfrontDiscountPercent}% de desconto`;
+const priceDetail = `${formatBRL(total)} em 12 parcelas iguais · ou ${formatBRL(upfront)} à vista, ${upfrontDiscountPercent}% mais barato`;
 
 export const metadata: Metadata = {
   title: isEvergreen
     ? "Curso Claude Cowork para Advogados | Matrícula aberta"
     : "Curso Claude Cowork para Advogados | Garanta sua vaga",
-  description: `Domine o Claude Cowork no escritório. ${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas, liberadas aos poucos. ${
-    isEvergreen
-      ? `Plano anual em 12× ${formatBRL(PRICING.installments.amount)}.`
-      : `A partir de 12× ${formatBRL(PRICING.installments.amount)} ou ${formatBRL(upfront)} à vista.`
-  }`,
+  description: `Domine o Claude Cowork no escritório. ${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas, liberadas aos poucos. 12× ${formatBRL(PRICING.installments.amount)} ou ${formatBRL(upfront)} à vista.`,
 };
 
 export default function CursoSalesPage() {

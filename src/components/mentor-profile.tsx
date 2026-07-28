@@ -6,8 +6,14 @@ import {
   Landmark,
   Mic2,
 } from "lucide-react";
+import { TestimonialAudioPlayer } from "@/components/testimonial-audio-player";
 import { COURSE_MENTOR } from "@/lib/site";
 import styles from "./mentor-profile.module.css";
+
+const TESTIMONIAL_AUDIO = "/assets/audio/depoimento-implantacao-claude.ogg";
+const TESTIMONIAL_PHOTO =
+  "/assets/images/lp/depoimento-maira-luiza-dos-santos.png";
+const TESTIMONIAL_OFFICE_URL = "https://www.facebook.com/mairaadvogada";
 
 const MENTOR_PHOTO = "/assets/images/lp/masterclass-speaker-marcos-vilas-boas.jpg";
 
@@ -25,10 +31,28 @@ export function MentorProfile() {
       <div className={styles.glow} aria-hidden />
       <div className={styles.wrap}>
         <div className={styles.head}>
-          <span className={styles.eyebrow}>Seu mentor</span>
+          <span className={styles.eyebrow}>Prova real</span>
           <h2 id="mentor-heading" className={styles.title}>
-            Aprenda com quem aplica no dia a dia
+            Resultado de quem implantou Claude no escritório
           </h2>
+        </div>
+
+        <TestimonialAudioPlayer
+          src={TESTIMONIAL_AUDIO}
+          title="Depoimento sobre a implantação do Claude no dia a dia"
+          subtitle="Áudio espontâneo contando o que mudou na rotina do escritório depois de aplicar o Claude Cowork."
+          speaker={{
+            name: "Dra. Maira Luíza dos Santos",
+            photo: TESTIMONIAL_PHOTO,
+            photoAlt: "Dra. Maira Luíza dos Santos, advogada em Cachoeiro de Itapemirim, ES",
+            credential: "OAB/ES 21.348 · Cachoeiro de Itapemirim, ES",
+            officeName: "Maira Luiza dos Santos Sociedade Individual de Advocacia",
+            officeUrl: TESTIMONIAL_OFFICE_URL,
+          }}
+        />
+
+        <div className={styles.mentorDivider}>
+          <span className={styles.mentorDividerLabel}>Seu mentor</span>
         </div>
 
         <div className={styles.card}>

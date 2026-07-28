@@ -27,7 +27,7 @@ import { formatBRL, getPricingSummary, PRICING } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 const isEvergreen = SALES_MODE === "evergreen";
-const { total } = getPricingSummary();
+const { total, upfront, savings } = getPricingSummary();
 
 const faqItems: FaqItem[] = [
   {
@@ -66,7 +66,7 @@ const faqItems: FaqItem[] = [
   {
     question: "Quanto custa o curso?",
     answer: isEvergreen
-      ? `Plano anual: 12× ${formatBRL(PRICING.installments.amount)} no cartão, ${formatBRL(total)} no total. Inclui o curso completo e a Comunidade VIP por 1 ano, com tudo que for liberado no período sem pagar de novo. O grupo aberto continua gratuito para quem quiser só acompanhar.`
+      ? `12× ${formatBRL(PRICING.installments.amount)} no cartão (${formatBRL(total)} no total) ou ${formatBRL(upfront)} à vista, que sai ${formatBRL(savings)} mais barato. Inclui o curso completo e a Comunidade VIP por 1 ano, com tudo que for liberado no período sem pagar de novo. O grupo aberto continua gratuito para quem quiser só acompanhar.`
       : "O curso é pago e inclui a Comunidade VIP. O grupo aberto continua gratuito para quem quiser só acompanhar. Quem entra na lista de espera recebe valor e condições de lançamento antes de todo mundo.",
     reaction: "✨",
   },
