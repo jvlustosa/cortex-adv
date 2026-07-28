@@ -1,5 +1,6 @@
 import Image from "next/image";
 import {
+  ArrowRight,
   Briefcase,
   Code2,
   GraduationCap,
@@ -50,6 +51,17 @@ export function MentorProfile() {
             officeUrl: TESTIMONIAL_OFFICE_URL,
           }}
         />
+
+        <div className={styles.ctaBlock}>
+          <p className={styles.ctaText}>
+            O que ela implantou no escritório está destrinchado na trilha, aula
+            por aula, sem programar.
+          </p>
+          <a href="#precos" className={styles.ctaPrimary}>
+            Ver preços e se matricular
+            <ArrowRight className="size-4 opacity-80" aria-hidden />
+          </a>
+        </div>
 
         <div className={styles.mentorDivider}>
           <span className={styles.mentorDividerLabel}>Seu mentor</span>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSessionUser } from "@/lib/auth/use-session";
 
 const linkClass =
-  "hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline";
+  "rounded-lg px-2.5 py-2 text-[var(--muted)] transition hover:bg-[var(--surface)] hover:text-[var(--foreground)]";
 
 /**
  * Links de marketing do header (Preços, Quiz, Comunidade). Escondidos quando há
@@ -13,13 +13,17 @@ const linkClass =
  * (useSessionUser) pra manter a landing estática; enquanto resolve a sessão
  * mostra os links (caso comum: visitante deslogado), sem flash pra quem não
  * está logado.
+ *
+ * Ficam num grupo colado (gap curto + hover de fundo) e o divisor separa
+ * navegação das ações (Entrar / matrícula) — some junto com os links quando há
+ * sessão.
  */
 export function HeaderMarketingNav() {
   const user = useSessionUser();
   if (user) return null;
 
   return (
-    <>
+    <div className="hidden items-center gap-0.5 sm:flex">
       <a href="#precos" className={linkClass}>
         Preços
       </a>
@@ -32,6 +36,7 @@ export function HeaderMarketingNav() {
       <a href="#comunidade" className={linkClass}>
         Comunidade
       </a>
-    </>
+      <span aria-hidden className="ml-2 h-5 w-px bg-[var(--border)]" />
+    </div>
   );
 }

@@ -4,8 +4,10 @@ import Link from "next/link";
 import { UserMenu } from "@/components/aulas/user-menu";
 import { useSessionUser } from "@/lib/auth/use-session";
 
+// Ação secundária ao lado do CTA de compra: pill outline, mesma altura do
+// botão de matrícula — não mais um link solto igual aos de navegação.
 const linkClass =
-  "hidden rounded-lg px-3 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)] sm:inline";
+  "hidden items-center rounded-full border border-[var(--border)] px-3.5 py-2 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--foreground)]/25 hover:bg-[var(--surface)] sm:inline-flex";
 
 /**
  * CTA de auth no header da landing. Com sessão ativa mostra o UserMenu (mesmo

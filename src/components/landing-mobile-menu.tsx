@@ -131,6 +131,10 @@ export function LandingMobileMenu() {
                 <a href="#comunidade" onClick={close} className={linkClass}>
                   Comunidade
                 </a>
+
+                {/* Espelha o header desktop: navegação em cima, conta e CTA embaixo. */}
+                <span aria-hidden className="my-2 h-px bg-[var(--border)]" />
+
                 {user ? (
                   <>
                     <span className="flex flex-col gap-0.5 px-3 pb-1 pt-2">

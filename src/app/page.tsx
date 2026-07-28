@@ -145,8 +145,10 @@ export default function Home() {
             <ClaudeAcademyBrand size="md" className="hidden shrink sm:flex" />
             <nav className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
               <HeaderMarketingNav />
-              <HeaderAuthCta />
-              <HeaderBuyCta />
+              <div className="flex items-center gap-2">
+                <HeaderAuthCta />
+                <HeaderBuyCta />
+              </div>
               <LandingMobileMenu />
             </nav>
           </div>
