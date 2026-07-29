@@ -1,7 +1,14 @@
 import { test, expect } from "@playwright/test";
+import { SALES_MODE } from "../../src/lib/launch-window";
 
 test.describe("Formulário de lista de espera", () => {
   test.beforeEach(async ({ context }) => {
+    // No perpétuo não existe fila: o fecho da landing é CTA de compra, sem
+    // formulário. Estes testes voltam a valer quando abrir turma (`cohort`).
+    test.skip(
+      SALES_MODE === "evergreen",
+      "sem lista de espera no modo perpétuo",
+    );
     // Garante estado limpo (o form auto-redireciona se já houver lead salvo).
     await context.clearCookies();
   });

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import {
-  buildN8nWaitlistPayload,
+  buildWaitlistForwardPayload,
   parseWaitlistPayload,
-  resolveN8nWebhookUrl,
+  resolveWaitlistForwardUrl,
   validateWaitlistPayload,
 } from "@/lib/waitlist/payload";
 
@@ -67,9 +67,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const webhookUrl = resolveN8nWebhookUrl();
-  if (!webhookUrl) {
-    console.error("[api/waitlist] webhook não configurado");
+  const forwardUrl = resolveWaitlistForwardUrl();
+  if (!forwardUrl) {
+    console.error("[api/waitlist] destino não configurado");
     return NextResponse.json(
       {
         error: "Falha no envio",
@@ -80,15 +80,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch(webhookUrl, {
+    const response = await fetch(forwardUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildN8nWaitlistPayload(data)),
+      body: JSON.stringify(buildWaitlistForwardPayload(data)),
     });
 
     if (!response.ok) {
       const text = await response.text();
-      console.error("[api/waitlist] n8n failed", response.status, text.slice(0, 200));
+      console.error(
+        "[api/waitlist] forward failed",
+        response.status,
+        text.slice(0, 200),
+      );
       return NextResponse.json(
         {
           error: "Falha no envio",

@@ -22,7 +22,7 @@ type GroupGateModalProps = {
 
 /**
  * Gate do grupo aberto: o link do WhatsApp só sai depois dos dados, que vão
- * pela mesma rota da lista de espera (/api/waitlist → n8n). Espelha o popup do
+ * pela mesma rota da lista de espera (/api/waitlist). Espelha o popup do
  * chatjuridico.com.br, inclusive na chave de lead.
  */
 export function GroupGateModal({ open, onClose }: GroupGateModalProps) {

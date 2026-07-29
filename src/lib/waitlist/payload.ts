@@ -52,43 +52,33 @@ export function validateWaitlistPayload(data: WaitlistPayload): {
 }
 
 /**
- * Webhook do n8n que trata a inscrição: grava na planilha e avisa no Slack.
- * Override via N8N_WAITLIST_WEBHOOK_URL; default aponta para produção.
+ * Mesmo endpoint que o popup do chatjuridico.com.br usa (`/api/claude-academy-waitlist`,
+ * que manda pro Slack). A barra final evita o 308 de trailing slash da Vercel.
+ * Override via WAITLIST_FORWARD_URL — é por aí que se volta pro n8n, se a
+ * planilha voltar a existir.
  */
-export function resolveN8nWebhookUrl(): string {
+export function resolveWaitlistForwardUrl(): string {
   return (
-    process.env.N8N_WAITLIST_WEBHOOK_URL ??
-    "https://flowhook.chatjuridico.com/webhook/formulario/waitlist-claude-academy"
+    process.env.WAITLIST_FORWARD_URL ??
+    "https://chatjuridico.com.br/api/claude-academy-waitlist/"
   );
 }
 
-function formatWhatsapp(data: WaitlistPayload): string {
-  if (data.whatsapp.startsWith("+")) return data.whatsapp;
-  if (data.whatsapp_ddi && data.whatsapp) {
-    return `${data.whatsapp_ddi} ${data.whatsapp}`;
-  }
-  return data.whatsapp || "";
-}
-
-/** Payload estruturado enviado ao n8n — cada campo vira uma coluna na planilha. */
-export function buildN8nWaitlistPayload(data: WaitlistPayload) {
-  const params = new URLSearchParams((data.url_params || "").replace(/^\?/, ""));
-
+/**
+ * Corpo no formato que o handler do site espera — ele faz o próprio sanitize,
+ * a própria validação e extrai as UTMs de `url_params`. `fonte` é o que separa
+ * no Slack o lead da Academy do lead do site.
+ */
+export function buildWaitlistForwardPayload(data: WaitlistPayload) {
   return {
-    origem: "claude-academy",
-    recebido_em: new Date().toISOString(),
     nome: data.nome,
     email: data.email,
-    whatsapp: formatWhatsapp(data),
+    whatsapp: data.whatsapp,
     whatsapp_ddi: data.whatsapp_ddi,
-    whatsapp_digits: data.whatsapp_digits,
     is_client: data.is_client,
-    cliente_label: data.is_client ? "Sim" : "Não",
-    pagina: data.pagina,
+    page: data.pagina,
     referrer: data.referrer,
     url_params: data.url_params,
-    utm_source: params.get("utm_source") ?? "",
-    utm_medium: params.get("utm_medium") ?? "",
-    utm_campaign: params.get("utm_campaign") ?? "",
+    fonte: "claude-academy",
   };
 }
