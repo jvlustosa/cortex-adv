@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/toast";
-import { Loader2 } from "lucide-react";
+import { AlertTriangle, Check, Loader2, Mail } from "lucide-react";
 import styles from "./admin-dashboard.module.css";
 
 type Props = {
@@ -209,14 +209,18 @@ export function InviteWizard({ onCreated }: Props) {
 
           {result.recipientEmail && result.emailSent ? (
             <p className={`${styles.emailNote} ${styles.emailNoteOk}`}>
-              ✓ Convite enviado para {result.recipientEmail}.
+              <Check className={styles.emailNoteIcon} aria-hidden />
+              <span>Convite enviado para {result.recipientEmail}.</span>
             </p>
           ) : null}
           {result.recipientEmail && !result.emailSent ? (
             <p className={`${styles.emailNote} ${styles.emailNoteWarn}`}>
-              ⚠ Convite criado, mas o e-mail não saiu
-              {result.emailError ? `: ${result.emailError}` : "."} Você pode
-              copiar o link acima ou reenviar pela lista abaixo.
+              <AlertTriangle className={styles.emailNoteIcon} aria-hidden />
+              <span>
+                Convite criado, mas o e-mail não saiu
+                {result.emailError ? `: ${result.emailError}` : "."} Você pode
+                copiar o link acima ou reenviar pela lista abaixo.
+              </span>
             </p>
           ) : null}
         </div>
@@ -406,9 +410,12 @@ export function InviteWizard({ onCreated }: Props) {
               willSend ? styles.emailNoteOk : ""
             }`}
           >
-            {willSend
-              ? `✉ Ao gerar, o convite será enviado para ${email}.`
-              : "Sem e-mail: o convite só gera o link para você copiar."}
+            {willSend ? <Mail className={styles.emailNoteIcon} aria-hidden /> : null}
+            <span>
+              {willSend
+                ? `Ao gerar, o convite será enviado para ${email}.`
+                : "Sem e-mail: o convite só gera o link para você copiar."}
+            </span>
           </p>
         </div>
       ) : null}

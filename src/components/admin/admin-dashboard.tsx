@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import {
+  AlertTriangle,
+  Check,
   ChevronDown,
   Copy,
   Loader2,
@@ -2844,8 +2846,15 @@ function AdminDashboardInner({
                                   : styles.emailNoteWarn
                               }`}
                             >
-                              {inviteResend.ok ? "✓ " : "⚠ "}
-                              {inviteResend.message}
+                              {inviteResend.ok ? (
+                                <Check className={styles.emailNoteIcon} aria-hidden />
+                              ) : (
+                                <AlertTriangle
+                                  className={styles.emailNoteIcon}
+                                  aria-hidden
+                                />
+                              )}
+                              <span>{inviteResend.message}</span>
                             </p>
                           ) : null}
                         </td>

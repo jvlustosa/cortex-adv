@@ -17,14 +17,22 @@
 }
 
 .starBtn {
+  display: flex;
   border: none;
   background: none;
-  font-size: 1.35rem;
   line-height: 1;
   color: var(--claude);
   cursor: pointer;
   padding: 0.15rem;
   transition: transform 0.12s ease;
+}
+
+/* Casa o tamanho do glifo ★ que existia aqui antes: a caixa em do texto era
+   maior que o traço desenhado, então o SVG equivalente é menor que a font-size
+   original de 1.35rem. */
+.starIcon {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .starBtn:hover {

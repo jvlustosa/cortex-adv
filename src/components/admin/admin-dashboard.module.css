@@ -1174,9 +1174,14 @@
 
 .stars {
   display: inline-flex;
+  align-items: center;
   gap: 0.1rem;
   color: var(--claude);
-  font-size: 0.78rem;
+}
+
+.starIcon {
+  width: 0.78rem;
+  height: 0.78rem;
 }
 
 .feedbackComment {
@@ -1807,10 +1812,21 @@
 }
 
 .emailNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
   margin: 0.6rem 0 0;
   font-size: 0.74rem;
   line-height: 1.5;
   color: var(--muted);
+}
+
+/* Alinha o ícone com a primeira linha do texto, que pode quebrar em várias. */
+.emailNoteIcon {
+  flex-shrink: 0;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-top: 0.15rem;
 }
 
 .emailNoteOk {

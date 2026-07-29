@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { Star } from "lucide-react";
 import styles from "./admin-dashboard.module.css";
 
 export type AdminTab = "aulas" | "membros" | "convites" | "galeria";
@@ -112,8 +113,14 @@ export function FormUndoBar({
 export function Stars({ rating }: { rating: number }) {
   return (
     <span className={styles.stars} aria-label={`Nota ${rating} de 5`}>
-      {"★".repeat(rating)}
-      {"☆".repeat(5 - rating)}
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star
+          key={n}
+          className={styles.starIcon}
+          fill={n <= rating ? "currentColor" : "none"}
+          aria-hidden
+        />
+      ))}
     </span>
   );
 }

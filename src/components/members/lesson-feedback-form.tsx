@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 import { readApiErrorMessage } from "@/lib/errors/format";
 import styles from "./lesson-feedback-form.module.css";
 
@@ -84,7 +84,11 @@ export function LessonFeedbackForm({
             aria-label={`Nota ${n}`}
             aria-pressed={rating === n}
           >
-            {(hover || rating) >= n ? "★" : "☆"}
+            <Star
+              className={styles.starIcon}
+              fill={(hover || rating) >= n ? "currentColor" : "none"}
+              aria-hidden
+            />
           </button>
         ))}
       </div>
