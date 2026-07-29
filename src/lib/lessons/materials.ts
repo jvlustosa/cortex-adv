@@ -146,27 +146,86 @@ function safeFileName(name: string): string {
   return normalized || "arquivo";
 }
 
+export type MaterialUploadTicket = {
+  /** Caminho definitivo no bucket; volta no registro do material. */
+  filePath: string;
+  /** URL assinada pro browser subir o arquivo direto no Storage. */
+  signedUrl: string;
+  /** Content-type que o browser deve mandar no PUT (ver inferContentType). */
+  contentType: string;
+};
+
 /**
- * Sobe um arquivo pro bucket privado e cadastra o material da aula. O arquivo
- * fica em `<moduleId>/<lessonId>/<uuid>-<nome>` para evitar colisão de nomes.
+ * Autoriza o browser a subir o arquivo DIRETO no Storage.
+ *
+ * Os bytes não passam pela nossa API de propósito: a Vercel corta requisição
+ * acima de ~4,5 MB antes da função rodar, o que inviabilizava PDF pesado. Aqui
+ * o servidor só assina o destino.
+ *
+ * O arquivo fica em `<moduleId>/<lessonId>/<uuid>-<nome>` para evitar colisão.
  */
-export async function createLessonMaterial(input: {
+export async function createMaterialUploadTicket(input: {
+  moduleId: string;
+  lessonId: string;
+  fileName: string;
+  contentType: string;
+}): Promise<MaterialUploadTicket> {
+  const admin = createAdminClient();
+
+  const fileName = input.fileName || "arquivo";
+  const filePath = `${input.moduleId}/${input.lessonId}/${crypto.randomUUID()}-${safeFileName(fileName)}`;
+
+  const { data, error } = await admin.storage
+    .from(LESSON_MATERIALS_BUCKET)
+    .createSignedUploadUrl(filePath);
+  if (error) throw error;
+
+  return {
+    filePath,
+    signedUrl: data.signedUrl,
+    contentType: inferContentType(fileName, input.contentType),
+  };
+}
+
+/**
+ * Cadastra o material depois que o browser já subiu o arquivo. Confere que o
+ * objeto existe antes de gravar — sem isso um upload interrompido viraria card
+ * quebrado na aula.
+ */
+export async function registerLessonMaterial(input: {
   moduleId: string;
   lessonId: string;
   label: string;
-  file: File;
+  filePath: string;
+  fileName: string;
 }): Promise<LessonMaterialAdmin> {
   const admin = createAdminClient();
 
-  const fileName = input.file.name || "arquivo";
-  const contentType = inferContentType(fileName, input.file.type);
-  const buffer = Buffer.from(await input.file.arrayBuffer());
-  const filePath = `${input.moduleId}/${input.lessonId}/${crypto.randomUUID()}-${safeFileName(fileName)}`;
+  // O prefixo é nosso; não aceitamos caminho de outra aula vindo do cliente.
+  const expectedPrefix = `${input.moduleId}/${input.lessonId}/`;
+  if (!input.filePath.startsWith(expectedPrefix)) {
+    throw new Error("Caminho do arquivo não confere com a aula.");
+  }
 
-  const { error: uploadError } = await admin.storage
+  const slash = input.filePath.lastIndexOf("/");
+  const objectName = input.filePath.slice(slash + 1);
+  const { data: found, error: listError } = await admin.storage
     .from(LESSON_MATERIALS_BUCKET)
-    .upload(filePath, buffer, { contentType, upsert: false });
-  if (uploadError) throw uploadError;
+    .list(input.filePath.slice(0, slash), { search: objectName, limit: 10 });
+  if (listError) throw listError;
+
+  // `search` do Storage é aproximado — casa o nome exato para não pegar o
+  // metadado de outro arquivo da mesma aula.
+  const object = found?.find((item) => item.name === objectName);
+  if (!object) throw new Error("O arquivo não chegou no Storage. Tente de novo.");
+
+  const fileName = input.fileName || "arquivo";
+  const sizeBytes = (object.metadata?.size as number | undefined) ?? null;
+  const contentType = inferContentType(
+    fileName,
+    (object.metadata?.mimetype as string | undefined) ?? "",
+  );
+  const filePath = input.filePath;
 
   // Próxima posição = maior sort_order da aula + 1.
   const { data: last } = await admin
@@ -188,7 +247,7 @@ export async function createLessonMaterial(input: {
       file_path: filePath,
       file_name: fileName,
       content_type: contentType,
-      size_bytes: input.file.size,
+      size_bytes: sizeBytes,
       sort_order: sortOrder,
     })
     .select("id, label, file_name, content_type, size_bytes, sort_order")

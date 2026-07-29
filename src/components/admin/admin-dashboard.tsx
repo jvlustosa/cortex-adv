@@ -28,6 +28,10 @@ import {
   normalizeSection,
   type SectionAdminRow,
 } from "@/lib/admin/normalize-section";
+import {
+  MAX_MATERIAL_BYTES,
+  MAX_MATERIAL_LABEL,
+} from "@/lib/lessons/material-limits";
 import type { LessonMaterialAdmin } from "@/lib/lessons/materials";
 import {
   adjacentModuleId,
@@ -432,16 +436,63 @@ function EditLessonModal({
 
   async function uploadMaterial() {
     if (!materialFile) return;
+    if (materialFile.size > MAX_MATERIAL_BYTES) {
+      toast.error(
+        `Arquivo tem ${formatBytes(materialFile.size)}. O limite é ${MAX_MATERIAL_LABEL}.`,
+      );
+      return;
+    }
     setMaterialUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("moduleId", lesson.moduleId);
-      fd.append("lessonId", lesson.lessonId);
-      fd.append("label", materialLabel.trim() || materialFile.name);
-      fd.append("file", materialFile);
+      // 1) Pede o destino assinado. 2) Manda o arquivo do browser direto pro
+      // Storage — sem isso, PDF acima de ~4,5 MB morria no teto da Vercel antes
+      // de chegar na nossa função. 3) Registra o metadado.
+      const ticketRes = await adminFetch(
+        "/api/admin/lessons/materials/upload-url",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            moduleId: lesson.moduleId,
+            lessonId: lesson.lessonId,
+            fileName: materialFile.name,
+            contentType: materialFile.type,
+            sizeBytes: materialFile.size,
+          }),
+        },
+      );
+      if (!ticketRes.ok) {
+        throw new Error(
+          await readApiErrorMessage(ticketRes, "Erro ao preparar o upload."),
+        );
+      }
+      const ticket = (await ticketRes.json()) as {
+        filePath: string;
+        signedUrl: string;
+        contentType: string;
+      };
+
+      const upload = await fetch(ticket.signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": ticket.contentType },
+        body: materialFile,
+      });
+      if (!upload.ok) {
+        throw new Error(
+          `O arquivo não subiu (${upload.status}). Verifique a conexão e tente de novo.`,
+        );
+      }
+
       const res = await adminFetch("/api/admin/lessons/materials", {
         method: "POST",
-        body: fd,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId: lesson.moduleId,
+          lessonId: lesson.lessonId,
+          label: materialLabel.trim() || materialFile.name,
+          filePath: ticket.filePath,
+          fileName: materialFile.name,
+        }),
       });
       if (!res.ok) {
         throw new Error(await readApiErrorMessage(res, "Erro ao subir material."));
@@ -816,7 +867,8 @@ function EditLessonModal({
               ) : null}
             </h3>
             <p className={styles.formSectionHint}>
-              Skills, PDFs e templates que o aluno baixa na aula.
+              Skills, PDFs e templates que o aluno baixa na aula. Até{" "}
+              {MAX_MATERIAL_LABEL} por arquivo.
             </p>
 
             {materialsLoading ? (

@@ -119,6 +119,21 @@ checks as (
                    from (select pack_id, count(*)::text as n
                            from public.pack_items group by pack_id) s), 'nenhum item') union all
 
+  -- ── materiais por aula (010) ─────────────────────────────────────────────
+  -- Linha sem arquivo no bucket = card quebrado na aula (upload interrompido
+  -- entre a URL assinada e o registro do metadado).
+  select '010', 'materiais com arquivo no bucket',
+         (select count(*) from public.lesson_materials lm
+            left join storage.objects o
+              on o.bucket_id = 'lesson-materials' and o.name = lm.file_path
+          where o.id is null) = 0,
+         coalesce((select string_agg(module_id || '/' || lesson_id || '=' || n,
+                                     ', ' order by module_id, lesson_id)
+                     from (select module_id, lesson_id, count(*)::text as n
+                             from public.lesson_materials
+                            group by module_id, lesson_id) s),
+                  'nenhum material') union all
+
   -- ── drift catálogo estático ↔ DB ─────────────────────────────────────────
   -- aulas no overlay estático (lesson_overrides) sem par nas tabelas nativas.
   -- 0 = seed em dia. >0 = rode `npm run db:seed -- --apply` antes do modo DB.

@@ -28,6 +28,24 @@ describe("materiais por aula", () => {
     assert.ok(ui.includes("download="));
   });
 
+  it("arquivo sobe direto pro Storage, não pela API", () => {
+    // A Vercel corta requisição acima de ~4,5 MB antes da função rodar. Se o
+    // arquivo voltar a passar pela rota, PDF de aula quebra de novo em prod.
+    const ticket = read(
+      "src/app/api/admin/lessons/materials/upload-url/route.ts",
+    );
+    assert.ok(ticket.includes("createMaterialUploadTicket"));
+
+    const route = read("src/app/api/admin/lessons/materials/route.ts");
+    assert.ok(!route.includes("formData"), "rota não deve receber o arquivo");
+    assert.ok(route.includes("registerLessonMaterial"), "só grava metadado");
+
+    const lib = read("src/lib/lessons/materials.ts");
+    assert.ok(lib.includes("createSignedUploadUrl"));
+    // Sem conferir o objeto, upload interrompido vira card quebrado na aula.
+    assert.ok(lib.includes("O arquivo não chegou no Storage"));
+  });
+
   it("migration cria tabela e bucket privado", () => {
     const sql = read("supabase/migrations/010_lesson_materials.sql");
     assert.ok(sql.includes("create table if not exists public.lesson_materials"));

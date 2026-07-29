@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { assertAdminApi } from "@/lib/admin/require-admin";
+import { formatErrorDetail } from "@/lib/errors/format";
 import {
   listLessonMaterialsForAdmin,
-  createLessonMaterial,
+  registerLessonMaterial,
   deleteLessonMaterial,
 } from "@/lib/lessons/materials";
-
-// Limite defensivo pro upload (o bucket é privado, mas evita abuso de memória).
-const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB
 
 export async function GET(request: Request) {
   const auth = await assertAdminApi();
@@ -28,31 +26,42 @@ export async function GET(request: Request) {
     return NextResponse.json({ materials });
   } catch (err) {
     console.error("[api/admin/lessons/materials GET]", err);
+    // Rota é só admin: devolvemos a causa real. Sem isso, "Erro ao carregar"
+    // esconde justamente o que resolve (bucket ausente, chave errada, RLS).
     return NextResponse.json(
-      { error: "Erro ao carregar materiais." },
+      { error: `Não deu para carregar os materiais: ${formatErrorDetail(err)}` },
       { status: 500 },
     );
   }
 }
 
+/**
+ * Cadastra o material. Os bytes já subiram direto pro Storage via a URL
+ * assinada de `materials/upload-url`; aqui só chega metadado (JSON leve), por
+ * isso o teto de payload da Vercel não entra na conta.
+ */
 export async function POST(request: Request) {
   const auth = await assertAdminApi();
   if ("error" in auth) return auth.error;
 
-  let formData: FormData;
+  let body: {
+    moduleId?: string;
+    lessonId?: string;
+    label?: string;
+    filePath?: string;
+    fileName?: string;
+  };
   try {
-    formData = await request.formData();
+    body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Envie os dados como multipart/form-data." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
   }
 
-  const moduleId = String(formData.get("moduleId") ?? "").trim();
-  const lessonId = String(formData.get("lessonId") ?? "").trim();
-  const file = formData.get("file");
-  const labelRaw = String(formData.get("label") ?? "").trim();
+  const moduleId = String(body.moduleId ?? "").trim();
+  const lessonId = String(body.lessonId ?? "").trim();
+  const filePath = String(body.filePath ?? "").trim();
+  const fileName = String(body.fileName ?? "").trim();
+  const labelRaw = String(body.label ?? "").trim();
 
   if (!moduleId || !lessonId) {
     return NextResponse.json(
@@ -60,27 +69,28 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  if (!(file instanceof File) || file.size === 0) {
-    return NextResponse.json({ error: "Arquivo é obrigatório." }, { status: 400 });
-  }
-  if (file.size > MAX_FILE_BYTES) {
+  if (!filePath || !fileName) {
     return NextResponse.json(
-      { error: "Arquivo excede 25 MB." },
-      { status: 413 },
+      { error: "filePath e fileName são obrigatórios." },
+      { status: 400 },
     );
   }
 
   try {
-    const material = await createLessonMaterial({
+    const material = await registerLessonMaterial({
       moduleId,
       lessonId,
-      label: labelRaw || file.name,
-      file,
+      label: labelRaw || fileName,
+      filePath,
+      fileName,
     });
     return NextResponse.json({ ok: true, material });
   } catch (err) {
     console.error("[api/admin/lessons/materials POST]", err);
-    return NextResponse.json({ error: "Erro ao subir material." }, { status: 500 });
+    return NextResponse.json(
+      { error: `Não deu para salvar o material: ${formatErrorDetail(err)}` },
+      { status: 500 },
+    );
   }
 }
 
@@ -104,7 +114,7 @@ export async function DELETE(request: Request) {
   } catch (err) {
     console.error("[api/admin/lessons/materials DELETE]", err);
     return NextResponse.json(
-      { error: "Erro ao excluir material." },
+      { error: `Não deu para excluir o material: ${formatErrorDetail(err)}` },
       { status: 500 },
     );
   }
