@@ -249,10 +249,22 @@ export function GroupGateModal({ open, onClose }: GroupGateModalProps) {
                 <span>Já sou cliente do Chat Jurídico</span>
               </label>
 
+              {/* Cadastro falhou não pode custar a entrada no grupo: o link é
+                  público (QR do /grupo). Liberamos direto em vez de perder a
+                  pessoa por causa de erro nosso. */}
               {error ? (
-                <p className={styles.error} role="alert">
-                  {error}
-                </p>
+                <div className={styles.errorBox} role="alert">
+                  <p className={styles.error}>{error}</p>
+                  <a
+                    href={OPEN_WHATSAPP_GROUP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.errorFallback}
+                  >
+                    <WhatsAppIcon className="size-[16px]" />
+                    Clique aqui para acessar o link do grupo
+                  </a>
+                </div>
               ) : null}
 
               <button

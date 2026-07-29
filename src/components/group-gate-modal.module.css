@@ -165,6 +165,12 @@
   accent-color: var(--accent);
 }
 
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
 .error {
   font-size: 0.84rem;
   line-height: 1.45;
@@ -173,6 +179,27 @@
   border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: 0.5rem;
   padding: 0.5rem 0.7rem;
+}
+
+/* Saída de emergência quando o cadastro falha: mesma cor do WhatsApp do CTA de
+   sucesso, porém em contorno, para não competir com o botão de reenviar. */
+.errorFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  border: 1px solid rgba(37, 211, 102, 0.5);
+  border-radius: 999px;
+  color: #25d366;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.errorFallback:hover {
+  background: rgba(37, 211, 102, 0.1);
 }
 
 .submit {
