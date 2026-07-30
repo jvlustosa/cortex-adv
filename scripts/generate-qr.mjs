@@ -12,15 +12,17 @@ import path from "node:path";
 import QRCode from "qrcode";
 import sharp from "sharp";
 
-const GROUP_URL =
+export const GROUP_URL =
   process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL ??
   "https://chat.whatsapp.com/G2VXJ9UManZ77Rx7Uzn7NT";
 
 const SIZE = 1024;
-const BADGE = 250; // ~24% do QR — seguro com correção de erro "H".
+export const BADGE = 250; // ~24% do QR — seguro com correção de erro "H".
+export const MARGIN = 2; // em módulos
+export const ERROR_CORRECTION = "H";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUTPUT = path.join(
+export const OUTPUT = path.join(
   __dirname,
   "..",
   "public",
@@ -41,14 +43,21 @@ const WHATSAPP_BADGE = `
 
 const qrBuffer = await QRCode.toBuffer(GROUP_URL, {
   width: SIZE,
-  margin: 2,
-  errorCorrectionLevel: "H",
+  margin: MARGIN,
+  errorCorrectionLevel: ERROR_CORRECTION,
   color: { dark: "#0a0a0f", light: "#ffffff" },
 });
 
-await sharp(qrBuffer)
-  .composite([{ input: Buffer.from(WHATSAPP_BADGE), gravity: "center" }])
-  .png()
-  .toFile(OUTPUT);
+// Importado por check-qr.mjs, que confere se o PNG commitado ainda aponta pro
+// grupo configurado — por isso a escrita só roda na chamada direta.
+const isDirectRun =
+  process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-console.log(`QR + logo WhatsApp gerado: ${OUTPUT}\n  → ${GROUP_URL}`);
+if (isDirectRun) {
+  await sharp(qrBuffer)
+    .composite([{ input: Buffer.from(WHATSAPP_BADGE), gravity: "center" }])
+    .png()
+    .toFile(OUTPUT);
+
+  console.log(`QR + logo WhatsApp gerado: ${OUTPUT}\n  → ${GROUP_URL}`);
+}

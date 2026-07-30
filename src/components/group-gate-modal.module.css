@@ -267,6 +267,45 @@
   filter: brightness(1.06);
 }
 
+/* QR só no desktop — ver comentário no componente. */
+.qrBlock {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .qrBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+}
+
+.qrOr {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.qrImage {
+  width: 9.5rem;
+  height: 9.5rem;
+  border-radius: 0.6rem;
+  background: #fff;
+  padding: 0.35rem;
+}
+
+.qrHint {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .secondary {
   display: inline-flex;
   align-items: center;

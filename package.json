@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run course:build",
+    "prebuild": "npm run course:build && npm run qr:check",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -12,6 +12,7 @@
     "course:video-seed": "node scripts/course-video-seed.mjs",
     "og": "node scripts/generate-og-images.mjs",
     "qr": "node scripts/generate-qr.mjs",
+    "qr:check": "node scripts/check-qr.mjs",
     "favicon": "node scripts/generate-favicon.mjs",
     "invite": "node scripts/generate-invite.mjs",
     "admin:create": "node scripts/create-admin.mjs",

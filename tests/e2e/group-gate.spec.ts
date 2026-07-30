@@ -87,6 +87,11 @@ test.describe("Gate do grupo aberto", () => {
     await expect(groupLink).toBeVisible();
     await expect(groupLink).toHaveAttribute("href", GROUP_URL_PATTERN);
 
+    // Além do botão, o QR pra entrar pelo celular (viewport de desktop).
+    await expect(
+      dialog.getByAltText(/qr code do grupo aberto claude academy/i),
+    ).toBeVisible();
+
     // Mesmo payload da lista de espera (mesma rota, mesmo helper).
     expect(submittedBody).toMatchObject({
       nome: "Maria Teste",

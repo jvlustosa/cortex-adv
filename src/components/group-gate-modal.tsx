@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Check, CheckCircle2, Loader2, X } from "lucide-react";
@@ -142,6 +143,24 @@ export function GroupGateModal({ open, onClose }: GroupGateModalProps) {
               <WhatsAppIcon className="size-[18px]" />
               Entrar no grupo do WhatsApp
             </a>
+
+            {/* Quem está no desktop entra pelo celular apontando a câmera — o
+                botão abriria o WhatsApp Web, que boa parte não usa. Escondido no
+                mobile: ninguém escaneia a tela do próprio telefone. */}
+            <div className={styles.qrBlock}>
+              <span className={styles.qrOr}>ou pelo celular</span>
+              <Image
+                src="/assets/images/qr-grupo-whatsapp.png"
+                alt="QR Code do grupo aberto Claude Academy no WhatsApp"
+                width={320}
+                height={320}
+                className={styles.qrImage}
+              />
+              <p className={styles.qrHint}>
+                Aponte a câmera do celular para o código
+              </p>
+            </div>
+
             <button type="button" className={styles.secondary} onClick={onClose}>
               Fechar
             </button>
