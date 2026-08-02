@@ -136,6 +136,50 @@
   max-width: 20rem;
 }
 
+/* Saída de emergência do player: iframe cross-origin falha calado, então as
+   ações ficam sempre visíveis em vez de aparecer só depois de detectar erro. */
+.playerFallback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0.15rem 0;
+}
+
+.playerFallbackText {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.playerFallbackAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.playerFallbackAction:hover {
+  color: var(--fg);
+  border-color: rgba(217, 119, 87, 0.45);
+  background: rgba(217, 119, 87, 0.1);
+}
+
+.playerFallbackAction:focus-visible {
+  outline: 2px solid var(--claude);
+  outline-offset: 2px;
+}
+
 /* ─── Detalhe da aula ──────────────────────────────────────────────────── */
 
 .lessonDetail {

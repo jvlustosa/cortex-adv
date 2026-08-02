@@ -56,9 +56,51 @@ export function normalizeYoutubeId(raw?: string | null): string | null {
 }
 
 function resolveVideoIds(lesson: VideoLesson) {
-  const tella = normalizeTellaSlug(lesson.tella);
-  const youtubeId = tella ? null : normalizeYoutubeId(lesson.youtubeId);
-  return { tella, youtubeId };
+  return {
+    tella: normalizeTellaSlug(lesson.tella),
+    youtubeId: normalizeYoutubeId(lesson.youtubeId),
+  };
+}
+
+export type VideoSource = {
+  kind: "tella" | "youtube";
+  label: "Tella" | "YouTube";
+  /** URL do iframe. */
+  embedUrl: string;
+  /** URL pra abrir fora do iframe — a saída quando o embed não carrega. */
+  watchUrl: string;
+};
+
+/**
+ * Fontes tocáveis da aula, em ordem de preferência (Tella primeiro).
+ *
+ * Iframe cross-origin não emite `error`: quando o Tella é bloqueado por
+ * firewall/adblock ou o vídeo some, o `load` ainda dispara como se tivesse dado
+ * certo. Não dá pra detectar a falha — por isso o player expõe as fontes todas
+ * e deixa o aluno trocar na mão em vez de fingir uma detecção que não existe.
+ */
+export function lessonVideoSources(lesson: VideoLesson): VideoSource[] {
+  const { tella, youtubeId } = resolveVideoIds(lesson);
+  const sources: VideoSource[] = [];
+
+  if (tella) {
+    sources.push({
+      kind: "tella",
+      label: "Tella",
+      embedUrl: `https://www.tella.tv/video/${tella}/embed?b=0&title=0&a=0`,
+      watchUrl: `https://www.tella.tv/video/${tella}`,
+    });
+  }
+  if (youtubeId) {
+    sources.push({
+      kind: "youtube",
+      label: "YouTube",
+      embedUrl: `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`,
+      watchUrl: `https://www.youtube.com/watch?v=${youtubeId}`,
+    });
+  }
+
+  return sources;
 }
 
 /** URL pública do vídeo. Tella tem prioridade (regra do player). */

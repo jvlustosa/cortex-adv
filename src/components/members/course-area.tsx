@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Clock, Download, Eye, PlayCircle } from "lucide-react";
+import { ArrowLeft, Clock, Download, Eye } from "lucide-react";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
 import type { ComingSoonModuleView } from "@/lib/lessons/db-course";
 import type { LessonMaterial } from "@/lib/lessons/materials";
-import { normalizeTellaSlug, normalizeYoutubeId } from "@/lib/lessons/video-urls";
+import { lessonVideoSources } from "@/lib/lessons/video-urls";
 import { MaterialViewer, isRenderable, materialKind } from "./material-viewer";
 import { CourseMenu } from "./course-menu";
+import { LessonPlayer } from "./lesson-player";
 import { CompleteLessonButton } from "./complete-lesson-button";
 import { LessonFeedbackForm } from "./lesson-feedback-form";
 import styles from "./course-area.module.css";
@@ -107,9 +108,9 @@ export function CourseArea({
   const isCurrentCompleted = completed.has(currentKey);
 
   // Aceita tanto o slug/ID limpo quanto o link comum colado no admin. Tella
-  // tem prioridade sobre YouTube (mesma regra do player do admin).
-  const tellaSlug = normalizeTellaSlug(activeLesson.tella);
-  const youtubeId = tellaSlug ? null : normalizeYoutubeId(activeLesson.youtubeId);
+  // tem prioridade sobre YouTube (mesma regra do player do admin); a segunda
+  // fonte, quando existe, vira o fallback manual do player.
+  const videoSources = lessonVideoSources(activeLesson);
 
   const flat = course.modules.flatMap((m) =>
     m.lessons.map((l) => ({ moduleId: m.id, lessonId: l.id })),
@@ -228,37 +229,11 @@ export function CourseArea({
           </div>
         </div>
 
-        <div className={styles.playerWrap}>
-          {tellaSlug ? (
-            <iframe
-              key={activeLesson.id}
-              className={styles.playerIframe}
-              src={`https://www.tella.tv/video/${tellaSlug}/embed?b=0&title=0&a=0`}
-              title={activeLesson.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              allowFullScreen
-            />
-          ) : youtubeId ? (
-            <iframe
-              key={activeLesson.id}
-              className={styles.playerIframe}
-              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
-              title={activeLesson.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <div className={styles.playerPlaceholder}>
-              <div className={styles.playerPlaceholderIcon}>
-                <PlayCircle className="size-8" strokeWidth={1.5} aria-hidden />
-              </div>
-              <p className={styles.playerPlaceholderText}>
-                Vídeo desta aula em produção. Use o menu ao lado para explorar a
-                estrutura do curso.
-              </p>
-            </div>
-          )}
-        </div>
+        <LessonPlayer
+          key={currentKey}
+          sources={videoSources}
+          title={activeLesson.title}
+        />
 
         <article className={styles.lessonDetail}>
           <div className={styles.lessonHead}>
