@@ -2,35 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { marked } from "marked";
-import { Download, FileWarning, Loader2, X } from "lucide-react";
+import { Download, ExternalLink, FileWarning, Loader2, X } from "lucide-react";
+import {
+  isHtmlFragment,
+  materialKind,
+  type MaterialKind,
+} from "@/lib/lessons/material-kind";
 import type { LessonMaterial } from "@/lib/lessons/materials";
 import styles from "./material-viewer.module.css";
-
-type MaterialKind = "markdown" | "html" | "pdf" | "image" | "text" | "other";
-
-/** Tipo de render pela extensão (mais confiável que o content-type do upload). */
-export function materialKind(
-  fileName: string,
-  contentType: string | null,
-): MaterialKind {
-  const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "md" || ext === "markdown") return "markdown";
-  if (ext === "html" || ext === "htm") return "html";
-  if (ext === "pdf" || contentType === "application/pdf") return "pdf";
-  if (
-    ["png", "jpg", "jpeg", "gif", "webp", "svg", "avif"].includes(ext) ||
-    (contentType?.startsWith("image/") ?? false)
-  ) {
-    return "image";
-  }
-  if (ext === "txt" || contentType === "text/plain") return "text";
-  return "other";
-}
-
-/** Materiais que abrem no visualizador; o resto é só download. */
-export function isRenderable(kind: MaterialKind): boolean {
-  return kind !== "other";
-}
 
 // Estilo do documento renderizado dentro do iframe (isolado do app). Paleta
 // escura alinhada à área de membros; sem depender das CSS vars do pai.
@@ -110,7 +89,7 @@ export function MaterialViewer({
   material: LessonMaterial | null;
   onClose: () => void;
 }) {
-  const kind = useMemo(
+  const kind: MaterialKind = useMemo(
     () => (material ? materialKind(material.fileName, material.contentType) : "other"),
     [material],
   );
@@ -142,7 +121,11 @@ export function MaterialViewer({
           if (active) setState({ status: "doc", srcDoc: wrapDoc(html) });
         } else if (kind === "html") {
           const text = await res.text();
-          if (active) setState({ status: "doc", srcDoc: text });
+          if (active)
+            setState({
+              status: "doc",
+              srcDoc: isHtmlFragment(text) ? wrapDoc(text) : text,
+            });
         } else if (kind === "text") {
           const text = await res.text();
           if (active)
@@ -245,11 +228,42 @@ export function MaterialViewer({
               <img src={state.url} alt={material.label} className={styles.image} />
             </div>
           ) : state.status === "pdf" ? (
-            <iframe
+            // <object> em vez de <iframe>: quando o aparelho não sabe abrir PDF
+            // embutido (iOS e boa parte do Android), o iframe fica em branco e
+            // o aluno acha que a apostila sumiu. O conteúdo abaixo é o que o
+            // browser mostra nesse caso.
+            <object
               className={styles.frame}
-              src={state.url}
-              title={material.label}
-            />
+              data={state.url}
+              type="application/pdf"
+              aria-label={material.label}
+            >
+              <div className={styles.center}>
+                <FileWarning className="size-6" aria-hidden />
+                <p>Seu navegador não abre PDF aqui dentro.</p>
+                <div className={styles.centerActions}>
+                  <a
+                    href={state.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.downloadBtn}
+                  >
+                    <ExternalLink className="size-4" aria-hidden />
+                    Abrir em nova aba
+                  </a>
+                  {material.url ? (
+                    <a
+                      href={material.url}
+                      download={material.fileName}
+                      className={styles.downloadBtn}
+                    >
+                      <Download className="size-4" aria-hidden />
+                      Baixar
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            </object>
           ) : (
             <iframe
               className={styles.frame}

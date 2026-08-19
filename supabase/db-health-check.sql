@@ -134,6 +134,20 @@ checks as (
                             group by module_id, lesson_id) s),
                   'nenhum material') union all
 
+  -- Arquivo no bucket sem linha na tabela = o PUT subiu mas o registro falhou.
+  -- Invisível pro aluno e ocupando espaço; some ao reenviar o material.
+  select '010', 'bucket sem arquivo órfão',
+         (select count(*) from storage.objects o
+           where o.bucket_id = 'lesson-materials'
+             and not exists (select 1 from public.lesson_materials lm
+                              where lm.file_path = o.name)) = 0,
+         coalesce((select string_agg(o.name, ', ' order by o.name)
+                     from storage.objects o
+                    where o.bucket_id = 'lesson-materials'
+                      and not exists (select 1 from public.lesson_materials lm
+                                       where lm.file_path = o.name)),
+                  'nenhum órfão') union all
+
   -- ── drift catálogo estático ↔ DB ─────────────────────────────────────────
   -- aulas no overlay estático (lesson_overrides) sem par nas tabelas nativas.
   -- 0 = seed em dia. >0 = rode `npm run db:seed -- --apply` antes do modo DB.

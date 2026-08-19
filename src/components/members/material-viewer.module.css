@@ -135,6 +135,13 @@
   font-size: 0.88rem;
 }
 
+.centerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
 .imageWrap {
   width: 100%;
   height: 100%;

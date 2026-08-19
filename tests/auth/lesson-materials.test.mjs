@@ -25,7 +25,11 @@ describe("materiais por aula", () => {
     const ui = read("src/components/members/course-area.tsx");
     assert.ok(ui.includes("/api/lessons/materials"));
     assert.ok(ui.includes("Materiais da aula"));
-    assert.ok(ui.includes("download="));
+
+    // Formato que não renderiza precisa continuar baixável direto do card.
+    const card = read("src/components/members/material-card.tsx");
+    assert.ok(card.includes("download="), "card deve oferecer download");
+    assert.ok(card.includes("materialAspect"), "miniatura segue a forma do material");
   });
 
   it("arquivo sobe direto pro Storage, não pela API", () => {
@@ -44,6 +48,25 @@ describe("materiais por aula", () => {
     assert.ok(lib.includes("createSignedUploadUrl"));
     // Sem conferir o objeto, upload interrompido vira card quebrado na aula.
     assert.ok(lib.includes("O arquivo não chegou no Storage"));
+  });
+
+  it("seletor de arquivo do admin não filtra por extensão", () => {
+    // A lista branca antiga (accept=".md,.html,.pdf,.txt,imagens") escondia
+    // .docx/.pptx/.zip no seletor do sistema operacional: a apostila nem
+    // aparecia pra escolher e nenhum erro era mostrado — o admin só via que
+    // "não deixava subir". Nada chegou ao bucket até 19/08/2026 por causa disso.
+    const admin = read("src/components/admin/admin-dashboard.tsx");
+    const tag = admin.slice(admin.indexOf('type="file"'));
+    const attrs = tag.slice(0, tag.indexOf("/>"));
+    assert.ok(!attrs.includes("accept="), "input de material não deve ter accept");
+  });
+
+  it("falha do PUT no Storage chega legível no admin", () => {
+    // O PUT vai direto pro Supabase, fora da nossa API: se o status e o corpo
+    // não subirem pro toast, ninguém consegue diagnosticar upload quebrado.
+    const admin = read("src/components/admin/admin-dashboard.tsx");
+    assert.ok(admin.includes("HTTP ${upload.status}"), "deve mostrar o status");
+    assert.ok(admin.includes("upload.text()"), "deve mostrar o erro do Storage");
   });
 
   it("migration cria tabela e bucket privado", () => {

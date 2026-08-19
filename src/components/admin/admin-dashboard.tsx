@@ -474,14 +474,27 @@ function EditLessonModal({
         contentType: string;
       };
 
-      const upload = await fetch(ticket.signedUrl, {
-        method: "PUT",
-        headers: { "Content-Type": ticket.contentType },
-        body: materialFile,
-      });
-      if (!upload.ok) {
+      // O PUT vai direto pro Supabase, fora da nossa API — então quando ele
+      // falha ninguém tem log. Sem repassar status e corpo, todo problema
+      // (rede, CORS, teto do bucket) virava o mesmo "erro ao subir material".
+      let upload: Response;
+      try {
+        upload = await fetch(ticket.signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": ticket.contentType },
+          body: materialFile,
+        });
+      } catch (netErr) {
         throw new Error(
-          `O arquivo não subiu (${upload.status}). Verifique a conexão e tente de novo.`,
+          `O arquivo não chegou no Storage — falha de rede ou bloqueio do navegador${
+            netErr instanceof Error ? `: ${netErr.message}` : "."
+          }`,
+        );
+      }
+      if (!upload.ok) {
+        const detail = await upload.text().catch(() => "");
+        throw new Error(
+          `O arquivo não subiu (HTTP ${upload.status}). ${detail.slice(0, 300)}`.trim(),
         );
       }
 
@@ -869,8 +882,9 @@ function EditLessonModal({
               ) : null}
             </h3>
             <p className={styles.formSectionHint}>
-              Skills, PDFs e templates que o aluno baixa na aula. Até{" "}
-              {MAX_MATERIAL_LABEL} por arquivo.
+              Apostilas, skills e templates da aula. Qualquer formato, até{" "}
+              {MAX_MATERIAL_LABEL} por arquivo. PDF, HTML, Markdown, texto e
+              imagem abrem direto na aula; o resto o aluno baixa.
             </p>
 
             {materialsLoading ? (
@@ -920,7 +934,10 @@ function EditLessonModal({
                 key={materialFileKey}
                 className={styles.input}
                 type="file"
-                accept=".md,.markdown,.html,.htm,.pdf,.txt,.png,.jpg,.jpeg,.gif,.webp,.svg"
+                // Sem `accept`: a lista branca antiga (só md/html/pdf/txt/imagem)
+                // escondia .docx/.pptx/.zip no seletor do sistema — a apostila
+                // simplesmente não aparecia pra escolher, sem erro nenhum. Quem
+                // sobe aqui é admin; formato que não renderiza vira download.
                 onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)}
               />
               <button

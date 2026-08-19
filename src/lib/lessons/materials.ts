@@ -120,6 +120,10 @@ const EXT_CONTENT_TYPE: Record<string, string> = {
   html: "text/html",
   htm: "text/html",
   txt: "text/plain",
+  csv: "text/csv",
+  json: "application/json",
+  yml: "text/yaml",
+  yaml: "text/yaml",
   pdf: "application/pdf",
   png: "image/png",
   jpg: "image/jpeg",
@@ -132,7 +136,9 @@ const EXT_CONTENT_TYPE: Record<string, string> = {
 function inferContentType(fileName: string, provided: string): string {
   if (provided && provided !== "application/octet-stream") return provided;
   const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
-  return EXT_CONTENT_TYPE[ext] ?? provided ?? "application/octet-stream";
+  // Nunca devolver "": o admin manda este valor no header do PUT, e header
+  // vazio faz o Storage recusar o arquivo.
+  return EXT_CONTENT_TYPE[ext] ?? "application/octet-stream";
 }
 
 /** Nome de arquivo seguro pro storage (sem acentos/espaços/barras). */

@@ -3,24 +3,18 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Clock, Download, Eye } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
 import type { CourseLesson, CourseModule } from "@/data/course-content";
 import type { ComingSoonModuleView } from "@/lib/lessons/db-course";
 import type { LessonMaterial } from "@/lib/lessons/materials";
 import { lessonVideoSources } from "@/lib/lessons/video-urls";
-import { MaterialViewer, isRenderable, materialKind } from "./material-viewer";
+import { MaterialCard } from "./material-card";
+import { MaterialViewer } from "./material-viewer";
 import { CourseMenu } from "./course-menu";
 import { LessonPlayer } from "./lesson-player";
 import { CompleteLessonButton } from "./complete-lesson-button";
 import { LessonFeedbackForm } from "./lesson-feedback-form";
 import styles from "./course-area.module.css";
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  const kb = bytes / 1024;
-  if (kb < 1024) return `${Math.round(kb)} KB`;
-  return `${(kb / 1024).toFixed(1)} MB`;
-}
 
 export type MergedCourse = {
   title: string;
@@ -261,52 +255,14 @@ export function CourseArea({
           {lessonMaterials.length > 0 ? (
             <section className={styles.materials}>
               <h2 className={styles.materialsTitle}>Materiais da aula</h2>
-              <ul className={styles.materialsList}>
-                {lessonMaterials.map((m) => {
-                  const renderable = isRenderable(
-                    materialKind(m.fileName, m.contentType),
-                  );
-                  if (renderable) {
-                    return (
-                      <li key={m.id}>
-                        <button
-                          type="button"
-                          className={styles.materialItem}
-                          onClick={() => setViewingMaterial(m)}
-                          disabled={!m.url}
-                        >
-                          <Eye className={styles.materialIcon} aria-hidden />
-                          <span className={styles.materialLabel}>{m.label}</span>
-                          {m.sizeBytes ? (
-                            <span className={styles.materialSize}>
-                              {formatBytes(m.sizeBytes)}
-                            </span>
-                          ) : null}
-                        </button>
-                      </li>
-                    );
-                  }
-                  return (
-                    <li key={m.id}>
-                      <a
-                        href={m.url ?? "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download={m.fileName}
-                        aria-disabled={m.url ? undefined : true}
-                        className={styles.materialItem}
-                      >
-                        <Download className={styles.materialIcon} aria-hidden />
-                        <span className={styles.materialLabel}>{m.label}</span>
-                        {m.sizeBytes ? (
-                          <span className={styles.materialSize}>
-                            {formatBytes(m.sizeBytes)}
-                          </span>
-                        ) : null}
-                      </a>
-                    </li>
-                  );
-                })}
+              <ul className={styles.materialsGrid}>
+                {lessonMaterials.map((m) => (
+                  <MaterialCard
+                    key={m.id}
+                    material={m}
+                    onOpen={setViewingMaterial}
+                  />
+                ))}
               </ul>
             </section>
           ) : null}
