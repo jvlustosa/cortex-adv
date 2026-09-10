@@ -27,15 +27,15 @@ export const CHECKOUT = {
   /** Valor cheio, R$ 2.666,50 em até 12×. */
   installments:
     process.env.NEXT_PUBLIC_CHECKOUT_INSTALLMENTS_URL ??
-    "https://www.asaas.com/c/s8toxiqpsd8xs66h",
+    "https://www.asaas.com/c/1p6mq1pi7zlfsryz",
   /** Especial à vista, R$ 1.880. */
   upfront:
     process.env.NEXT_PUBLIC_CHECKOUT_UPFRONT_URL ??
-    "https://www.asaas.com/c/pbwfl1hwekzmyz0s",
+    "https://www.asaas.com/c/dr10ovq2437wxk6q",
   /** 50% off, R$ 994. Só via /voucher — fora da página de vendas. */
   voucher:
     process.env.NEXT_PUBLIC_CHECKOUT_VOUCHER_URL ??
-    "https://www.asaas.com/c/voebt5s98ttiqaka",
+    "https://www.asaas.com/c/1eoleyxgdiibauoh",
 } as const;
 
 export function getLaunchLabel() {
