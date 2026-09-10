@@ -15,7 +15,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * Protegido por ACCESS_GRANT_SECRET — não usa sessão de admin.
  *
  * Com `sendEmail: true`, o próprio endpoint envia o magic link por e-mail
- * (SendGrid) e NÃO o devolve na resposta — assim a credencial de login não
+ * (Resend) e NÃO o devolve na resposta — assim a credencial de login não
  * transita por sistemas de terceiros (ex.: n8n) nem cai em log. Usado no fluxo
  * pós-pagamento do Asaas. `name` personaliza a saudação do e-mail.
  */

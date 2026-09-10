@@ -15,7 +15,7 @@ type Body = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Emite um convite do Claude Academy e o envia por e-mail (SendGrid). Chamada
+ * Emite um convite do Claude Academy e o envia por e-mail (Resend). Chamada
  * máquina-a-máquina (n8n, pós-assinatura Asaas), protegida por
  * INVITE_ISSUE_SECRET — não usa sessão de admin.
  *

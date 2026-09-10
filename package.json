@@ -31,7 +31,6 @@
     "test:unit": "tsx --test tests/unit/slug.test.ts tests/unit/ordering.test.ts tests/unit/merge.test.ts tests/unit/module-access.test.ts tests/unit/db-course.test.ts tests/unit/progress.test.ts tests/unit/packs.test.ts tests/unit/certificates.test.ts tests/unit/coming-soon.test.ts tests/unit/lesson-move.test.ts tests/unit/admin-dnd.test.ts tests/unit/admin-grouping.test.ts tests/unit/admin-lesson-move-bounds.test.ts tests/unit/admin-format.test.ts tests/unit/catalog-fallback.test.ts tests/unit/module-legacy-fields.test.ts tests/unit/launch-window.test.ts tests/unit/waitlist-form.test.ts tests/unit/waitlist-payload.test.ts tests/unit/video-sources.test.ts tests/unit/material-kind.test.ts"
   },
   "dependencies": {
-    "@sendgrid/mail": "^8.1.6",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
     "clsx": "^2.1.1",
@@ -40,6 +39,7 @@
     "next": "16.2.2",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "resend": "^4.8.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {

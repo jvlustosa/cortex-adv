@@ -106,7 +106,7 @@ export function buildInviteEmail(invite: InviteEmailInput): {
 }
 
 /**
- * Envia o convite por e-mail via SendGrid. Retorna resultado estruturado em vez
+ * Envia o convite por e-mail via Resend. Retorna resultado estruturado em vez
  * de lançar: o convite pode ter sido criado mesmo assim, então quem chama
  * decide como avisar (UI mostra aviso + botão reenviar). Nunca loga o e-mail.
  */
@@ -120,7 +120,7 @@ export async function sendInviteEmail(
   if (!isEmailConfigured()) {
     return {
       ok: false,
-      error: "Envio de e-mail indisponível (SendGrid não configurado).",
+      error: "Envio de e-mail indisponível (Resend não configurado).",
     };
   }
 

@@ -67,7 +67,7 @@ Espera-se `{"ok": true}`, uma nova linha na planilha e a mensagem no Slack.
 # n8n — Convite Claude Academy pós-assinatura Asaas
 
 Quando alguém **assina no Asaas**, este fluxo cria o convite e manda por e-mail
-(SendGrid). Se o envio automático falhar, joga os dados da pessoa no Slack para
+(Resend). Se o envio automático falhar, joga os dados da pessoa no Slack para
 alguém **gerar o convite na mão**. Arquivo: `asaas-convite-claude-academy.json`.
 
 ## Fluxo de dados
@@ -82,7 +82,7 @@ Asaas (webhook PAYMENT_CONFIRMED)
 ```
 
 O e-mail de convite sai **do app** (`/api/invites/issue`), não do n8n — assim o
-link `/signup?token=` e a chave do SendGrid não transitam pelo n8n. O endpoint
+link `/signup?token=` e a chave do Resend não transitam pelo n8n. O endpoint
 **não** devolve o token na resposta (é credencial de acesso). Em falha de envio
 ele responde 502, e aí o Slack traz nome/e-mail + link do painel de convites.
 
