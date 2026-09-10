@@ -1,10 +1,8 @@
 import { SITE_NAME } from "@/lib/site";
 import { isEmailConfigured, sendEmail } from "./send";
+import { escapeHtml, renderAcademyEmail } from "./layout";
 import { buildInviteGreeting } from "@/lib/invites/recipient";
 import type { InviteTitle } from "@/lib/invites/types";
-
-/** Terracota Claude (paleta do app). */
-const BRAND = "#d97757";
 
 /** Campos mínimos de um convite necessários para montar o e-mail. */
 export type InviteEmailInput = {
@@ -16,14 +14,6 @@ export type InviteEmailInput = {
 
 export type SendInviteEmailResult = { ok: true } | { ok: false; error: string };
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function greeting(name: string | null, title: InviteTitle | null): string {
   return buildInviteGreeting({ name, title }) ?? "Olá!";
 }
@@ -33,7 +23,7 @@ const INTRO = `Você foi convidado para o ${SITE_NAME}, o curso do Chat Jurídic
 /**
  * Monta o e-mail do convite (assunto, HTML e texto). Função pura — a saudação
  * concorda o gênero com o título quando existe (Dra./Dr.) e cai num "Olá!"
- * genérico sem nome. Mesmo layout do e-mail de acesso (access-email).
+ * genérico sem nome. Mesmo envelope do e-mail de acesso.
  */
 export function buildInviteEmail(invite: InviteEmailInput): {
   subject: string;
@@ -56,51 +46,12 @@ export function buildInviteEmail(invite: InviteEmailInput): {
     SITE_NAME,
   ].join("\n");
 
-  const safeGreeting = escapeHtml(hello);
-  const html = `<!doctype html>
-<html lang="pt-BR">
-  <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111111;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e4e4e7;">
-            <tr>
-              <td style="background:#111111;padding:24px 32px;">
-                <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.01em;">${escapeHtml(SITE_NAME)}</span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:32px;">
-                <p style="margin:0 0 16px;font-size:18px;font-weight:600;">${safeGreeting}</p>
-                <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3f3f46;">
-                  ${escapeHtml(INTRO)} É rápido: clique no botão abaixo e crie seu acesso.
-                </p>
-                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
-                  <tr>
-                    <td align="center" style="border-radius:10px;background:${BRAND};">
-                      <a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">
-                        Ativar meu acesso
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-                <p style="margin:0;font-size:13px;line-height:1.6;color:#71717a;">
-                  Se o botão não funcionar, copie e cole este link no navegador:<br />
-                  <a href="${escapeHtml(url)}" style="color:${BRAND};text-decoration:none;word-break:break-all;">${escapeHtml(url)}</a>
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:20px 32px;border-top:1px solid #e4e4e7;">
-                <span style="font-size:12px;color:#a1a1aa;">${escapeHtml(SITE_NAME)} · Chat Jurídico</span>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+  const html = renderAcademyEmail({
+    greeting: hello,
+    paragraphs: [INTRO, "É rápido: clique no botão abaixo e crie seu acesso."],
+    cta: { href: url, label: "Ativar meu acesso" },
+    noteHtml: `Se o botão não funcionar, copie e cole este link no navegador:<br /><a href="${escapeHtml(url)}" style="color:#d97757;text-decoration:none;word-break:break-all;">${escapeHtml(url)}</a><br /><br />Se você não reconhece este convite, é só ignorar este e-mail.`,
+  });
 
   return { subject, html, text };
 }
