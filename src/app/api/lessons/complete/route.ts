@@ -4,7 +4,7 @@ import {
   removeLessonCompletion,
 } from "@/lib/lessons/repository";
 import { isDemoMode, isSupabaseEnabled } from "@/lib/supabase/enabled";
-import { createClient } from "@/lib/supabase/server";
+import { assertProductApi } from "@/lib/course/require-access";
 
 type Body = {
   moduleId?: string;
@@ -15,14 +15,6 @@ async function parseTarget(request: Request) {
   const body = (await request.json()) as Body;
   if (!body.moduleId || !body.lessonId) return null;
   return { moduleId: body.moduleId, lessonId: body.lessonId };
-}
-
-async function currentUserId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user?.id ?? null;
 }
 
 /** Marca a aula como concluída. */
@@ -44,10 +36,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const userId = await currentUserId();
-  if (!userId) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
+  // Progresso alimenta o certificado: só quem tem o curso grava.
+  const auth = await assertProductApi("curso");
+  if ("error" in auth) return auth.error;
+  const userId = auth.user.id;
 
   try {
     await recordLessonCompletion({ ...target, userId });
@@ -77,10 +69,10 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const userId = await currentUserId();
-  if (!userId) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  }
+  // Progresso alimenta o certificado: só quem tem o curso grava.
+  const auth = await assertProductApi("curso");
+  if ("error" in auth) return auth.error;
+  const userId = auth.user.id;
 
   try {
     await removeLessonCompletion({ ...target, userId });

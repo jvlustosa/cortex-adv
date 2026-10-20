@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { listLessonMaterials } from "@/lib/lessons/materials";
 import { isDemoMode, isSupabaseEnabled } from "@/lib/supabase/enabled";
-import { createClient } from "@/lib/supabase/server";
+import { assertProductApi } from "@/lib/course/require-access";
 
 export async function GET(request: Request) {
   if (isDemoMode() || !isSupabaseEnabled()) {
@@ -19,15 +19,9 @@ export async function GET(request: Request) {
     );
   }
 
-  // Materiais são conteúdo de membro: exige sessão autenticada.
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
-  }
+  // Materiais são conteúdo do curso: exige sessão e o produto curso.
+  const auth = await assertProductApi("curso");
+  if ("error" in auth) return auth.error;
 
   const materials = await listLessonMaterials(moduleId, lessonId);
   return NextResponse.json({ materials });

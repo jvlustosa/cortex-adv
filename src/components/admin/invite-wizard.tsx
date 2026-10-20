@@ -16,6 +16,7 @@ type InviteFormState = {
   recipientName: string;
   recipientEmail: string;
   recipientTitle: string;
+  product: string;
   label: string;
   maxUses: string;
   expiresAt: string;
@@ -32,6 +33,7 @@ const EMPTY_FORM: InviteFormState = {
   recipientName: "",
   recipientEmail: "",
   recipientTitle: "",
+  product: "curso",
   label: "",
   maxUses: "1",
   expiresAt: "",
@@ -55,6 +57,11 @@ const LABEL_SUGGESTIONS = [
 const TITLE_LABELS: Record<string, string> = {
   dr: "Dr.",
   dra: "Dra.",
+};
+
+const PRODUCT_LABELS: Record<string, string> = {
+  curso: "Curso completo",
+  degravacao: "Degravação (avulso)",
 };
 
 const EXPIRY_PRESETS = [
@@ -151,6 +158,7 @@ export function InviteWizard({ onCreated }: Props) {
           recipientName: form.recipientName.trim() || null,
           recipientEmail: email || null,
           recipientTitle: form.recipientTitle || null,
+          product: form.product,
         }),
       });
 
@@ -295,6 +303,24 @@ export function InviteWizard({ onCreated }: Props) {
       {step === 2 ? (
         <>
           <label className={styles.field}>
+            <span className={styles.label}>Produto</span>
+            <select
+              className={`${styles.input} ${styles.select}`}
+              value={form.product}
+              onChange={(e) => update("product", e.target.value)}
+            >
+              {Object.entries(PRODUCT_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <span className={styles.fieldHint}>
+              O curso já inclui o Degravação. O avulso não dá acesso às aulas.
+            </span>
+          </label>
+
+          <label className={styles.field}>
             <span className={styles.label}>Rótulo (opcional)</span>
             <input
               className={styles.input}
@@ -390,6 +416,12 @@ export function InviteWizard({ onCreated }: Props) {
             <div className={styles.reviewRow}>
               <dt className={styles.reviewKey}>E-mail</dt>
               <dd className={styles.reviewVal}>{email || "Sem e-mail"}</dd>
+            </div>
+            <div className={styles.reviewRow}>
+              <dt className={styles.reviewKey}>Produto</dt>
+              <dd className={styles.reviewVal}>
+                {PRODUCT_LABELS[form.product]}
+              </dd>
             </div>
             <div className={styles.reviewRow}>
               <dt className={styles.reviewKey}>Rótulo</dt>

@@ -1,3 +1,4 @@
+import { DEFAULT_PRODUCT } from "@/lib/access/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateInviteToken } from "./generate-token";
 import { buildSignupUrl } from "./signup-url";
@@ -7,7 +8,7 @@ import type { CreateInviteInput, CreatedInvite, InviteTokenRow } from "./types";
 const MAX_TOKEN_ATTEMPTS = 5;
 
 const INVITE_COLUMNS =
-  "id, token, label, max_uses, used_count, expires_at, active, created_at, recipient_name, recipient_email, recipient_title";
+  "id, token, label, max_uses, used_count, expires_at, active, created_at, recipient_name, recipient_email, recipient_title, product";
 
 function normalizeExpiresAt(value: CreateInviteInput["expiresAt"]): string | null {
   if (value == null || value === "") return null;
@@ -41,6 +42,7 @@ function toCreatedInvite(row: InviteTokenRow): CreatedInvite {
     recipientName: row.recipient_name,
     recipientEmail: row.recipient_email,
     recipientTitle: row.recipient_title,
+    product: row.product,
     signupUrl: buildSignupUrl(row.token),
   };
 }
@@ -83,6 +85,7 @@ export async function createInviteToken(
         recipient_name: recipientName,
         recipient_email: recipientEmail,
         recipient_title: recipientTitle,
+        product: input.product ?? DEFAULT_PRODUCT,
       })
       .select(INVITE_COLUMNS)
       .single();
