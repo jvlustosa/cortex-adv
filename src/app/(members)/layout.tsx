@@ -1,5 +1,7 @@
 import { AulasShell } from "@/components/aulas/aulas-shell";
 import { isAdminUser } from "@/lib/admin/require-admin";
+import { listOwnedProducts } from "@/lib/access/entitlements";
+import { hasProductAccess } from "@/lib/access/products";
 import { isDemoMode, isSupabaseEnabled } from "@/lib/supabase/enabled";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,6 +22,7 @@ export default async function MembersLayout({
   let userEmail: string | null = null;
   let authOn = false;
   let user: { email?: string | null } | null = null;
+  let ownsCourse = true;
 
   if (!demoMode) {
     authOn = isSupabaseEnabled();
@@ -30,13 +33,31 @@ export default async function MembersLayout({
       } = await supabase.auth.getUser();
       user = authUser;
       userEmail = authUser?.email ?? null;
+      if (authUser) {
+        // Só ajusta o nav; a trava de verdade é o gate de cada page. Na dúvida
+        // (erro de leitura), mostra o nav completo e deixa o gate decidir.
+        try {
+          const owned = await listOwnedProducts(supabase, authUser.id);
+          ownsCourse = hasProductAccess(owned, "curso");
+        } catch (err) {
+          console.error(
+            "[members/layout] produtos da conta",
+            err instanceof Error ? err.message : err,
+          );
+        }
+      }
     }
   }
 
   const isAdmin = await isAdminUser(user);
 
   return (
-    <AulasShell authOn={authOn} userEmail={userEmail} isAdmin={isAdmin}>
+    <AulasShell
+      authOn={authOn}
+      userEmail={userEmail}
+      isAdmin={isAdmin}
+      hasCourse={ownsCourse || isAdmin}
+    >
       {children}
     </AulasShell>
   );

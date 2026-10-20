@@ -52,8 +52,8 @@
             {
               "id": "cond-produto",
               "leftValue": "={{ $('Webhook Asaas').item.json.body.payment.description || '' }}",
-              "rightValue": "Claude",
-              "operator": { "type": "string", "operation": "contains" }
+              "rightValue": "([Cc]laude|[Dd]egrava)",
+              "operator": { "type": "string", "operation": "regex" }
             }
           ]
         },
@@ -94,7 +94,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ email: $json.email, name: $json.name }) }}",
+        "jsonBody": "={{ JSON.stringify({ email: $json.email, name: $json.name, product: /degrava/i.test($('Webhook Asaas').item.json.body.payment.description || '') ? 'degravacao' : 'curso' }) }}",
         "options": {
           "response": {
             "response": {
@@ -112,7 +112,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const inv = $input.first().json;\nconst cust = $('Buscar cliente Asaas').first().json;\nconst nome = cust.name || '(sem nome)';\nconst email = cust.email || '(sem e-mail)';\nconst ok = inv.statusCode === 200;\nconst painel = 'https://claudeacademy.chatjuridico.com.br/admin';\nlet text;\nif (ok) {\n  text = '✅ *Convite Claude Academy enviado* (assinatura Asaas)\\nNome: ' + nome + '\\nE-mail: ' + email;\n} else {\n  const body = inv.body || {};\n  const erro = body.error || ('HTTP ' + inv.statusCode);\n  text = '⚠️ *Convite NÃO saiu automático — gere na mão* (assinatura Asaas)\\nNome: ' + nome + '\\nE-mail: ' + email + '\\nErro: ' + erro + '\\nPainel de convites: ' + painel;\n}\nreturn [{ json: { slackText: text, ok: ok, nome: nome, email: email } }];"
+        "jsCode": "const inv = $input.first().json;\nconst cust = $('Buscar cliente Asaas').first().json;\nconst nome = cust.name || '(sem nome)';\nconst email = cust.email || '(sem e-mail)';\nconst ok = inv.statusCode === 200;\nconst descricao = $('Webhook Asaas').first().json.body.payment.description || '';\nconst produto = /degrava/i.test(descricao) ? 'Degravação' : 'Curso';\nconst painel = 'https://claudeacademy.chatjuridico.com.br/admin';\nlet text;\nif (ok) {\n  text = '✅ *Convite Claude Academy enviado* (assinatura Asaas)\\nProduto: ' + produto + '\\nNome: ' + nome + '\\nE-mail: ' + email;\n} else {\n  const body = inv.body || {};\n  const erro = body.error || ('HTTP ' + inv.statusCode);\n  text = '⚠️ *Convite NÃO saiu automático — gere na mão* (assinatura Asaas)\\nProduto: ' + produto + '\\nNome: ' + nome + '\\nE-mail: ' + email + '\\nErro: ' + erro + '\\nPainel de convites: ' + painel;\n}\nreturn [{ json: { slackText: text, ok: ok, produto: produto, nome: nome, email: email } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

@@ -36,6 +36,17 @@ export const CHECKOUT = {
   voucher:
     process.env.NEXT_PUBLIC_CHECKOUT_VOUCHER_URL ??
     "https://www.asaas.com/c/1eoleyxgdiibauoh",
+  /**
+   * Degravação com Claude avulso, R$ 597. Vazio até o link existir no Asaas:
+   * a página de vendas cai no WhatsApp em vez de um checkout quebrado.
+   */
+  degravacao: process.env.NEXT_PUBLIC_CHECKOUT_DEGRAVACAO_URL ?? "",
+} as const;
+
+/** Degravação com Claude, venda avulsa. Aluno do curso já tem incluído. */
+export const DEGRAVACAO_PRICING = {
+  price: 597,
+  guaranteeDays: PRICING.guaranteeDays,
 } as const;
 
 export function getLaunchLabel() {
