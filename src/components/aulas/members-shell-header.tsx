@@ -32,14 +32,23 @@ type MembersShellHeaderProps = {
   authOn: boolean;
   userEmail?: string | null;
   isAdmin?: boolean;
+  /** false = comprou só o Degravação: esconde catálogo e galeria do curso. */
+  hasCourse?: boolean;
 };
 
 // Deriva a aba ativa da rota atual — o header vive no layout compartilhado e
 // não recebe mais `active` por page.
-function useActiveTab(): "catalog" | "player" | "packs" | "admin" | undefined {
+function useActiveTab():
+  | "catalog"
+  | "player"
+  | "packs"
+  | "degravacao"
+  | "admin"
+  | undefined {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return "admin";
   if (pathname.startsWith("/area-de-membros/packs")) return "packs";
+  if (pathname.startsWith("/area-de-membros/degravacao")) return "degravacao";
   if (pathname === "/area-de-membros") return "catalog";
   if (pathname.startsWith("/aulas")) return "player";
   return undefined;
@@ -50,6 +59,7 @@ export function MembersShellHeader({
   authOn,
   userEmail,
   isAdmin,
+  hasCourse = true,
 }: MembersShellHeaderProps) {
   const menuId = useId();
   const [open, setOpen] = useState(false);
@@ -85,6 +95,11 @@ export function MembersShellHeader({
       ? `${styles.navLink} ${styles.navLinkActive}`
       : styles.navLink;
 
+  const degravacaoLinkClass =
+    active === "degravacao"
+      ? `${styles.navLink} ${styles.navLinkActive}`
+      : styles.navLink;
+
   const adminLinkClass =
     active === "admin"
       ? `${styles.navLink} ${styles.adminLink} ${styles.navLinkActive}`
@@ -96,20 +111,32 @@ export function MembersShellHeader({
         <ClaudeAcademyBrand size="sm" />
 
         <nav className={styles.desktopNav} aria-label="Navegação da área de membros">
-          <Link
-            href="/area-de-membros"
-            className={membersLinkClass}
-            aria-current={active === "catalog" ? "page" : undefined}
-          >
-            Área de membros
-          </Link>
+          {hasCourse ? (
+            <>
+              <Link
+                href="/area-de-membros"
+                className={membersLinkClass}
+                aria-current={active === "catalog" ? "page" : undefined}
+              >
+                Área de membros
+              </Link>
+
+              <Link
+                href="/area-de-membros/packs"
+                className={packsLinkClass}
+                aria-current={active === "packs" ? "page" : undefined}
+              >
+                Galeria
+              </Link>
+            </>
+          ) : null}
 
           <Link
-            href="/area-de-membros/packs"
-            className={packsLinkClass}
-            aria-current={active === "packs" ? "page" : undefined}
+            href="/area-de-membros/degravacao"
+            className={degravacaoLinkClass}
+            aria-current={active === "degravacao" ? "page" : undefined}
           >
-            Galeria
+            Degravação
           </Link>
 
           {isAdmin ? (
@@ -173,22 +200,35 @@ export function MembersShellHeader({
                   </p>
                 ) : null}
 
-                <Link
-                  href="/area-de-membros"
-                  className={membersLinkClass}
-                  aria-current={active === "catalog" ? "page" : undefined}
-                  onClick={closeMenu}
-                >
-                  Área de membros
-                </Link>
+                {hasCourse ? (
+                  <>
+                    <Link
+                      href="/area-de-membros"
+                      className={membersLinkClass}
+                      aria-current={active === "catalog" ? "page" : undefined}
+                      onClick={closeMenu}
+                    >
+                      Área de membros
+                    </Link>
+
+                    <Link
+                      href="/area-de-membros/packs"
+                      className={packsLinkClass}
+                      aria-current={active === "packs" ? "page" : undefined}
+                      onClick={closeMenu}
+                    >
+                      Galeria
+                    </Link>
+                  </>
+                ) : null}
 
                 <Link
-                  href="/area-de-membros/packs"
-                  className={packsLinkClass}
-                  aria-current={active === "packs" ? "page" : undefined}
+                  href="/area-de-membros/degravacao"
+                  className={degravacaoLinkClass}
+                  aria-current={active === "degravacao" ? "page" : undefined}
                   onClick={closeMenu}
                 >
-                  Galeria
+                  Degravação
                 </Link>
 
                 {isAdmin ? (

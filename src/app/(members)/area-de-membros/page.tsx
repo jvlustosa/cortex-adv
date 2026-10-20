@@ -1,5 +1,6 @@
 import { LessonCardsGrid } from "@/components/aulas/lesson-cards-grid";
 import { CertificateProgress } from "@/components/members/certificate-progress";
+import { DegravacaoBonusCard } from "@/components/members/degravacao-bonus-card";
 import { VipGroupStep } from "@/components/members/vip-group-step";
 import { isAdminUser } from "@/lib/admin/require-admin";
 import { getUserCourseProgress } from "@/lib/course/progress";
@@ -35,6 +36,7 @@ export default async function AreaDeMembrosPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
       <VipGroupStep />
+      <DegravacaoBonusCard />
       <LessonCardsGrid
         course={course}
         enrolledAt={user?.created_at ?? null}
