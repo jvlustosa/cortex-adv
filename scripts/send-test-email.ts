@@ -66,7 +66,7 @@ async function main() {
     signupUrl: PREVIEW_SIGNUP,
     recipientName: "Vitor",
     recipientEmail: to,
-    recipientTitle: "Dr.",
+    recipientTitle: "dr",
   });
   const access = buildAccessEmail({
     magicLink: PREVIEW_ACCESS,
