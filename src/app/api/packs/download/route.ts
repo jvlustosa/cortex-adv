@@ -7,7 +7,7 @@ import {
   isServiceRoleConfigured,
   isSupabaseEnabled,
 } from "@/lib/supabase/enabled";
-import { createClient } from "@/lib/supabase/server";
+import { assertProductApi } from "@/lib/course/require-access";
 
 // Redirect assinado e por-usuário: nunca pode ser cacheado.
 export const dynamic = "force-dynamic";
@@ -36,15 +36,10 @@ export async function GET(request: Request) {
     if (!isSupabaseEnabled()) {
       return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
     }
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
-    }
-    unlocked = computePackAccess(user.created_at).isUnlocked;
+    // Galeria Premium é do curso; o Degravação avulso não dá acesso.
+    const auth = await assertProductApi("curso");
+    if ("error" in auth) return auth.error;
+    unlocked = computePackAccess(auth.user.created_at).isUnlocked;
   }
 
   const row = await getPackItemRow(id);

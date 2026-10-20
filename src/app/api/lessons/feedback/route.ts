@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { upsertLessonFeedback } from "@/lib/lessons/repository";
 import { isDemoMode, isSupabaseEnabled } from "@/lib/supabase/enabled";
-import { createClient } from "@/lib/supabase/server";
+import { assertProductApi } from "@/lib/course/require-access";
 
 type Body = {
   moduleId?: string;
@@ -18,14 +18,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Faça login para avaliar." }, { status: 401 });
-  }
+  const auth = await assertProductApi("curso");
+  if ("error" in auth) return auth.error;
+  const { user } = auth;
 
   let body: Body;
   try {

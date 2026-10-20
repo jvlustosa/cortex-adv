@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { grantMemberAccess } from "@/lib/access/grant";
+import { DEFAULT_PRODUCT, isProduct, PRODUCT_HOME } from "@/lib/access/products";
 import { safeRedirectPath } from "@/lib/auth/safe-redirect";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseEnabled } from "@/lib/supabase/enabled";
@@ -38,7 +39,6 @@ export async function POST(request: Request) {
   const token = typeof body.token === "string" ? body.token.trim() : "";
   const postedEmail =
     typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  const next = safeRedirectPath(typeof body.next === "string" ? body.next : undefined);
 
   if (!token) {
     return NextResponse.json(
@@ -90,13 +90,19 @@ export async function POST(request: Request) {
   // e-mail) usam o que a pessoa digitou. Nunca confia só no cliente pra convite nominal.
   const { data: recipientRow } = await admin
     .from("invite_tokens")
-    .select("recipient_name, recipient_email")
+    .select("recipient_name, recipient_email, product")
     .eq("id", invite.id)
     .maybeSingle();
 
   const inviteEmail = recipientRow?.recipient_email?.trim().toLowerCase() || "";
   const email = inviteEmail || postedEmail;
   const fullName = recipientRow?.recipient_name?.trim() || undefined;
+  // O convite define o produto liberado; valor fora do esperado vale curso.
+  const product = isProduct(recipientRow?.product) ? recipientRow.product : DEFAULT_PRODUCT;
+  const next = safeRedirectPath(
+    typeof body.next === "string" ? body.next : undefined,
+    PRODUCT_HOME[product],
+  );
 
   if (!email || !EMAIL_RE.test(email)) {
     // Convite sem e-mail e sem e-mail digitado: devolve o uso consumido.
@@ -106,7 +112,12 @@ export async function POST(request: Request) {
 
   try {
     // Provisiona a conta passwordless (idempotente) e gera o link de acesso.
-    const result = await grantMemberAccess(email, { fullName, next });
+    const result = await grantMemberAccess(email, {
+      fullName,
+      next,
+      product,
+      source: "invite",
+    });
     return NextResponse.json({ ok: true, redirectTo: result.magicLink });
   } catch (err) {
     // Falha ao provisionar: devolve o uso consumido pra não queimar o convite.

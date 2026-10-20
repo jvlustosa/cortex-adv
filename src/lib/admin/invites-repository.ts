@@ -1,3 +1,4 @@
+import type { Product } from "@/lib/access/products";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createInviteToken } from "@/lib/invites/create";
 import { buildSignupUrl } from "@/lib/invites/signup-url";
@@ -9,7 +10,7 @@ import type {
 } from "@/lib/invites/types";
 
 const INVITE_COLUMNS =
-  "id, token, label, max_uses, used_count, expires_at, active, created_at, recipient_name, recipient_email, recipient_title";
+  "id, token, label, max_uses, used_count, expires_at, active, created_at, recipient_name, recipient_email, recipient_title, product";
 
 export type InviteAdminRow = {
   id: string;
@@ -23,6 +24,7 @@ export type InviteAdminRow = {
   recipientName: string | null;
   recipientEmail: string | null;
   recipientTitle: InviteTitle | null;
+  product: Product;
   signupUrl: string;
 };
 
@@ -39,6 +41,7 @@ function toInviteRow(row: InviteTokenRow): InviteAdminRow {
     recipientName: row.recipient_name,
     recipientEmail: row.recipient_email,
     recipientTitle: row.recipient_title,
+    product: row.product,
     signupUrl: buildSignupUrl(row.token),
   };
 }

@@ -325,8 +325,11 @@ export function runStaticAudit(root = PROJECT_ROOT) {
   const completeRoute = join(root, "src/app/api/lessons/complete/route.ts");
   if (existsSync(completeRoute)) {
     const content = readText(completeRoute);
+    // assertProductApi (require-access.ts) devolve 401 sem sessão e 403 sem o curso.
     const requiresAuth =
-      content.includes("Não autenticado") || content.includes("status: 401");
+      content.includes("Não autenticado") ||
+      content.includes("status: 401") ||
+      content.includes("assertProductApi(");
     if (!requiresAuth) {
       findings.push({
         id: "lesson-complete-anonymous",

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyInviteSecret } from "@/lib/invites/secret";
+import { DEFAULT_PRODUCT, isProduct } from "@/lib/access/products";
 import { createInviteToken } from "@/lib/invites/create";
 import { sendInviteEmail } from "@/lib/email/invite-email";
 import { isEmailConfigured } from "@/lib/email/send";
@@ -10,6 +11,8 @@ type Body = {
   name?: string;
   title?: string | null;
   label?: string;
+  /** curso | degravacao. Omitido = curso (fluxo Asaas anterior à venda avulsa). */
+  product?: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -61,6 +64,11 @@ export async function POST(request: Request) {
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
 
+  const product = body.product ?? DEFAULT_PRODUCT;
+  if (!isProduct(product)) {
+    return NextResponse.json({ error: "Produto inválido." }, { status: 400 });
+  }
+
   let invite;
   try {
     invite = await createInviteToken({
@@ -69,6 +77,7 @@ export async function POST(request: Request) {
       recipientName: name || null,
       recipientEmail: email,
       recipientTitle: body.title ?? null,
+      product,
     });
   } catch (err) {
     // Título inválido vem do normalizeInviteTitle (erro do chamador → 400);

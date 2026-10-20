@@ -3,6 +3,7 @@ import { isEmailConfigured, sendEmail } from "./send";
 import { escapeHtml, renderAcademyEmail } from "./layout";
 import { buildInviteGreeting } from "@/lib/invites/recipient";
 import type { InviteTitle } from "@/lib/invites/types";
+import type { Product } from "@/lib/access/products";
 
 /** Campos mínimos de um convite necessários para montar o e-mail. */
 export type InviteEmailInput = {
@@ -10,6 +11,8 @@ export type InviteEmailInput = {
   recipientName: string | null;
   recipientEmail: string | null;
   recipientTitle: InviteTitle | null;
+  /** Produto do convite; muda assunto e texto. Default: curso. */
+  product?: Product;
 };
 
 export type SendInviteEmailResult = { ok: true } | { ok: false; error: string };
@@ -18,7 +21,16 @@ function greeting(name: string | null, title: InviteTitle | null): string {
   return buildInviteGreeting({ name, title }) ?? "Olá!";
 }
 
-const INTRO = `Você foi convidado para o ${SITE_NAME}, o curso do Chat Jurídico sobre usar o Claude no dia a dia da advocacia.`;
+const COPY: Record<Product, { subject: string; intro: string }> = {
+  curso: {
+    subject: `Seu convite para o ${SITE_NAME}`,
+    intro: `Você foi convidado para o ${SITE_NAME}, o curso do Chat Jurídico sobre usar o Claude no dia a dia da advocacia.`,
+  },
+  degravacao: {
+    subject: "Seu acesso ao Degravação com Claude",
+    intro: `Seu acesso ao Degravação com Claude, no ${SITE_NAME}, está pronto. Lá estão o plugin, o passo a passo de instalação e as versões novas.`,
+  },
+};
 
 /**
  * Monta o e-mail do convite (assunto, HTML e texto). Função pura — a saudação
@@ -32,12 +44,12 @@ export function buildInviteEmail(invite: InviteEmailInput): {
 } {
   const hello = greeting(invite.recipientName, invite.recipientTitle);
   const url = invite.signupUrl;
-  const subject = `Seu convite para o ${SITE_NAME}`;
+  const { subject, intro } = COPY[invite.product ?? "curso"];
 
   const text = [
     hello,
     "",
-    INTRO,
+    intro,
     "",
     "Ative seu acesso por este link:",
     url,
@@ -48,7 +60,7 @@ export function buildInviteEmail(invite: InviteEmailInput): {
 
   const html = renderAcademyEmail({
     greeting: hello,
-    paragraphs: [INTRO, "É rápido: clique no botão abaixo e crie seu acesso."],
+    paragraphs: [intro, "É rápido: clique no botão abaixo e crie seu acesso."],
     cta: { href: url, label: "Ativar meu acesso" },
     noteHtml: `Se o botão não funcionar, copie e cole este link no navegador:<br /><a href="${escapeHtml(url)}" style="color:#d97757;text-decoration:none;word-break:break-all;">${escapeHtml(url)}</a><br /><br />Se você não reconhece este convite, é só ignorar este e-mail.`,
   });
