@@ -6,7 +6,7 @@
 -- │ 100% pronto pro painel /admin em modo COURSE_SOURCE=db. Qualquer ❌ FALTA  │
 -- │ ordena no topo com a migração que resolve.                                 │
 -- │                                                                            │
--- │ Cobre migrações 010, 012, 013, 014, 015, 018 + seed + buckets privados +   │
+-- │ Cobre migrações 010, 012-015, 018, 020 + seed + buckets privados +         │
 -- │ drift catálogo↔DB. Sem efeitos colaterais.                                 │
 -- └──────────────────────────────────────────────────────────────────────────┘
 
@@ -112,6 +112,18 @@ checks as (
          exists(select 1 from storage.buckets where id='pack-items' and public=false),
          coalesce((select case when public then 'PÚBLICO (deveria ser privado)' else 'ok' end
                    from storage.buckets where id='pack-items'), 'ausente') union all
+  -- ── apostilas gratuitas (020) ────────────────────────────────────────────
+  select '020', 'bucket free-materials (privado)',
+         exists(select 1 from storage.buckets where id='free-materials' and public=false),
+         coalesce((select case when public then 'PÚBLICO (deveria ser privado)' else 'ok' end
+                   from storage.buckets where id='free-materials'), 'ausente') union all
+  -- Os 8 PDFs de src/data/materiais.ts. Faltou = botão de download dá 502.
+  select '020', 'apostilas gratuitas no bucket (8)',
+         (select count(*) from storage.objects
+           where bucket_id = 'free-materials' and name like 'apostila-0%.pdf') >= 8,
+         (select count(*)::text from storage.objects
+           where bucket_id = 'free-materials' and name like 'apostila-0%.pdf')
+           || ' de 8 · rode npm run materiais:upload' union all
   -- ⚠️ informativo: galeria vazia não quebra nada, só não aparece item pro aluno.
   select '018', 'itens cadastrados na galeria (>=1)',
          coalesce((select count(*) from public.pack_items), 0) >= 1,
