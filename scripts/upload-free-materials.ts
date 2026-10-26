@@ -1,10 +1,12 @@
 /**
- * Sobe as apostilas gratuitas (/materiais) para o bucket privado do Storage.
+ * Sobe as apostilas (gratuitas de /materiais + exclusivas de alunos) para o
+ * bucket privado do Storage.
  *
  * Uso:
  *   npm run materiais:upload -- <pasta>
  *
- * A pasta precisa ter um PDF por apostila com o id como nome (01.pdf … 08.pdf).
+ * A pasta precisa ter um PDF por apostila com o id como nome (01.pdf, 02.pdf…),
+ * cobrindo todas as de COURSE_MATERIALS em src/data/materiais.ts.
  * Cria o bucket se faltar e sobrescreve o objeto (upsert), então dá pra rodar
  * de novo quando uma apostila for atualizada. Se o tamanho do arquivo mudar,
  * atualize `sizeBytes` em src/data/materiais.ts (o script avisa).
@@ -16,7 +18,7 @@ import { createClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync, statSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
-import { FREE_MATERIALS, FREE_MATERIALS_BUCKET } from "../src/data/materiais";
+import { COURSE_MATERIALS, FREE_MATERIALS_BUCKET } from "../src/data/materiais";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -38,7 +40,7 @@ function loadEnvFile(filename: string) {
 async function main() {
   const sourceDir = process.argv[2];
   if (!sourceDir) {
-    console.error("Uso: npm run materiais:upload -- <pasta com 01.pdf … 08.pdf>");
+    console.error("Uso: npm run materiais:upload -- <pasta com 01.pdf, 02.pdf…>");
     process.exit(1);
   }
 
@@ -52,7 +54,7 @@ async function main() {
     process.exit(1);
   }
 
-  const missing = FREE_MATERIALS.filter(
+  const missing = COURSE_MATERIALS.filter(
     (m) => !existsSync(resolve(sourceDir, `${m.id}.pdf`)),
   );
   if (missing.length > 0) {
@@ -75,7 +77,7 @@ async function main() {
     throw new Error(`Bucket ${FREE_MATERIALS_BUCKET} está público; deveria ser privado.`);
   }
 
-  for (const material of FREE_MATERIALS) {
+  for (const material of COURSE_MATERIALS) {
     const localPath = resolve(sourceDir, `${material.id}.pdf`);
     const size = statSync(localPath).size;
     const { error } = await admin.storage
@@ -86,8 +88,9 @@ async function main() {
       });
     if (error) throw new Error(`${material.id}: ${error.message}`);
 
+    // Só as gratuitas fixam o tamanho no código; as exclusivas usam o do bucket.
     const sizeNote =
-      size === material.sizeBytes
+      material.sizeBytes === undefined || size === material.sizeBytes
         ? ""
         : ` (atualize sizeBytes: ${material.sizeBytes} → ${size})`;
     console.log(`✓ ${material.id} → ${material.filePath}${sizeNote}`);

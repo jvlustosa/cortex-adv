@@ -1,19 +1,63 @@
-// Materiais gratuitos (/materiais): apostilas do curso liberadas como isca.
-// Os PDFs ficam no bucket privado `free-materials` (sobem com
-// `npm run materiais:upload`); a capa é estática em public/. O download passa
-// por /api/materiais/download, que assina o arquivo na hora do clique.
+// Apostilas do curso, em duas listas:
+// - FREE_MATERIALS: liberadas como isca em /materiais (download por
+//   /api/materiais/download, só com lead no client).
+// - MEMBER_MATERIALS: exclusivas de alunos. Junto com as gratuitas, formam os
+//   Materiais Didáticos da área de membros (/area-de-membros/materiais), com
+//   download por /api/materiais/alunos/download, que exige login.
+// Texto, categoria e capa vivem aqui e em public/ (entram por PR). Os PDFs de
+// ambas ficam no bucket privado `free-materials` e sobem pelo /admin, aba
+// "Materiais Didáticos" (ou `npm run materiais:upload`, para quem tem a chave
+// service_role). Apostila sem PDF no bucket não aparece para o aluno. O
+// download assina o arquivo na hora do clique. Passo a passo em
+// docs/materiais-didaticos.md.
 
 export const FREE_MATERIALS_BUCKET = "free-materials";
 
-export type FreeMaterial = {
+export type MaterialCategory = {
+  id: string;
+  title: string;
+  /** Uma frase dizendo o que o aluno encontra nesta categoria. */
+  description: string;
+};
+
+/**
+ * Categorias dos Materiais Didáticos, na ordem em que aparecem na página.
+ * Para criar uma categoria, acrescente uma entrada aqui: o id passa a valer no
+ * campo `category` das apostilas (o TypeScript recusa id que não esteja nesta
+ * lista). Categoria sem apostila não aparece.
+ */
+export const MATERIAL_CATEGORIES = [
+  {
+    id: "trilha",
+    title: "Trilha do curso",
+    description:
+      "As apostilas que acompanham os módulos, na ordem das aulas.",
+  },
+  {
+    id: "extras",
+    title: "Masterclasses e aulas extras",
+    description:
+      "Material das masterclasses, aulas ao vivo e edições especiais.",
+  },
+] as const satisfies readonly MaterialCategory[];
+
+export type MaterialCategoryId = (typeof MATERIAL_CATEGORIES)[number]["id"];
+
+export type MaterialEntry = {
   /** Usado na URL de download e como chave do arquivo no bucket. */
   id: string;
+  /** Categoria em Materiais Didáticos (id de MATERIAL_CATEGORIES). */
+  category: MaterialCategoryId;
   volume: string;
   title: string;
   description: string;
   topics: string[];
   pages: number;
-  sizeBytes: number;
+  /**
+   * Tamanho do PDF. Opcional nas exclusivas: a área de membros usa o tamanho
+   * real do arquivo no bucket.
+   */
+  sizeBytes?: number;
   /** Caminho do objeto no bucket. */
   filePath: string;
   /** Nome sugerido no download (ASCII, sem espaço). */
@@ -21,9 +65,13 @@ export type FreeMaterial = {
   cover: string;
 };
 
+/** A página pública mostra o tamanho fixo, então aqui ele é obrigatório. */
+export type FreeMaterial = MaterialEntry & { sizeBytes: number };
+
 export const FREE_MATERIALS: FreeMaterial[] = [
   {
     id: "01",
+    category: "trilha",
     volume: "Vol. 1",
     title: "Claude para Advogados",
     description:
@@ -42,6 +90,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
   },
   {
     id: "02",
+    category: "trilha",
     volume: "Vol. 2",
     title: "Configuração & Conferência",
     description:
@@ -60,6 +109,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
   },
   {
     id: "03",
+    category: "trilha",
     volume: "Vol. 3",
     title: "Conectores & Skills",
     description:
@@ -78,6 +128,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
   },
   {
     id: "04",
+    category: "trilha",
     volume: "Módulo 3",
     title: "Configurações Avançadas",
     description:
@@ -96,6 +147,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
   },
   {
     id: "05",
+    category: "extras",
     volume: "Masterclass",
     title: "Skill visual canônica",
     description:
@@ -114,6 +166,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
   },
   {
     id: "06",
+    category: "extras",
     volume: "Edição PRO",
     title: "Vale a pena? Viabilidade de caso",
     description:
@@ -132,6 +185,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
   },
   {
     id: "07",
+    category: "trilha",
     volume: "Vol. 4",
     title: "Projetos: o especialista que você constrói",
     description:
@@ -150,6 +204,7 @@ export const FREE_MATERIALS: FreeMaterial[] = [
   },
   {
     id: "08",
+    category: "extras",
     volume: "Aula ao vivo",
     title: "Recursos, Liquidação e Cowork",
     description:
@@ -168,10 +223,119 @@ export const FREE_MATERIALS: FreeMaterial[] = [
   },
 ];
 
+/**
+ * Apostilas exclusivas de alunos. Continue a numeração ("09", "10"…) e use
+ * `filePath: "membros/apostila-NN-....pdf"`, para não misturar com as que
+ * circulam de graça. A descrição é o que o aluno lê para decidir qual abrir:
+ * uma ou duas frases dizendo do que a apostila trata. `category` é
+ * obrigatório; se nenhuma servir, crie uma em MATERIAL_CATEGORIES.
+ * Modelo comentado e passo a passo: docs/materiais-didaticos.md.
+ */
+export const MEMBER_MATERIALS: MaterialEntry[] = [];
+
+export type CourseMaterial = MaterialEntry & {
+  /** true = só aparece para alunos (não está em /materiais). */
+  exclusive: boolean;
+};
+
+/** Tudo que aparece em Materiais Didáticos: gratuitas primeiro, depois as exclusivas. */
+export const COURSE_MATERIALS: CourseMaterial[] = [
+  ...FREE_MATERIALS.map((material) => ({ ...material, exclusive: false })),
+  ...MEMBER_MATERIALS.map((material) => ({ ...material, exclusive: true })),
+];
+
+/** Arquivo encontrado no bucket, por caminho (filePath). */
+export type StoredMaterialFile = {
+  size: number;
+  updatedAt: string | null;
+};
+
+/**
+ * O que o aluno vê: só apostila cujo PDF já está no bucket (cadastro sem
+ * arquivo ainda não aparece), com o tamanho real do arquivo.
+ */
+export function publishedMaterials(
+  materials: CourseMaterial[],
+  stored: Map<string, StoredMaterialFile>,
+): CourseMaterial[] {
+  return materials.flatMap((material) => {
+    const file = stored.get(material.filePath);
+    return file ? [{ ...material, sizeBytes: file.size }] : [];
+  });
+}
+
+export type MaterialCategoryGroup = {
+  category: MaterialCategory;
+  materials: CourseMaterial[];
+};
+
+/**
+ * Agrupa as apostilas na ordem de MATERIAL_CATEGORIES (dentro de cada uma,
+ * a ordem da lista). Categoria vazia fica de fora.
+ */
+export function groupMaterialsByCategory(
+  materials: CourseMaterial[],
+): MaterialCategoryGroup[] {
+  return MATERIAL_CATEGORIES.map((category) => ({
+    category,
+    materials: materials.filter((m) => m.category === category.id),
+  })).filter((group) => group.materials.length > 0);
+}
+
+/** Minúsculo e sem acento, para a busca achar "conferencia" em "Conferência". */
+function normalizeSearch(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export type MaterialFilter = {
+  /** Texto digitado pelo aluno; cada palavra precisa aparecer na apostila. */
+  query?: string;
+  /** null/undefined = todas as categorias. */
+  category?: MaterialCategoryId | null;
+};
+
+/**
+ * Busca dos Materiais Didáticos: procura em título, descrição, tópicos e
+ * volume. Mantém a ordem da lista.
+ */
+export function filterMaterials(
+  materials: CourseMaterial[],
+  { query = "", category = null }: MaterialFilter = {},
+): CourseMaterial[] {
+  const words = normalizeSearch(query).split(/\s+/).filter(Boolean);
+
+  return materials.filter((material) => {
+    if (category && material.category !== category) return false;
+    if (words.length === 0) return true;
+
+    const haystack = normalizeSearch(
+      [
+        material.title,
+        material.description,
+        material.volume,
+        ...material.topics,
+      ].join(" "),
+    );
+    return words.every((word) => haystack.includes(word));
+  });
+}
+
 export function findFreeMaterial(id: string): FreeMaterial | undefined {
   return FREE_MATERIALS.find((material) => material.id === id);
 }
 
+export function findCourseMaterial(id: string): CourseMaterial | undefined {
+  return COURSE_MATERIALS.find((material) => material.id === id);
+}
+
 export function freeMaterialDownloadHref(id: string): string {
   return `/api/materiais/download?id=${encodeURIComponent(id)}`;
+}
+
+export function courseMaterialDownloadHref(id: string): string {
+  return `/api/materiais/alunos/download?id=${encodeURIComponent(id)}`;
 }
