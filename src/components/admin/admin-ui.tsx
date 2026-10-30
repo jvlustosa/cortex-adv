@@ -4,13 +4,19 @@ import { useEffect, type ReactNode } from "react";
 import { Star } from "lucide-react";
 import styles from "./admin-dashboard.module.css";
 
-export type AdminTab = "aulas" | "membros" | "convites" | "galeria";
+export type AdminTab =
+  | "aulas"
+  | "membros"
+  | "convites"
+  | "galeria"
+  | "materiais";
 
 export const ADMIN_TABS: { id: AdminTab; label: string }[] = [
   { id: "aulas", label: "Gestão de aulas" },
   { id: "membros", label: "Gestão de membros" },
   { id: "convites", label: "Emissão de convites" },
   { id: "galeria", label: "Galeria Premium" },
+  { id: "materiais", label: "Materiais Didáticos" },
 ];
 
 export function AdminTabs({

@@ -128,8 +128,8 @@ export function LandingMobileMenu() {
                 <Link href="/simulador-custo-claude" onClick={close} className={linkClass}>
                   Simulador
                 </Link>
-                <Link href="/quiz" onClick={close} className={linkClass}>
-                  Quiz
+                <Link href="/materiais" onClick={close} className={linkClass}>
+                  Materiais
                 </Link>
                 <a href="#comunidade" onClick={close} className={linkClass}>
                   Comunidade

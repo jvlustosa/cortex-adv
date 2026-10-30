@@ -458,6 +458,20 @@ const pages = [
       ]),
   },
   {
+    name: "degravacao",
+    build: () =>
+      container([
+        glow(-100, -60, 420, 0.14),
+        tag("Plugin para o Claude · Degravação"),
+        title("Degravação de audiência com minutagem"),
+        subtitle(
+          "Transcrição no seu computador, separada por falante, com resumo, marcações, citação pronta e Word."
+        ),
+        pills(["Audiências", "Depoimentos", "Reuniões", "Áudios de WhatsApp"]),
+        footer(),
+      ]),
+  },
+  {
     name: "membros",
     build: () =>
       container([

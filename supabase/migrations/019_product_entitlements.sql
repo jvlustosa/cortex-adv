@@ -23,6 +23,7 @@ alter table public.product_entitlements enable row level security;
 
 -- O aluno lê os próprios direitos (gate SSR com a sessão dele). Escrita só via
 -- service role (grant/signup) — sem policy de insert/update/delete.
+drop policy if exists "product_entitlements_select_own_or_admin" on public.product_entitlements;
 create policy "product_entitlements_select_own_or_admin"
 on public.product_entitlements
 for select
@@ -116,18 +117,26 @@ using (
   )
 );
 
--- Progresso alimenta o certificado: só quem tem o curso grava.
-drop policy if exists "lesson_progress_insert_own" on public.lesson_progress;
-create policy "lesson_progress_insert_own"
-on public.lesson_progress
-for insert
-to authenticated
-with check (user_id = auth.uid() and public.has_product('curso'));
+-- Progresso alimenta o certificado: só quem tem o curso grava. Prod nunca
+-- recebeu a 004 (lesson_progress não existe lá), então o bloco é condicional.
+do $$
+begin
+  if to_regclass('public.lesson_progress') is null then
+    return;
+  end if;
 
-drop policy if exists "lesson_progress_update_own" on public.lesson_progress;
-create policy "lesson_progress_update_own"
-on public.lesson_progress
-for update
-to authenticated
-using (user_id = auth.uid())
-with check (user_id = auth.uid() and public.has_product('curso'));
+  drop policy if exists "lesson_progress_insert_own" on public.lesson_progress;
+  create policy "lesson_progress_insert_own"
+  on public.lesson_progress
+  for insert
+  to authenticated
+  with check (user_id = auth.uid() and public.has_product('curso'));
+
+  drop policy if exists "lesson_progress_update_own" on public.lesson_progress;
+  create policy "lesson_progress_update_own"
+  on public.lesson_progress
+  for update
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid() and public.has_product('curso'));
+end $$;
