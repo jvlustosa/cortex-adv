@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
@@ -5,7 +6,9 @@ import { HeaderAuthCta } from "@/components/header-auth-cta";
 import {
   DEGRAVACAO_AUTHOR,
   DEGRAVACAO_FEATURES,
+  DEGRAVACAO_HERO_SCREENSHOT,
   DEGRAVACAO_REQUIREMENTS,
+  DEGRAVACAO_SCREENSHOTS,
   DEGRAVACAO_USE_CASES,
 } from "@/data/degravacao";
 import { pageShellClass } from "@/lib/layout";
@@ -19,6 +22,9 @@ export const metadata = {
   description:
     "Plugin que degrava audiências, depoimentos e reuniões no seu computador, com minutagem, separação de falantes, documento em Word e player com marcações.",
   alternates: { canonical: "/degravacao" },
+  openGraph: {
+    images: [{ url: "/og/degravacao.png", width: 1200, height: 630 }],
+  },
 };
 
 const price = formatBRL(DEGRAVACAO_PRICING.price);
@@ -156,6 +162,68 @@ export default function DegravacaoPage() {
                 </li>
               ))}
             </ul>
+          </div>
+          <figure className="mx-auto mt-12 max-w-6xl">
+            <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl shadow-black/20">
+              <Image
+                src={DEGRAVACAO_HERO_SCREENSHOT.src}
+                alt={DEGRAVACAO_HERO_SCREENSHOT.alt}
+                width={DEGRAVACAO_HERO_SCREENSHOT.width}
+                height={DEGRAVACAO_HERO_SCREENSHOT.height}
+                sizes="(min-width: 1152px) 1152px, 100vw"
+                loading="eager"
+                fetchPriority="high"
+                className="h-auto w-full"
+              />
+            </div>
+            <figcaption className="mt-3 text-center text-sm text-[var(--muted)]">
+              O player que sai de cada degravação: vídeo, legenda com o nome de
+              quem fala e a transcrição andando junto.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section className="border-t border-[var(--border)] px-4 py-12 sm:px-6 sm:py-16">
+          <div className="mx-auto max-w-5xl">
+            <h2 className={cn(sectionTitleClass, "text-center")}>
+              O que sai de uma audiência
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-center leading-relaxed text-[var(--muted)]">
+              Uma audiência de instrução de 2 min 36 s, com juiz, advogada e
+              testemunha. A transcrição e a separação de falantes levaram menos
+              de 1 minuto num notebook, sem usar a placa de vídeo. O tempo muda
+              de um computador para outro.
+            </p>
+            <div className="mt-10 grid gap-8 md:grid-cols-2">
+              {DEGRAVACAO_SCREENSHOTS.map((shot) => (
+                <figure key={shot.src}>
+                  <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+                    <Image
+                      src={shot.src}
+                      alt={shot.alt}
+                      width={900}
+                      height={675}
+                      sizes="(min-width: 768px) 496px, 100vw"
+                      className="h-auto w-full"
+                    />
+                  </div>
+                  <figcaption className="mt-4">
+                    <h3 className="font-medium text-[var(--foreground)]">
+                      {shot.title}
+                    </h3>
+                    <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
+                      {shot.description}
+                    </p>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+            <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-[var(--muted)]">
+              As imagens são do plugin de verdade, numa audiência fictícia
+              gravada com vozes sintéticas. A separação de falantes é
+              aproximada: o Claude revisa pelo sentido da conversa e o que fica
+              em dúvida aparece com (?) para você conferir ouvindo.
+            </p>
           </div>
         </section>
 
