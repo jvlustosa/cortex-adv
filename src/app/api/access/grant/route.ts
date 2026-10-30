@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { grantMemberAccess } from "@/lib/access/grant";
+import { DEFAULT_PRODUCT, isProduct } from "@/lib/access/products";
 import { verifyGrantSecret } from "@/lib/access/secret";
 import { sendAccessEmail } from "@/lib/email/access-email";
 import { isEmailConfigured } from "@/lib/email/send";
 import { isServiceRoleConfigured, isSupabaseEnabled } from "@/lib/supabase/enabled";
 
-type Body = { email?: string; sendEmail?: boolean; name?: string };
+type Body = { email?: string; sendEmail?: boolean; name?: string; product?: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -18,6 +19,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * (Resend) e NÃO o devolve na resposta — assim a credencial de login não
  * transita por sistemas de terceiros (ex.: n8n) nem cai em log. Usado no fluxo
  * pós-pagamento do Asaas. `name` personaliza a saudação do e-mail.
+ *
+ * `product` diz o que foi comprado (curso | degravacao). Omitido = curso, para
+ * os chamadores anteriores à venda avulsa continuarem iguais.
  */
 export async function POST(request: Request) {
   // Auth primeiro: só chamador autorizado descobre estado de config.
@@ -46,8 +50,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "E-mail inválido." }, { status: 400 });
   }
 
+  const product = body.product ?? DEFAULT_PRODUCT;
+  if (!isProduct(product)) {
+    return NextResponse.json({ error: "Produto inválido." }, { status: 400 });
+  }
+
   try {
-    const result = await grantMemberAccess(email);
+    const result = await grantMemberAccess(email, { product, source: "grant-api" });
 
     if (!body.sendEmail) {
       return NextResponse.json({ ok: true, ...result });

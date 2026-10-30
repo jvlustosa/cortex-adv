@@ -1,3 +1,5 @@
+import type { Product } from "@/lib/access/products";
+
 export type InviteTitle = "dr" | "dra";
 
 export type InviteTokenRow = {
@@ -12,6 +14,7 @@ export type InviteTokenRow = {
   recipient_name: string | null;
   recipient_email: string | null;
   recipient_title: InviteTitle | null;
+  product: Product;
 };
 
 export type CreateInviteInput = {
@@ -22,6 +25,8 @@ export type CreateInviteInput = {
   recipientName?: string | null;
   recipientEmail?: string | null;
   recipientTitle?: InviteTitle | string | null;
+  /** Produto liberado no resgate. Default: curso. */
+  product?: Product;
 };
 
 export type CreatedInvite = {
@@ -36,5 +41,6 @@ export type CreatedInvite = {
   recipientName: string | null;
   recipientEmail: string | null;
   recipientTitle: InviteTitle | null;
+  product: Product;
   signupUrl: string;
 };

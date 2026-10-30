@@ -1,5 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/site";
+import { grantProduct, type EntitlementSource } from "./entitlements";
+import { PRODUCT_HOME, type Product } from "./products";
 
 export type GrantAccessResult = {
   email: string;
@@ -12,8 +14,15 @@ export type GrantAccessResult = {
 export type GrantAccessOptions = {
   /** Vira display name (full_name) da conta nova — só aplicado na criação. */
   fullName?: string;
-  /** Destino após autenticar (path interno já validado). Default: membros. */
+  /** Destino após autenticar (path interno já validado). Default: home do produto. */
   next?: string;
+  /**
+   * Produto comprado, gravado em product_entitlements. Omitido = só gera o
+   * link (ex.: admin reenviando acesso) sem liberar produto novo.
+   */
+  product?: Product;
+  /** Origem do direito, para auditoria. Default: grant-api. */
+  source?: EntitlementSource;
 };
 
 /** Para onde o magic link leva após autenticar, quando não informado. */
@@ -44,7 +53,9 @@ export async function grantMemberAccess(
 ): Promise<GrantAccessResult> {
   const admin = createAdminClient();
   const fullName = options.fullName?.trim() || undefined;
-  const nextPath = options.next?.trim() || DEFAULT_NEXT_PATH;
+  const nextPath =
+    options.next?.trim() ||
+    (options.product ? PRODUCT_HOME[options.product] : DEFAULT_NEXT_PATH);
 
   // 1. Cria a conta (sem senha). Se já existe, segue idempotente.
   const { error: createErr } = await admin.auth.admin.createUser({
@@ -73,7 +84,15 @@ export async function grantMemberAccess(
     throw new Error(linkErr?.message ?? "Falha ao gerar o link de acesso.");
   }
 
-  // 3. Monta o link no padrão SSR do projeto: /auth/confirm lê token_hash + type
+  // 3. Libera o produto comprado antes de entregar o link: sem o direito, o
+  //    gate manda o aluno para /sem-acesso no primeiro clique.
+  if (options.product) {
+    const userId = data.user?.id;
+    if (!userId) throw new Error("Conta sem id ao liberar o produto.");
+    await grantProduct(userId, options.product, options.source ?? "grant-api");
+  }
+
+  // 4. Monta o link no padrão SSR do projeto: /auth/confirm lê token_hash + type
   //    e grava a sessão em cookie. O action_link cru do Supabase NÃO serve aqui.
   const url = new URL("/auth/confirm", SITE_URL);
   url.searchParams.set("token_hash", hashedToken);

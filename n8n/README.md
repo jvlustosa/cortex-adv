@@ -75,9 +75,10 @@ alguém **gerar o convite na mão**. Arquivo: `asaas-convite-claude-academy.json
 ```
 Asaas (webhook PAYMENT_CONFIRMED)
   → Webhook n8n → Responder OK (200 imediato pro Asaas)
-  → IF (token do webhook confere? evento = PAYMENT_CONFIRMED? descrição contém "Claude"?)
+  → IF (token do webhook confere? evento = PAYMENT_CONFIRMED? descrição contém "Claude" ou "Degrava"?)
       → Buscar cliente na API Asaas (pega e-mail + nome)
       → Emitir convite: POST /api/invites/issue (cria token + envia e-mail)
+        com product = "degravacao" se a descrição contém "Degrava", senão "curso"
       → Avisar no Slack:  ✅ enviado  |  ⚠️ falhou → gere na mão (dados + link /admin)
 ```
 
@@ -113,10 +114,17 @@ ou `.env` da instância), não bastam no Vercel:
    igual a `ASAAS_WEBHOOK_TOKEN`.
 5. **Ative** o workflow.
 
-> **Filtro de produto:** o IF exige a descrição do pagamento conter `Claude`.
-> Se a conta Asaas vende só o Claude Academy — ou se as assinaturas não trazem
-> "Claude" na descrição — remova a condição `cond-produto` do nó
-> **Assinatura Claude confirmada?** para não perder assinantes.
+> **Filtro de produto:** o IF exige a descrição do pagamento conter `Claude`
+> ou `Degrava`. A descrição também decide **o que** o convite libera:
+>
+> - contém `Degrava` (ex.: "Degravação com Claude") → `product: "degravacao"`,
+>   só a área do Degravação, **sem** o curso;
+> - senão → `product: "curso"` (curso completo, que já inclui o Degravação).
+>
+> Por isso o link de pagamento do Degravação no Asaas **precisa** ter
+> "Degravação" na descrição. Sem isso, quem compra o avulso de R$ 597 recebe o
+> curso de R$ 2.666. Não remova a condição `cond-produto`: sem ela, qualquer
+> pagamento confirmado na conta vira convite.
 
 ## Testar
 
@@ -126,6 +134,10 @@ curl -X POST https://flowhook.chatjuridico.com/webhook/asaas/assinatura-claude-a
   -H 'asaas-access-token: <ASAAS_WEBHOOK_TOKEN>' \
   -d '{"event":"PAYMENT_CONFIRMED","payment":{"customer":"cus_000xxxxx","description":"Assinatura Claude Academy"}}'
 ```
+
+Para o Degravação, troque a descrição por `"Degravação com Claude"`: o e-mail
+chega com o assunto "Seu acesso ao Degravação com Claude" e o Slack mostra
+`Produto: Degravação`.
 
 Espera-se `{"ok": true}`, o e-mail de convite na caixa do cliente e a mensagem
 no Slack (✅ enviado, ou ⚠️ com os dados para gerar na mão).

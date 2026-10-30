@@ -5,6 +5,7 @@ import {
   setInviteActive,
 } from "@/lib/admin/invites-repository";
 import { sendInviteEmail } from "@/lib/email/invite-email";
+import { DEFAULT_PRODUCT, isProduct } from "@/lib/access/products";
 import { assertAdminApi } from "@/lib/admin/require-admin";
 
 export async function GET() {
@@ -31,6 +32,7 @@ type PostBody = {
   recipientName?: string | null;
   recipientEmail?: string | null;
   recipientTitle?: string | null;
+  product?: string;
 };
 
 export async function POST(request: Request) {
@@ -51,8 +53,14 @@ export async function POST(request: Request) {
         ? Number.parseInt(body.maxUses, 10)
         : undefined;
 
+  const product = body.product ?? DEFAULT_PRODUCT;
+  if (!isProduct(product)) {
+    return NextResponse.json({ error: "Produto inválido." }, { status: 400 });
+  }
+
   try {
     const invite = await createInviteForAdmin({
+      product,
       label: typeof body.label === "string" ? body.label : undefined,
       maxUses: Number.isFinite(maxUses) ? maxUses : undefined,
       expiresAt: body.expiresAt ?? undefined,

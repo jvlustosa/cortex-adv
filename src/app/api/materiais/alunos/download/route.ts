@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
 import { FREE_MATERIALS_BUCKET, findCourseMaterial } from "@/data/materiais";
+import { assertProductApi } from "@/lib/course/require-access";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   isDemoMode,
   isServiceRoleConfigured,
   isSupabaseEnabled,
 } from "@/lib/supabase/enabled";
-import { createClient } from "@/lib/supabase/server";
 
-// Cada clique gera um signed URL novo: o redirect nunca pode ser cacheado.
 export const dynamic = "force-dynamic";
 
 const SIGNED_URL_TTL_SECONDS = 60;
 
-/**
- * Download dos Materiais Didáticos da área de membros. Diferente de
- * /api/materiais/download (só as gratuitas, gate de lead no client), aqui
- * entram também as apostilas exclusivas, então a trava é a sessão: sem aluno
- * logado, 401. O arquivo segue em bucket privado com link que expira em
- * segundos.
- */
 export async function GET(request: Request) {
   const id = new URL(request.url).searchParams.get("id");
   const material = id ? findCourseMaterial(id) : undefined;
@@ -30,19 +22,12 @@ export async function GET(request: Request) {
     );
   }
 
-  // Demo (localhost sem auth) enxerga a área de membros, igual às páginas.
   if (!isDemoMode()) {
     if (!isSupabaseEnabled()) {
       return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
     }
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
-    }
+    const auth = await assertProductApi("curso");
+    if ("error" in auth) return auth.error;
   }
 
   if (!isServiceRoleConfigured()) {
