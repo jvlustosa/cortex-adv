@@ -23,6 +23,7 @@ alter table public.product_entitlements enable row level security;
 
 -- O aluno lê os próprios direitos (gate SSR com a sessão dele). Escrita só via
 -- service role (grant/signup) — sem policy de insert/update/delete.
+drop policy if exists "product_entitlements_select_own_or_admin" on public.product_entitlements;
 create policy "product_entitlements_select_own_or_admin"
 on public.product_entitlements
 for select

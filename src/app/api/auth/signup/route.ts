@@ -88,11 +88,17 @@ export async function POST(request: Request) {
 
   // E-mail vem do convite quando ele é nominal; convites genéricos (multiuso, sem
   // e-mail) usam o que a pessoa digitou. Nunca confia só no cliente pra convite nominal.
-  const { data: recipientRow } = await admin
+  const { data: recipientRow, error: recipientErr } = await admin
     .from("invite_tokens")
     .select("recipient_name, recipient_email, product")
     .eq("id", invite.id)
     .maybeSingle();
+
+  if (recipientErr) {
+    await rollbackInviteUse(admin, invite);
+    console.error("[api/auth/signup] invite lookup", recipientErr);
+    return NextResponse.json({ error: "Erro ao validar convite." }, { status: 500 });
+  }
 
   const inviteEmail = recipientRow?.recipient_email?.trim().toLowerCase() || "";
   const email = inviteEmail || postedEmail;
