@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { Check, Download } from "lucide-react";
+import { MaterialCover } from "@/components/material-cover";
 import { MaterialsGateModal } from "@/components/materials-gate-modal";
 import {
-  FREE_MATERIALS,
   freeMaterialDownloadHref,
-  type FreeMaterial,
+  type CourseMaterial,
 } from "@/data/materiais";
 import { formatBytes } from "@/lib/admin/format";
 import { useIsLead } from "@/lib/waitlist/lead";
@@ -16,28 +15,29 @@ import { useIsLead } from "@/lib/waitlist/lead";
  * Grade das apostilas. Sem lead, o clique abre o formulário; com lead, o link
  * baixa direto. O href real fica no anchor, então sem JS o download funciona.
  */
-export function FreeMaterialsGrid() {
+export function FreeMaterialsGrid({
+  materials,
+}: {
+  materials: CourseMaterial[];
+}) {
   const isLead = useIsLead();
-  const [selected, setSelected] = useState<FreeMaterial | null>(null);
+  const [selected, setSelected] = useState<CourseMaterial | null>(null);
 
   return (
     <>
       <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {FREE_MATERIALS.map((material, index) => (
+        {materials.map((material, index) => (
           <li
             key={material.id}
             className="flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] transition hover:border-[var(--accent)]/35"
           >
-            <Image
-              src={material.cover}
-              alt={`Capa da apostila ${material.id}: ${material.title}`}
-              width={480}
-              height={679}
+            <MaterialCover
+              material={material}
               sizes="(min-width: 1024px) 18rem, (min-width: 640px) 45vw, 90vw"
               priority={index < 4}
               // No celular a capa inteira empurra o card pra fora da tela:
               // mostra só a faixa de cima, onde fica o título.
-              className="aspect-[16/9] w-full border-b border-[var(--border)] object-cover object-top sm:aspect-[480/679]"
+              className="aspect-[16/9] w-full border-b border-[var(--border)] sm:aspect-[480/679]"
             />
 
             <div className="flex flex-1 flex-col gap-3 p-5">
@@ -65,8 +65,10 @@ export function FreeMaterialsGrid() {
 
               <div className="mt-auto flex flex-col gap-3 pt-3">
                 <p className="text-xs text-[var(--muted)]">
-                  {material.pages} páginas · PDF{" "}
-                  {formatBytes(material.sizeBytes).replace(".", ",")}
+                  {material.pages} páginas · PDF
+                  {material.sizeBytes
+                    ? ` ${formatBytes(material.sizeBytes).replace(".", ",")}`
+                    : null}
                 </p>
                 <a
                   href={freeMaterialDownloadHref(material.id)}
@@ -88,6 +90,7 @@ export function FreeMaterialsGrid() {
 
       <MaterialsGateModal
         material={selected}
+        total={materials.length}
         onClose={() => setSelected(null)}
       />
     </>

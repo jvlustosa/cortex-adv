@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { FREE_MATERIALS_BUCKET, findCourseMaterial } from "@/data/materiais";
+import { FREE_MATERIALS_BUCKET, type CourseMaterial } from "@/data/materiais";
 import { assertProductApi } from "@/lib/course/require-access";
+import { findCatalogMaterial } from "@/lib/materials/storage";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   isDemoMode,
@@ -14,13 +15,6 @@ const SIGNED_URL_TTL_SECONDS = 60;
 
 export async function GET(request: Request) {
   const id = new URL(request.url).searchParams.get("id");
-  const material = id ? findCourseMaterial(id) : undefined;
-  if (!material) {
-    return NextResponse.json(
-      { error: "Material não encontrado." },
-      { status: 404 },
-    );
-  }
 
   if (!isDemoMode()) {
     if (!isSupabaseEnabled()) {
@@ -34,6 +28,24 @@ export async function GET(request: Request) {
     return NextResponse.json(
       { error: "Download indisponível." },
       { status: 503 },
+    );
+  }
+
+  // Depois da sessão: quem não está logado não descobre quais ids existem.
+  let material: CourseMaterial | undefined;
+  try {
+    material = id ? await findCatalogMaterial(id) : undefined;
+  } catch (err) {
+    console.error("[api/materiais/alunos/download] catálogo indisponível", err);
+    return NextResponse.json(
+      { error: "Arquivo indisponível. Tente de novo em instantes." },
+      { status: 502 },
+    );
+  }
+  if (!material) {
+    return NextResponse.json(
+      { error: "Material não encontrado." },
+      { status: 404 },
     );
   }
 

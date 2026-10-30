@@ -4,9 +4,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, CheckCircle2, Download, Loader2, X } from "lucide-react";
 import {
-  FREE_MATERIALS,
   freeMaterialDownloadHref,
-  type FreeMaterial,
+  type CourseMaterial,
 } from "@/data/materiais";
 import { fireSubtleConfetti } from "@/lib/confetti";
 import {
@@ -20,7 +19,9 @@ import styles from "./group-gate-modal.module.css";
 
 type MaterialsGateModalProps = {
   /** Apostila que a pessoa clicou; null = modal fechado. */
-  material: FreeMaterial | null;
+  material: CourseMaterial | null;
+  /** Quantas apostilas a página oferece (o envio libera todas). */
+  total: number;
   onClose: () => void;
 };
 
@@ -30,6 +31,7 @@ type MaterialsGateModalProps = {
  */
 export function MaterialsGateModal({
   material,
+  total,
   onClose,
 }: MaterialsGateModalProps) {
   const titleId = useId();
@@ -136,7 +138,7 @@ export function MaterialsGateModal({
               Pronto. Pode baixar.
             </h2>
             <p className={styles.desc}>
-              As {FREE_MATERIALS.length} apostilas desta página ficaram
+              As {total} apostilas desta página ficaram
               liberadas pra você. É só clicar em cada uma.
             </p>
             <a ref={downloadRef} href={downloadHref} className={styles.submit}>
@@ -157,7 +159,7 @@ export function MaterialsGateModal({
             </h2>
             <p className={styles.desc}>
               Deixe seus dados e o download sai na hora. Vale para as{" "}
-              {FREE_MATERIALS.length} apostilas desta página.
+              {total} apostilas desta página.
             </p>
 
             <form className={styles.form} onSubmit={handleSubmit} noValidate>
