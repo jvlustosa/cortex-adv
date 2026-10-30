@@ -10,6 +10,7 @@ const PUBLIC_ROUTES = [
     priority: 0.95,
   },
   { path: "/quiz/", changeFrequency: "monthly" as const, priority: 0.85 },
+  { path: "/materiais/", changeFrequency: "monthly" as const, priority: 0.85 },
   { path: "/degravacao/", changeFrequency: "monthly" as const, priority: 0.8 },
   { path: "/login/", changeFrequency: "yearly" as const, priority: 0.3 },
   { path: "/signup/", changeFrequency: "yearly" as const, priority: 0.3 },

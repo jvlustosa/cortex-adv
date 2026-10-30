@@ -66,6 +66,7 @@ import {
 import { LessonRow } from "./lessons-table";
 import { LessonViewersStack } from "./lesson-viewers-stack";
 import { InviteWizard } from "./invite-wizard";
+import { MaterialsAdminPanel } from "./materials-admin";
 import { PacksAdminPanel } from "./packs-admin";
 import { ConfirmProvider, useConfirm } from "./confirm-dialog";
 import { useUndoForm } from "./use-undo-form";
@@ -1302,7 +1303,8 @@ function AdminDashboardInner({
   }, []);
 
   const loadTab = useCallback(async () => {
-    if (tab === "galeria") return;
+    // Galeria e Materiais carregam os próprios dados.
+    if (tab === "galeria" || tab === "materiais") return;
     setLoading(true);
     setError(null);
     try {
@@ -2888,6 +2890,10 @@ function AdminDashboardInner({
 
       <AdminTabPanel tabId="galeria" activeTab={tab}>
         <PacksAdminPanel />
+      </AdminTabPanel>
+
+      <AdminTabPanel tabId="materiais" activeTab={tab}>
+        <MaterialsAdminPanel />
       </AdminTabPanel>
 
       {editing ? (

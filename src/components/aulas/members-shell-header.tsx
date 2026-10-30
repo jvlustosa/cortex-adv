@@ -32,23 +32,23 @@ type MembersShellHeaderProps = {
   authOn: boolean;
   userEmail?: string | null;
   isAdmin?: boolean;
-  /** false = comprou só o Degravação: esconde catálogo e galeria do curso. */
+  /** false = comprou só o Degravação: esconde os itens do curso. */
   hasCourse?: boolean;
 };
 
-// Deriva a aba ativa da rota atual — o header vive no layout compartilhado e
-// não recebe mais `active` por page.
 function useActiveTab():
   | "catalog"
   | "player"
   | "packs"
   | "degravacao"
+  | "materiais"
   | "admin"
   | undefined {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return "admin";
   if (pathname.startsWith("/area-de-membros/packs")) return "packs";
   if (pathname.startsWith("/area-de-membros/degravacao")) return "degravacao";
+  if (pathname.startsWith("/area-de-membros/materiais")) return "materiais";
   if (pathname === "/area-de-membros") return "catalog";
   if (pathname.startsWith("/aulas")) return "player";
   return undefined;
@@ -100,6 +100,11 @@ export function MembersShellHeader({
       ? `${styles.navLink} ${styles.navLinkActive}`
       : styles.navLink;
 
+  const materiaisLinkClass =
+    active === "materiais"
+      ? `${styles.navLink} ${styles.navLinkActive}`
+      : styles.navLink;
+
   const adminLinkClass =
     active === "admin"
       ? `${styles.navLink} ${styles.adminLink} ${styles.navLinkActive}`
@@ -127,6 +132,14 @@ export function MembersShellHeader({
                 aria-current={active === "packs" ? "page" : undefined}
               >
                 Galeria
+              </Link>
+
+              <Link
+                href="/area-de-membros/materiais"
+                className={materiaisLinkClass}
+                aria-current={active === "materiais" ? "page" : undefined}
+              >
+                Materiais Didáticos
               </Link>
             </>
           ) : null}
@@ -218,6 +231,15 @@ export function MembersShellHeader({
                       onClick={closeMenu}
                     >
                       Galeria
+                    </Link>
+
+                    <Link
+                      href="/area-de-membros/materiais"
+                      className={materiaisLinkClass}
+                      aria-current={active === "materiais" ? "page" : undefined}
+                      onClick={closeMenu}
+                    >
+                      Materiais Didáticos
                     </Link>
                   </>
                 ) : null}

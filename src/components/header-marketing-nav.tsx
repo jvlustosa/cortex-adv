@@ -30,8 +30,8 @@ export function HeaderMarketingNav() {
       <Link href="/simulador-custo-claude" className={linkClass}>
         Simulador
       </Link>
-      <Link href="/quiz" className={linkClass}>
-        Quiz
+      <Link href="/materiais" className={linkClass}>
+        Materiais
       </Link>
       <a href="#comunidade" className={linkClass}>
         Comunidade
