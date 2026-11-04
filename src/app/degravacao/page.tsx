@@ -14,7 +14,7 @@ import {
 import { pageShellClass } from "@/lib/layout";
 import { CHECKOUT, DEGRAVACAO_PRICING, formatBRL } from "@/lib/pricing";
 import { SITE_NAME } from "@/lib/site";
-import { COURSE_SUPPORT_WHATSAPP } from "@/lib/support";
+import { FINANCE_WHATSAPP } from "@/lib/support";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
@@ -29,11 +29,10 @@ export const metadata = {
 
 const price = formatBRL(DEGRAVACAO_PRICING.price);
 
-// Sem link do Asaas configurado, a compra vai pelo WhatsApp: melhor que um
-// botão para um checkout que não existe.
+// Sem link do Asaas configurado, a compra vai pelo WhatsApp do financeiro.
 const checkoutUrl =
   CHECKOUT.degravacao ||
-  `https://wa.me/${COURSE_SUPPORT_WHATSAPP}?text=${encodeURIComponent(
+  `https://wa.me/${FINANCE_WHATSAPP}?text=${encodeURIComponent(
     "Olá! Quero comprar o Degravação com Claude.",
   )}`;
 

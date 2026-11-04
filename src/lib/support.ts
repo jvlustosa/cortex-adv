@@ -4,6 +4,10 @@ export const COURSE_SUPPORT_WHATSAPP =
 
 export const COURSE_SUPPORT_PHONE_DISPLAY = "+55 11 93621-6714";
 
+/** WhatsApp do financeiro (+55 12 93618-0306). */
+export const FINANCE_WHATSAPP =
+  process.env.NEXT_PUBLIC_FINANCE_WHATSAPP ?? "5512936180306";
+
 export function buildCourseSupportWhatsAppUrl(email?: string | null): string {
   const lines = ["Olá! Vim do curso Claude Academy (área de membros)."];
 
