@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useId, useState } from "react";
 import { Check, Download, Search, X } from "lucide-react";
 import {
@@ -11,6 +10,7 @@ import {
   type CourseMaterial,
   type MaterialCategoryId,
 } from "@/data/materiais";
+import { MaterialCover } from "@/components/material-cover";
 import { formatBytes } from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 import styles from "./course-materials-area.module.css";
@@ -28,7 +28,7 @@ const chipActive =
 
 /**
  * Busca + filtro por categoria dos Materiais Didáticos. Tudo no client: a
- * lista é pequena e estática, não precisa ir ao servidor a cada tecla.
+ * lista é pequena, não precisa ir ao servidor a cada tecla.
  */
 export function CourseMaterialsBrowser({
   materials,
@@ -185,15 +185,12 @@ function MaterialCard({
 }) {
   return (
     <li className="flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition hover:border-[var(--accent)]/35">
-      <Image
-        src={material.cover}
-        alt={`Capa da apostila ${material.id}: ${material.title}`}
-        width={480}
-        height={679}
+      <MaterialCover
+        material={material}
         sizes="(min-width: 1024px) 15rem, (min-width: 768px) 30vw, (min-width: 640px) 45vw, 90vw"
         priority={priority}
         // Só a faixa de cima da capa, onde fica o título.
-        className="aspect-[16/9] w-full border-b border-[var(--border)] object-cover object-top sm:aspect-[4/3]"
+        className="aspect-[16/9] w-full border-b border-[var(--border)] sm:aspect-[4/3]"
       />
 
       <div className="flex flex-1 flex-col gap-2 p-4">

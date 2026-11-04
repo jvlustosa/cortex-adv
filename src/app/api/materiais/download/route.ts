@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { FREE_MATERIALS_BUCKET, findFreeMaterial } from "@/data/materiais";
+import { FREE_MATERIALS_BUCKET, type CourseMaterial } from "@/data/materiais";
+import { findCatalogMaterial } from "@/lib/materials/storage";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   isServiceRoleConfigured,
@@ -19,8 +20,18 @@ const SIGNED_URL_TTL_SECONDS = 60;
  */
 export async function GET(request: Request) {
   const id = new URL(request.url).searchParams.get("id");
-  const material = id ? findFreeMaterial(id) : undefined;
-  if (!material) {
+  let material: CourseMaterial | undefined;
+  try {
+    material = id ? await findCatalogMaterial(id) : undefined;
+  } catch (err) {
+    console.error("[api/materiais/download] catálogo indisponível", err);
+    return NextResponse.json(
+      { error: "Arquivo indisponível. Tente de novo em instantes." },
+      { status: 502 },
+    );
+  }
+  // Exclusiva de aluno nunca sai por esta rota, que não pede login.
+  if (!material || material.exclusive) {
     return NextResponse.json(
       { error: "Material não encontrado." },
       { status: 404 },
