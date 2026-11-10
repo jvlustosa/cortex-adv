@@ -1,167 +1,149 @@
 # Materiais Didáticos — como cadastrar apostilas
 
 Seção da área de membros com as apostilas do curso em PDF, separadas por
-categoria, com busca: `/area-de-membros/materiais`.
+categoria, com busca: `/area-de-membros/materiais`. As apostilas gratuitas
+aparecem também na página pública `/materiais`, que pede nome e contato antes
+do download.
 
 ## Como funciona, em uma frase
 
-O **texto** da apostila (título, descrição, categoria, tópicos, capa) entra por
-**PR**, em `src/data/materiais.ts`. O **PDF** entra pelo **/admin**, aba
-"Materiais Didáticos", depois do deploy. Ninguém precisa mexer no banco.
+Tudo se faz pelo **/admin**, aba **"Materiais Didáticos"**: cadastrar, editar,
+excluir, enviar o PDF e a capa. Não precisa de PR nem de deploy. Só a lista de
+**categorias** continua no código.
 
-| O quê | Onde | Quem pode |
-|---|---|---|
-| Título, descrição, categoria, tópicos, páginas | `src/data/materiais.ts` (PR) | quem tem acesso ao git |
-| Capa (imagem) | `public/assets/images/materiais/` (PR) | quem tem acesso ao git |
-| Categoria nova | `MATERIAL_CATEGORIES` em `src/data/materiais.ts` (PR) | quem tem acesso ao git |
-| PDF | `/admin` → aba "Materiais Didáticos" → "Enviar PDF" | quem tem login de admin no site |
+| O quê | Onde |
+|---|---|
+| Título, volume, descrição, tópicos, páginas, categoria, gratuita/exclusiva | `/admin` → Materiais Didáticos → **Nova apostila** / **Editar** |
+| PDF | `/admin` → **Enviar PDF** / **Trocar PDF** |
+| Capa | `/admin` → **Enviar capa** / **Trocar capa** |
+| Excluir | `/admin` → ícone da lixeira |
+| Categoria nova | `MATERIAL_CATEGORIES` em `src/data/materiais.ts` (PR) |
+
+### Onde ficam os dados
+
+Não há tabela no banco. Tudo fica no bucket privado `free-materials` do
+Supabase, que já existia para os PDFs:
+
+- `catalogo.json`: o cadastro de todas as apostilas;
+- os PDFs (raiz para as gratuitas, `membros/` para as exclusivas);
+- `capas/`: as capas enviadas pelo admin.
+
+Enquanto ninguém salvou nada pelo admin, o `catalogo.json` não existe e vale o
+catálogo inicial de `src/data/materiais.ts` (as 8 apostilas originais). O
+primeiro salvamento grava a lista inteira no bucket, e daí em diante **editar
+`src/data/materiais.ts` não muda mais o site**: o que vale é o admin.
 
 ### Por que o PDF não vai no repositório
 
 O repositório é público. PDF commitado fica aberto para qualquer pessoa baixar
 pelo GitHub, inclusive as apostilas exclusivas de alunos. Por isso o PDF vai
-direto para o bucket privado `free-materials` do Supabase, e o aluno baixa por
-um link assinado que expira em 60 segundos e só é gerado para quem está logado.
+direto para o bucket privado, e o download sai por um link assinado que expira
+em 60 segundos.
 
 ### O que o aluno vê
 
-Só aparece para o aluno a apostila que tem cadastro **e** PDF no bucket. Entre o
-merge da PR e o upload do PDF, a apostila fica escondida: não existe estado em
-que o aluno clique e o download falhe.
+Só aparece a apostila que tem cadastro **e** PDF no bucket. Entre o cadastro e
+o upload do PDF ela fica escondida: não existe estado em que o aluno clique e o
+download falhe.
+
+- **Exclusiva**: só na área de membros; o download exige login.
+- **Gratuita**: na área de membros e em `/materiais`. A rota pública de
+  download recusa qualquer apostila marcada como exclusiva.
 
 ## Passo a passo: apostila nova
 
-### 1. Na PR
+1. Entre em `/admin` com uma conta de admin, aba **Materiais Didáticos**.
+2. Clique em **Nova apostila** e preencha:
+   - **Título** e **volume** (o volume aparece em cima do título: "09 · Vol. 5");
+   - **Categoria** e **acesso** (exclusiva ou gratuita);
+   - **Páginas**;
+   - **Descrição**: uma ou duas frases dizendo do que a apostila trata. É o que
+     o aluno lê para decidir qual abrir;
+   - **Tópicos**: um por linha, de 3 a 5. Também entram na busca;
+   - **PDF** e **capa**, se já tiver. Dá para mandar depois, na linha da tabela.
+3. **Cadastrar apostila**. O número sai sozinho, continuando a sequência
+   (número de apostila excluída não é reaproveitado).
+4. Com o PDF enviado, o selo vira **"No ar"** e a apostila aparece na hora.
 
-**a) Capa.** Salve a imagem em
-`public/assets/images/materiais/apostila-NN.webp` (NN = número da apostila).
-Mesmo padrão das existentes: **WebP, 480×679 px**, normalmente a primeira
-página do PDF. A página mostra só a faixa de cima da capa, então o título da
-apostila precisa estar no terço superior da imagem.
-
-**b) Cadastro.** Em `src/data/materiais.ts`, acrescente uma entrada em
-`MEMBER_MATERIALS` (exclusivas de alunos):
-
-```ts
-export const MEMBER_MATERIALS: MaterialEntry[] = [
-  {
-    id: "09",                       // continua a numeração; não pode repetir
-    category: "trilha",             // id de uma categoria em MATERIAL_CATEGORIES
-    volume: "Vol. 5",               // aparece em cima do título: "09 · Vol. 5"
-    title: "Título da apostila",
-    description:
-      "Uma ou duas frases dizendo do que a apostila trata. É o que o aluno lê para decidir qual abrir.",
-    topics: [                       // 3 a 5 itens curtos; também entram na busca
-      "Primeiro assunto",
-      "Segundo assunto",
-      "Terceiro assunto",
-    ],
-    pages: 12,
-    filePath: "membros/apostila-09-titulo-curto.pdf", // caminho no bucket; sempre em membros/
-    fileName: "Claude-Academy-09-Titulo-Curto.pdf",   // nome do arquivo que o aluno baixa (sem acento/espaço)
-    cover: "/assets/images/materiais/apostila-09.webp",
-  },
-];
-```
-
-Não precisa informar o tamanho do arquivo: a página usa o tamanho real do PDF
-no bucket.
-
-**c) Confira antes de abrir a PR:**
-
-```bash
-npm run test:unit
-```
-
-Os testes de `tests/unit/course-materials.test.ts` acusam:
-
-- id repetido;
-- capa que não existe em `public/`;
-- dois cadastros apontando para o mesmo PDF;
-- exclusiva fora de `membros/`;
-- apostila sem descrição;
-- categoria sem título ou descrição.
-
-Categoria que não existe o próprio TypeScript recusa (e aí o build da Vercel
-falha antes de ir para o ar).
-
-### 2. Depois do merge e do deploy
-
-1. Entre em `/admin` com uma conta de admin.
-2. Aba **Materiais Didáticos**. A apostila nova aparece com o selo
-   **"Falta o PDF"**.
-3. Clique em **Enviar PDF** e escolha o arquivo (só PDF, até 50 MB).
-4. O selo vira **"No ar"** e a apostila aparece na hora para os alunos, sem
-   deploy novo.
+**Capa:** WebP, PNG ou JPG, até 5 MB, em pé. O padrão das existentes é
+**480×679 px**, normalmente a primeira página do PDF. A página mostra só a
+faixa de cima da capa, então o título precisa estar no terço superior da
+imagem. Sem capa, o card mostra um bloco com o título.
 
 ## Outras tarefas
 
-**Criar categoria.** Acrescente em `MATERIAL_CATEGORIES`:
+**Editar texto, categoria ou acesso.** **Editar** na linha da apostila. Trocar
+o título muda também o nome do arquivo que o aluno baixa; o PDF continua no
+mesmo lugar do bucket.
+
+**Trocar o PDF ou a capa.** Botões na linha da apostila. A capa antiga é
+apagada do bucket.
+
+**Excluir.** Lixeira na linha. A apostila sai do ar na hora e o PDF e a capa
+são apagados do bucket. Não dá para desfazer: para voltar, cadastre de novo.
+
+**Criar categoria.** Acrescente em `MATERIAL_CATEGORIES`, em
+`src/data/materiais.ts` (PR):
 
 ```ts
 {
-  id: "modelos",                    // minúsculo, sem espaço; é o que vai em `category`
+  id: "modelos",                    // minúsculo, sem espaço
   title: "Modelos e templates",
   description: "Uma frase dizendo o que o aluno encontra aqui.",
 },
 ```
 
-A ordem da lista é a ordem na página. Categoria sem apostila não aparece, então
-dá para criar antes de ter o material pronto. Cada categoria vira um botão de
-filtro no topo da página automaticamente.
+Depois do deploy ela aparece no seletor do admin. A ordem da lista é a ordem
+na página. Categoria sem apostila não aparece. **Não remova categoria em uso**:
+as apostilas dela somem da página até serem movidas para outra.
 
-**Trocar o PDF de uma apostila.** `/admin` → Materiais Didáticos → **Trocar
-PDF**. O painel pede confirmação. Não precisa de PR.
+## Cuidados
 
-**Corrigir texto, categoria ou capa.** PR editando a entrada em
-`src/data/materiais.ts` ou a imagem.
+- **Dois admins ao mesmo tempo.** O cadastro é um arquivo só; quem salva por
+  último vence. Se duas pessoas editarem ao mesmo tempo, uma pode desfazer a
+  edição da outra. Combinem quem mexe.
+- **Página pública.** `/materiais` é refeita na hora quando o admin salva algo,
+  e de qualquer forma a cada 5 minutos.
+- **Script de upload em lote** (`npm run materiais:upload -- <pasta>`, para
+  quem tem a `SUPABASE_SERVICE_ROLE_KEY`): sobe os PDFs do catálogo inicial do
+  código, um por id (`01.pdf`…`08.pdf`). Não enxerga as apostilas cadastradas
+  pelo admin; para essas, use o admin.
 
-**Tirar uma apostila do ar.** PR removendo a entrada. O PDF continua no bucket,
-mas sem cadastro ninguém consegue baixar. Não reaproveite o mesmo `id` nem o
-mesmo `filePath` para outra apostila.
+## Configuração
 
-**Apostilas gratuitas** (`FREE_MATERIALS`) aparecem em `/materiais`, a página
-pública que pede nome e contato antes do download, e também nos Materiais
-Didáticos. Para essas, `sizeBytes` é obrigatório porque a página pública mostra
-o tamanho fixo.
+Nada a configurar. O bucket `free-materials` já existe (migration
+`020_free_materials_bucket.sql`) e as variáveis de ambiente são as que a
+produção já usa (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`).
 
-## Configuração (uma vez, por quem tem acesso ao Supabase)
+Para liberar alguém como admin:
 
-- O bucket `free-materials` já existe (migration `020_free_materials_bucket.sql`).
-  Nada de migration nova.
-- As variáveis de ambiente já são as que a produção usa
-  (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`).
-- Para alguém de fora da equipe padrão subir PDFs, libere o e-mail como admin:
+```bash
+npm run admin:create -- --email nome@escritoriovilasboas.com
+```
 
-  ```bash
-  npm run admin:create -- --email nome@escritoriovilasboas.com
-  ```
-
-  Só e-mails `@chatjuridico.com.br` ou `@escritoriovilasboas.com` são aceitos.
-
-Quem tem a `SUPABASE_SERVICE_ROLE_KEY` no `.env.local` também pode subir tudo
-de uma vez por script: `npm run materiais:upload -- <pasta>`, com um PDF por
-apostila nomeado pelo id (`01.pdf`, `09.pdf`…).
+Só e-mails `@chatjuridico.com.br` ou `@escritoriovilasboas.com` são aceitos.
 
 ## Referência técnica
 
 | Peça | Arquivo |
 |---|---|
-| Catálogo, categorias, busca e regras | `src/data/materiais.ts` |
-| Leitura do bucket e upload assinado | `src/lib/materials/storage.ts` |
-| Página do aluno | `src/app/(members)/area-de-membros/materiais/page.tsx` |
-| Busca e filtro (client) | `src/components/members/course-materials-browser.tsx` |
-| Download do aluno (exige login) | `src/app/api/materiais/alunos/download/route.ts` |
+| Categorias, catálogo inicial, busca e agrupamento | `src/data/materiais.ts` |
+| Regras do cadastro (validação, numeração, caminhos, JSON) | `src/lib/materials/catalog-rules.ts` |
+| Leitura e gravação no bucket | `src/lib/materials/storage.ts` |
 | Aba do admin | `src/components/admin/materials-admin.tsx` |
-| API do admin (listar / assinar upload) | `src/app/api/admin/materials/` |
+| API do admin (listar, criar, editar, excluir / assinar upload) | `src/app/api/admin/materials/` |
+| Página do aluno | `src/app/(members)/area-de-membros/materiais/page.tsx` |
+| Página pública | `src/app/materiais/page.tsx` |
+| Download do aluno (exige login) / público (só gratuitas) | `src/app/api/materiais/alunos/download/`, `src/app/api/materiais/download/` |
+| Capas enviadas pelo admin | `src/app/api/materiais/capa/[file]/route.ts` |
 | Testes | `tests/unit/course-materials.test.ts` |
 
-- O PDF vai do navegador direto para o Storage por URL assinada. O arquivo não
-  passa pela API, então o limite de ~4,5 MB por requisição da Vercel não se
-  aplica.
-- O admin só escolhe a apostila, não o caminho: o destino do upload é sempre o
-  `filePath` cadastrado no código.
-- As apostilas exclusivas não saem pela rota pública `/api/materiais/download`,
-  que só atende as gratuitas.
-- Se a listagem do bucket falhar, a página do aluno mostra o catálogo inteiro
-  em vez de esconder tudo. No pior caso, um download pede para tentar de novo.
+- PDF e capa vão do navegador direto para o Storage por URL assinada. O
+  arquivo não passa pela API, então o limite de ~4,5 MB por requisição da
+  Vercel não se aplica.
+- O admin não escolhe caminho: o servidor define onde cada PDF e cada capa
+  ficam, e só aceita capa com o número da própria apostila.
+- Se a leitura do `catalogo.json` falhar, as páginas dão erro em vez de cair no
+  catálogo antigo, que faria reaparecer apostila já excluída. Se só a listagem
+  dos PDFs falhar, a página mostra o catálogo inteiro; no pior caso, um
+  download pede para tentar de novo.

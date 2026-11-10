@@ -1,15 +1,15 @@
-// Apostilas do curso, em duas listas:
-// - FREE_MATERIALS: liberadas como isca em /materiais (download por
-//   /api/materiais/download, só com lead no client).
-// - MEMBER_MATERIALS: exclusivas de alunos. Junto com as gratuitas, formam os
-//   Materiais Didáticos da área de membros (/area-de-membros/materiais), com
+// Apostilas do curso. O cadastro vivo é editado pelo /admin, aba "Materiais
+// Didáticos", e fica em `catalogo.json` no bucket privado `free-materials`
+// (src/lib/materials/storage.ts). O que está neste arquivo é o catálogo
+// inicial: vale enquanto ninguém salvou nada pelo admin e no modo demo.
+// Depois do primeiro salvamento, editar FREE_MATERIALS aqui não muda o site.
+// - Gratuitas (exclusive: false): aparecem também em /materiais, com o gate de
+//   lead no client, e baixam por /api/materiais/download.
+// - Exclusivas: só na área de membros (/area-de-membros/materiais), com
 //   download por /api/materiais/alunos/download, que exige login.
-// Texto, categoria e capa vivem aqui e em public/ (entram por PR). Os PDFs de
-// ambas ficam no bucket privado `free-materials` e sobem pelo /admin, aba
-// "Materiais Didáticos" (ou `npm run materiais:upload`, para quem tem a chave
-// service_role). Apostila sem PDF no bucket não aparece para o aluno. O
-// download assina o arquivo na hora do clique. Passo a passo em
-// docs/materiais-didaticos.md.
+// Os PDFs e as capas novas ficam no mesmo bucket. Apostila sem PDF no bucket
+// não aparece para ninguém. O download assina o arquivo na hora do clique.
+// Passo a passo em docs/materiais-didaticos.md.
 
 export const FREE_MATERIALS_BUCKET = "free-materials";
 
@@ -22,9 +22,9 @@ export type MaterialCategory = {
 
 /**
  * Categorias dos Materiais Didáticos, na ordem em que aparecem na página.
- * Para criar uma categoria, acrescente uma entrada aqui: o id passa a valer no
- * campo `category` das apostilas (o TypeScript recusa id que não esteja nesta
- * lista). Categoria sem apostila não aparece.
+ * Para criar uma categoria, acrescente uma entrada aqui (PR): ela passa a
+ * aparecer no seletor do /admin. Categoria sem apostila não aparece para o
+ * aluno. Não remova categoria em uso: as apostilas dela somem da página.
  */
 export const MATERIAL_CATEGORIES = [
   {
@@ -54,14 +54,18 @@ export type MaterialEntry = {
   topics: string[];
   pages: number;
   /**
-   * Tamanho do PDF. Opcional nas exclusivas: a área de membros usa o tamanho
-   * real do arquivo no bucket.
+   * Tamanho do PDF. Na hora de mostrar, vale o tamanho real do arquivo no
+   * bucket; o número daqui só serve ao script de upload.
    */
   sizeBytes?: number;
-  /** Caminho do objeto no bucket. */
+  /** Caminho do PDF no bucket. */
   filePath: string;
   /** Nome sugerido no download (ASCII, sem espaço). */
   fileName: string;
+  /**
+   * Capa: caminho em public/ (catálogo inicial), `capas/...` no bucket
+   * (enviada pelo admin) ou vazio (sem capa ainda).
+   */
   cover: string;
 };
 
@@ -224,12 +228,8 @@ export const FREE_MATERIALS: FreeMaterial[] = [
 ];
 
 /**
- * Apostilas exclusivas de alunos. Continue a numeração ("09", "10"…) e use
- * `filePath: "membros/apostila-NN-....pdf"`, para não misturar com as que
- * circulam de graça. A descrição é o que o aluno lê para decidir qual abrir:
- * uma ou duas frases dizendo do que a apostila trata. `category` é
- * obrigatório; se nenhuma servir, crie uma em MATERIAL_CATEGORIES.
- * Modelo comentado e passo a passo: docs/materiais-didaticos.md.
+ * Exclusivas do catálogo inicial (nenhuma). Apostila nova se cadastra pelo
+ * /admin; ver o comentário no topo do arquivo.
  */
 export const MEMBER_MATERIALS: MaterialEntry[] = [];
 
@@ -238,7 +238,7 @@ export type CourseMaterial = MaterialEntry & {
   exclusive: boolean;
 };
 
-/** Tudo que aparece em Materiais Didáticos: gratuitas primeiro, depois as exclusivas. */
+/** Catálogo inicial completo: gratuitas primeiro, depois as exclusivas. */
 export const COURSE_MATERIALS: CourseMaterial[] = [
   ...FREE_MATERIALS.map((material) => ({ ...material, exclusive: false })),
   ...MEMBER_MATERIALS.map((material) => ({ ...material, exclusive: true })),
@@ -322,14 +322,6 @@ export function filterMaterials(
     );
     return words.every((word) => haystack.includes(word));
   });
-}
-
-export function findFreeMaterial(id: string): FreeMaterial | undefined {
-  return FREE_MATERIALS.find((material) => material.id === id);
-}
-
-export function findCourseMaterial(id: string): CourseMaterial | undefined {
-  return COURSE_MATERIALS.find((material) => material.id === id);
 }
 
 export function freeMaterialDownloadHref(id: string): string {

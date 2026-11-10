@@ -4,26 +4,34 @@ import { ArrowRight } from "lucide-react";
 import { ClaudeAcademyBrand } from "@/components/claude-academy-brand";
 import { FreeMaterialsGrid } from "@/components/free-materials-grid";
 import { HeaderBuyCta } from "@/components/header-buy-cta";
-import { FREE_MATERIALS } from "@/data/materiais";
+import { loadPublishedFreeMaterials } from "@/lib/materials/storage";
 import { pageShellClass } from "@/lib/layout";
 import { SITE_BRAND } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
-const TOTAL_PAGES = FREE_MATERIALS.reduce((sum, m) => sum + m.pages, 0);
+// O catálogo é editado pelo /admin, que manda refazer esta página na hora
+// (revalidatePath). O intervalo cobre o PDF enviado direto pelo script.
+export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Apostilas grátis de Claude para advogados | Claude Academy",
-  description: `${FREE_MATERIALS.length} apostilas em PDF do Claude Academy, de graça: configuração, conferência, conectores, skills, projetos e Cowork no escritório. ${TOTAL_PAGES} páginas de material.`,
-  keywords: [
-    "apostila Claude advogados",
-    "material gratuito Claude",
-    "Claude para advocacia PDF",
-    "skills Claude advogados",
-    "Claude Cowork escritório de advocacia",
-  ],
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const materials = await loadPublishedFreeMaterials();
+  const totalPages = materials.reduce((sum, m) => sum + m.pages, 0);
+  return {
+    title: "Apostilas grátis de Claude para advogados | Claude Academy",
+    description: `${materials.length} apostilas em PDF do Claude Academy, de graça: configuração, conferência, conectores, skills, projetos e Cowork no escritório. ${totalPages} páginas de material.`,
+    keywords: [
+      "apostila Claude advogados",
+      "material gratuito Claude",
+      "Claude para advocacia PDF",
+      "skills Claude advogados",
+      "Claude Cowork escritório de advocacia",
+    ],
+  };
+}
 
-export default function MateriaisPage() {
+export default async function MateriaisPage() {
+  const materials = await loadPublishedFreeMaterials();
+
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
@@ -69,7 +77,7 @@ export default function MateriaisPage() {
               As apostilas do Claude Academy, de graça
             </h1>
             <p className="mt-5 text-base leading-relaxed text-[var(--muted)] sm:text-lg">
-              São {FREE_MATERIALS.length} apostilas em PDF que acompanham as
+              São {materials.length} apostilas em PDF que acompanham as
               aulas do curso, do primeiro acesso ao Claude até skills, projetos
               e Cowork no escritório. Você deixa seus dados uma vez e baixa
               todas.
@@ -78,7 +86,7 @@ export default function MateriaisPage() {
         </section>
 
         <section className={cn(pageShellClass, "pb-16")}>
-          <FreeMaterialsGrid />
+          <FreeMaterialsGrid materials={materials} />
           <p className="mt-6 text-center text-xs text-[var(--muted)]">
             Conteúdo conferido entre julho e agosto de 2026. Telas, planos e
             nomes de modelo do Claude mudam com frequência.
