@@ -29,9 +29,9 @@ const priceDetail = `${formatBRL(total)} em 12 parcelas iguais · ou ${formatBRL
 
 export const metadata: Metadata = {
   title: isEvergreen
-    ? "Curso Claude Cowork para Advogados | Matrícula aberta"
-    : "Curso Claude Cowork para Advogados | Garanta sua vaga",
-  description: `Domine o Claude Cowork no escritório. ${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas, liberadas aos poucos. 12× ${formatBRL(PRICING.installments.amount)} ou ${formatBRL(upfront)} à vista.`,
+    ? "Curso Claude para Advogados | Matrícula aberta"
+    : "Curso Claude para Advogados | Garanta sua vaga",
+  description: `Domine o Claude no escritório. ${COURSE_SCOPE.modules} módulos e ${COURSE_SCOPE.lessons} aulas, liberadas aos poucos. 12× ${formatBRL(PRICING.installments.amount)} ou ${formatBRL(upfront)} à vista.`,
 };
 
 export default function CursoSalesPage() {
@@ -87,7 +87,7 @@ export default function CursoSalesPage() {
               {COURSE.title}
             </h1>
             <p className="mt-5 text-base leading-relaxed text-[var(--muted)] sm:text-lg md:text-xl">
-              {COURSE.subtitle}. Domine o Claude Cowork na bancada: peças,
+              {COURSE.subtitle}. Domine o Claude na bancada: peças,
               rotinas automatizadas e uso ético, sem programar.
             </p>
             <p className="mt-8 font-serif text-[clamp(1.75rem,5vw,2.25rem)] text-[var(--foreground)]">

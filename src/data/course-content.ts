@@ -32,7 +32,7 @@ export type Course = {
 };
 
 export const COURSE: Course = {
-  title: "Curso Claude Cowork para Advogados",
+  title: "Curso Claude para Advogados",
   subtitle: "Automatize 100% do seu escritório",
   modules: [
     {

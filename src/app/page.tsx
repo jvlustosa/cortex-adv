@@ -31,9 +31,9 @@ const { total, upfront, savings } = getPricingSummary();
 
 const faqItems: FaqItem[] = [
   {
-    question: "O que é o Curso Claude Cowork para Advogados?",
+    question: "O que é o Curso Claude para Advogados?",
     answer:
-      "É o curso completo do Chat Jurídico pra dominar o Claude Cowork no escritório, com trilha em vídeo, certificado e Comunidade VIP de alunos. Você aprende a redigir peças com contexto do caso, automatizar follow-ups e ganhar horas de volta na semana, com supervisão humana em cada etapa.",
+      "É o curso completo do Chat Jurídico pra dominar o Claude no escritório, com trilha em vídeo, certificado e Comunidade VIP de alunos. Você aprende a redigir peças com contexto do caso, automatizar follow-ups e ganhar horas de volta na semana, com supervisão humana em cada etapa.",
     reaction: "🤯",
   },
   {
@@ -92,7 +92,7 @@ const faqItems: FaqItem[] = [
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Course",
-  name: "Curso Claude Cowork para Advogados",
+  name: "Curso Claude para Advogados",
   description:
     "Curso completo do Chat Jurídico para dominar o Claude no escritório. Trilha em vídeo, Comunidade VIP de alunos e certificado ao concluir.",
   provider: {

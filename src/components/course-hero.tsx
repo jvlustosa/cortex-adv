@@ -12,22 +12,16 @@ const HIGHLIGHTS = [
   "Comunidade VIP exclusiva de alunos: suporte às aulas na matrícula",
 ] as const;
 
-// Legendas que rodam embaixo do logo: identidade + benefícios com gatilhos
-// sutis de diferenciação (exclusividade, domínio, escassez). Cada uma ocupa
-// uma fatia igual do ciclo.
 const CAPTION_SLICE_SECONDS = 5;
 const LOGO_CAPTIONS = [
-  "Claude · Cowork para advogados",
+  "Claude para advogados",
   "Turma pequena, mentoria direta",
   "Do prompt à peça pronta",
   "Poucos usam o Claude assim",
 ] as const;
 
 export function CourseHero() {
-  // Contagem do badge vem do roteiro completo (curso-roteiro.ts), mesma fonte
-  // da página /curso. COURSE (course-content.ts) é só o conteúdo operacional do
-  // player e cobre parte da trilha, então subnotifica o tamanho real do curso.
-  // Bônus conta como aula, mas não como módulo.
+  // COURSE só cobre parte da trilha no player; o roteiro completo dá a contagem real.
   const moduleCount = CURSO_NIVEIS.filter((n) => n.level !== "bonus").length;
   const lessonCount = totalAulas();
 
@@ -43,7 +37,7 @@ export function CourseHero() {
             </h1>
             <p className={styles.lead}>
               {COURSE.subtitle}. O curso completo do Chat Jurídico para dominar
-              o Claude Cowork na bancada: peças, automação e uso ético, sem
+              o Claude na bancada: peças, automação e uso ético, sem
               programar. Inclui Comunidade VIP exclusiva de alunos e mentoria
               com{" "}
               <strong className="text-[var(--foreground)]">
